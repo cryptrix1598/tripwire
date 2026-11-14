@@ -21,7 +21,7 @@
  * signed-in user. See README → "App Check from a chrome-extension:// origin".
  */
 import { getApp, getApps, initializeApp, type FirebaseApp } from 'firebase/app';
-import { CustomProvider, initializeAppCheck, type AppCheck } from 'firebase/app-check';
+import { CustomProvider, getToken, initializeAppCheck, type AppCheck } from 'firebase/app-check';
 import { appCheckDebugToken, firebaseConfig, isFirebaseConfigured } from './config';
 
 let appCheck: AppCheck | null = null;
@@ -67,4 +67,19 @@ export function getFirebaseApp(): FirebaseApp {
 
 export function appCheckReady(): boolean {
   return appCheck !== null && Boolean(appCheckDebugToken);
+}
+
+/**
+ * Ask the App Check backend for a token right now. Resolves to 'valid' only if
+ * Firebase accepted this build's credentials and issued a real token.
+ */
+export async function appCheckProbe(): Promise<'valid' | string> {
+  try {
+    getFirebaseApp();
+    if (!appCheck) return 'App Check is not initialised';
+    const { token } = await getToken(appCheck, false);
+    return token ? 'valid' : 'empty token';
+  } catch (err) {
+    return `failed: ${String(err instanceof Error ? err.message : err).slice(0, 160)}`;
+  }
 }

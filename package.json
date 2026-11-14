@@ -18,6 +18,7 @@
     "test:rules": "firebase emulators:exec --only firestore --project demo-tripwire \"vitest run tests/rules\"",
     "eval": "tsx scripts/eval.ts",
     "e2e": "node scripts/e2e.mjs",
+    "live": "node scripts/live.mjs",
     "deploy:dashboard": "npm run build:dashboard && firebase deploy --only hosting,firestore:rules"
   },
   "dependencies": {

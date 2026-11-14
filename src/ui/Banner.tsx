@@ -36,6 +36,7 @@ export function Banner({ verdict, onDismiss }: { verdict: Verdict; onDismiss: ()
         <div className="tw-banner__why">
           <div className="tw-why__part">
             <h3 className="tw-why__title">{WHY.flagsLabel}</h3>
+            {verdict.explanation && <p>{verdict.explanation}</p>}
             <ul className="tw-flags">
               {flagsFor(verdict).map((flag) => (
                 <li key={flag}>

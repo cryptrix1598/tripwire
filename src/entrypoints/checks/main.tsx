@@ -6,14 +6,33 @@
 import { useState } from 'react';
 import { ALL_SAMPLES } from '../../../corpus';
 import { loadConfig } from '../../config/store';
-import { appCheckReady } from '../../firebase/app';
+import { appCheckProbe } from '../../firebase/app';
 import { isFirebaseConfigured } from '../../firebase/config';
+import type { AiEngine } from '../../inference/engine';
 import { runEval, type EvalSummary } from '../../inference/evalCore';
 import { firebaseEngine, hybridProbe, onDeviceStatus, prepareOnDeviceModel } from '../../inference/firebaseEngine';
 import { assess } from '../../inference/router';
 import { CHECKS } from '../../ui/copy';
 import { mount } from '../../ui/ext';
 import { Brand } from '../../ui/kit';
+
+/**
+ * The corpus sends dozens of cloud requests back to back, which the free
+ * Gemini Developer API tier rejects (requests per minute). Spacing them out
+ * measures the router, not the quota. Normal browsing never comes close.
+ */
+function paced(engine: AiEngine, gapMs: number): AiEngine {
+  let last = 0;
+  return {
+    ...engine,
+    analyzeInCloud: async (...args) => {
+      const wait = last + gapMs - Date.now();
+      if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
+      last = Date.now();
+      return engine.analyzeInCloud(...args);
+    },
+  };
+}
 
 const show = (value: unknown) => (typeof value === 'string' ? value : JSON.stringify(value, null, 2));
 const pct = (n: number) => `${Math.round(n * 1000) / 10}%`;
@@ -36,7 +55,15 @@ function Checks() {
 
   const refresh = run('status', async () => {
     const configured = isFirebaseConfigured();
-    setStatus(show({ firebaseConfigured: configured, onDevice: configured ? await onDeviceStatus() : 'not configured', appCheck: configured ? appCheckReady() : false, online: navigator.onLine }));
+    setStatus(
+      show({
+        firebaseConfigured: configured,
+        onDevice: configured ? await onDeviceStatus() : 'not configured',
+        // A live request to the App Check backend, not just "was it initialised".
+        appCheckToken: configured ? await appCheckProbe() : 'not configured',
+        online: navigator.onLine,
+      }),
+    );
   });
   const prepare = run('prepare', async () => {
     await prepareOnDeviceModel((f) => setStatus(`Downloading on-device model: ${Math.round(f * 100)}%`));
@@ -54,7 +81,7 @@ function Checks() {
   });
   const corpus = run('corpus', async () => {
     setSummary(null);
-    const result = await runEval(ALL_SAMPLES, firebaseEngine, await loadConfig(), 'live-extension', (done, total, row) =>
+    const result = await runEval(ALL_SAMPLES, paced(firebaseEngine, 4200), await loadConfig(), 'live-extension', (done, total, row) =>
       setProgress(`${done} / ${total} · ${row.id}: ${row.state} via ${row.route}`),
     );
     setSummary(result);

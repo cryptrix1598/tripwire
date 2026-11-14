@@ -1,0 +1,11 @@
+{
+  "parameters": {
+    "tripwire_config": {
+      "defaultValue": {
+        "value": "{\"promptVersion\":\"v1\",\"cloudModel\":\"gemini-3.5-flash-lite\",\"thresholds\":{\"low\":30,\"high\":80,\"minTripConfidence\":0.6,\"minCorroboration\":40,\"rulesOnlyCaution\":60}}"
+      },
+      "description": "Tripwire thresholds, prompt version and cloud model. Any key left out falls back to the default built into the extension. Keyword lists can be added under \"keywords\".",
+      "valueType": "JSON"
+    }
+  }
+}

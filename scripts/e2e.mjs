@@ -93,9 +93,17 @@ try {
   });
 
   let routeLine = '';
-  await step('fake bank message: calm banner with reasons and a route badge', async () => {
+  await step('fake bank message: flagged on reading, with reasons and a route badge', async () => {
     await page.goto(`${DEMO}/bank.html`);
-    await expectVisible(ui(page, '.tw-banner'));
+    await expectVisible(ui(page, '.tw-banner, .tw-overlay'), 30_000);
+    if ((await ui(page, '.tw-overlay').count()) > 0) {
+      // With a live model the page is confidently a scam, so Tripwire pauses on reading.
+      await ui(page).getByRole('button', { name: 'Why did Tripwire stop me?' }).click();
+      await expectVisible(ui(page, '.tw-flags li'));
+      routeLine = await text(ui(page, '.tw-route'));
+      await shot(page, 'pause-live', true);
+      return;
+    }
     await page.waitForTimeout(500);
     await shot(page, 'caution-banner', true);
     await ui(page, '.tw-banner').getByRole('button', { name: 'Why?' }).click();
@@ -106,12 +114,13 @@ try {
   console.log(`        route shown: ${routeLine}`);
 
   await step('fake bank message: focusing the card field pauses the page', async () => {
-    await page.locator('#cc').focus();
+    const alreadyPaused = (await ui(page, '.tw-overlay').count()) > 0;
+    if (!alreadyPaused) await page.locator('#cc').focus();
     await expectVisible(ui(page, '.tw-overlay'));
     const said = await text(ui(page, '.tw-overlay'));
     if (!said.includes('Did someone call, text, or email you')) throw new Error('pause question missing');
     await page.waitForTimeout(400);
-    await shot(page, 'pause', true);
+    if (!alreadyPaused) await shot(page, 'pause', true);
   });
 
   await step('"Stop and stay safe" leaves the page for the "you stopped" screen', async () => {
