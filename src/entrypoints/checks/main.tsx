@@ -12,6 +12,7 @@ import type { AiEngine } from '../../inference/engine';
 import { runEval, type EvalSummary } from '../../inference/evalCore';
 import { firebaseEngine, hybridProbe, onDeviceStatus, prepareOnDeviceModel } from '../../inference/firebaseEngine';
 import { assess } from '../../inference/router';
+import { send, type StatusReply } from '../../messaging';
 import { CHECKS } from '../../ui/copy';
 import { mount } from '../../ui/ext';
 import { Brand } from '../../ui/kit';
@@ -55,10 +56,13 @@ function Checks() {
 
   const refresh = run('status', async () => {
     const configured = isFirebaseConfigured();
+    // The extension's real AI host is the offscreen document; ask it what it can see.
+    const host = await send<StatusReply>({ target: 'background', type: 'get-status' });
     setStatus(
       show({
         firebaseConfigured: configured,
         onDevice: configured ? await onDeviceStatus() : 'not configured',
+        offscreenDocument: host ? { promptApiPresent: host.promptApiInOffscreen, onDevice: host.onDevice } : 'not reachable',
         // A live request to the App Check backend, not just "was it initialised".
         appCheckToken: configured ? await appCheckProbe() : 'not configured',
         online: navigator.onLine,

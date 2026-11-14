@@ -55,7 +55,7 @@ try {
     const status = JSON.parse(await lastPre(card('Status')));
     if (!status.firebaseConfigured) throw new Error('Firebase is not configured in this build');
     if (status.appCheckToken !== 'valid') throw new Error(`App Check token: ${status.appCheckToken}`);
-    return `on-device model: ${status.onDevice}, App Check token: ${status.appCheckToken}`;
+    return `on-device model: ${status.onDevice}, App Check token: ${status.appCheckToken}, offscreen document: ${JSON.stringify(status.offscreenDocument)}`;
   });
 
   await step('one hybrid call through Firebase AI Logic', async () => {

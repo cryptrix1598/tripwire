@@ -50,6 +50,7 @@ async function status(): Promise<StatusReply> {
   return {
     firebaseConfigured: isFirebaseConfigured(),
     onDevice: isFirebaseConfigured() ? await onDeviceStatus() : 'unavailable',
+    promptApiInOffscreen: typeof (globalThis as { LanguageModel?: unknown }).LanguageModel !== 'undefined',
     guardianReady,
     guardianCount: count,
     configSource,

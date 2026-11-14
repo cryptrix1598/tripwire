@@ -45,6 +45,7 @@ const verdict: Verdict = {
 const status: StatusReply = {
   firebaseConfigured: true,
   onDevice: (params.get('model') as StatusReply['onDevice']) ?? 'downloadable',
+  promptApiInOffscreen: false,
   guardianReady: true,
   guardianCount: 1,
   configSource: 'default',

@@ -47,6 +47,8 @@ export interface AssessReply {
 export interface StatusReply {
   firebaseConfigured: boolean;
   onDevice: OnDeviceStatus;
+  /** Whether Chrome exposes the Prompt API (LanguageModel) inside the offscreen document at all. */
+  promptApiInOffscreen: boolean;
   /** Signed in and able to reach Firestore. */
   guardianReady: boolean;
   guardianCount: number;

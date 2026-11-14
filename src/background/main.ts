@@ -151,6 +151,7 @@ async function handleStatus(): Promise<StatusReply> {
   return {
     firebaseConfigured: false,
     onDevice: 'unavailable',
+    promptApiInOffscreen: false,
     guardianReady: false,
     guardianCount: 0,
     configSource: 'default',

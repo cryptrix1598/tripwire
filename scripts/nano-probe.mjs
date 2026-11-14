@@ -15,7 +15,8 @@ const playwrightDisabled = (/disabledFeatures = \[([\s\S]*?)\];/.exec(bundle)?.[
   .split('\n')
   .map((line) => /^\s*"([^"]+)"/.exec(line)?.[1])
   .filter(Boolean);
-const server = await createServer({ configFile: resolve('dashboard/vite.config.ts'), logLevel: 'error' });
+// No hot reload: a file change must not reload the page in the middle of a long download or corpus run.
+const server = await createServer({ configFile: resolve('dashboard/vite.config.ts'), logLevel: 'error', server: { hmr: false, watch: null } });
 await server.listen();
 const context = await chromium.launchPersistentContext(resolve('.nano-profile'), {
   channel: 'chrome',
