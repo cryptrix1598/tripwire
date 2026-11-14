@@ -18,7 +18,10 @@ export const firebaseConfig: FirebaseOptions = {
 };
 
 /** App Check debug token for development and the hackathon submission build. */
-export const appCheckDebugToken: string = env.WXT_APPCHECK_DEBUG_TOKEN ?? '';
+/** Defined only by the dashboard's local dev server (see dashboard/vite.config.ts); never in a build. */
+declare const __APPCHECK_DEBUG_TOKEN__: string | undefined;
+export const appCheckDebugToken: string =
+  env.WXT_APPCHECK_DEBUG_TOKEN ?? (typeof __APPCHECK_DEBUG_TOKEN__ === 'string' ? __APPCHECK_DEBUG_TOKEN__ : '');
 
 /** Where the family dashboard lives, shown to the user while pairing. */
 export const dashboardUrl: string = (env.WXT_DASHBOARD_URL ?? '').replace(/\/+$/, '');

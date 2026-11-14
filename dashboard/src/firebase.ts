@@ -9,11 +9,8 @@ import { initializeApp } from 'firebase/app';
 import { CustomProvider, ReCaptchaV3Provider, initializeAppCheck } from 'firebase/app-check';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import { firebaseConfig, isFirebaseConfigured } from '../../src/firebase/config';
-
-/** Set by dashboard/vite.config.ts: the debug token on the local dev server, an empty string in every build. */
-declare const __APPCHECK_DEBUG_TOKEN__: string;
-const appCheckDebugToken = __APPCHECK_DEBUG_TOKEN__;
+// The debug token is set by dashboard/vite.config.ts: present on the local dev server, an empty string in every build.
+import { appCheckDebugToken, firebaseConfig, isFirebaseConfigured } from '../../src/firebase/config';
 
 export const configured = isFirebaseConfigured();
 const app = configured ? initializeApp(firebaseConfig) : null;

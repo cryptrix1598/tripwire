@@ -20,3 +20,6 @@ Thumbs.db
 
 # Local tool settings
 .claude/
+
+# Chrome profile used only for on-device model tests (holds the multi-GB model)
+.nano-profile/

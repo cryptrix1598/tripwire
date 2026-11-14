@@ -176,7 +176,7 @@ Stated plainly so nobody is surprised:
 
 - The on-device half has not run yet. The automated runs use Playwright's Chromium, which has no Gemini Nano, so every live check so far took the "no on-device AI" route (regex redaction, then cloud). The on-device triage, on-device redaction and the offline demo still need a run in desktop Chrome with the model downloaded.
 - Whether Chrome exposes the Prompt API inside an offscreen document has not been confirmed on a real machine. If it does not, the fallback is to host the model in an extension page (the Developer checks page already does this).
-- App Check is enforced for Firebase AI Logic. It is not enforced for Firestore yet, because the hosted family page has no reCAPTCHA key; Firestore is protected by the security rules.
+- App Check is enforced for Firebase AI Logic, and that was tested: the same request without an App Check token is refused with HTTP 401, while the extension's calls pass. It is not enforced for Firestore yet, because the hosted family page has no reCAPTCHA key; Firestore is protected by the security rules.
 
 ## Project layout
 
