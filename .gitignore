@@ -1,0 +1,22 @@
+node_modules/
+.output/
+.wxt/
+dist/
+dashboard/dist/
+.env
+.env.*
+!.env.example
+*.log
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+eval-results/*.local.json
+.impeccable/review/
+.impeccable/mocks/
+.impeccable/config.local.json
+.DS_Store
+Thumbs.db
+
+# Local tool settings
+.claude/

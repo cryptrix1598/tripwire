@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Checkout · Maple Lane Garden Supply</title>
+    <link rel="stylesheet" href="./demo.css" />
+  </head>
+  <body>
+    <p class="practice">Practice page. Everything on it is invented. <a href="./">Back to the list</a></p>
+    <div class="site" style="background: #4b6b3a">Maple Lane Garden Supply</div>
+    <main data-scenario="benign" data-trigger="card_entry">
+      <h1>Checkout</h1>
+      <p class="meta">Order summary</p>
+      <p>2 × Tomato seedlings, 1 × Watering can, 1 × Potting soil (20 lb bag). Subtotal $38.40, shipping $5.95, total $44.35.</p>
+      <p>Your order will arrive in 3 to 5 business days. You can change or cancel it from your orders page any time before it ships. Questions about an order? Our help pages cover deliveries and returns.</p>
+      <form onsubmit="return false">
+        <h2>Payment</h2>
+        <label for="name">Name on card</label>
+        <input id="name" name="ccname" autocomplete="cc-name" />
+        <label for="cc">Card number</label>
+        <input id="cc" name="cardnumber" autocomplete="cc-number" inputmode="numeric" />
+        <label for="exp">Expiry date</label>
+        <input id="exp" name="cc-exp" autocomplete="cc-exp" placeholder="MM / YY" />
+        <button class="cta calm" type="submit">Place order</button>
+      </form>
+    </main>
+  </body>
+</html>

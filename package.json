@@ -1,0 +1,47 @@
+{
+  "name": "tripwire",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Tripwire steps in at the exact moment you're about to fall for a scam, and protects your privacy while doing it.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "build": "wxt build",
+    "zip": "wxt zip",
+    "dev:dashboard": "vite --config dashboard/vite.config.ts",
+    "build:dashboard": "vite build --config dashboard/vite.config.ts && node scripts/copy-demo.mjs",
+    "demo": "vite demo --port 4174 --strictPort",
+    "icons": "node scripts/make-icons.mjs",
+    "typecheck": "wxt prepare && tsc --noEmit",
+    "test": "vitest run --exclude tests/rules/**",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-tripwire \"vitest run tests/rules\"",
+    "eval": "tsx scripts/eval.ts",
+    "e2e": "node scripts/e2e.mjs",
+    "deploy:dashboard": "npm run build:dashboard && firebase deploy --only hosting,firestore:rules"
+  },
+  "dependencies": {
+    "firebase": "^13.3.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^6.0.0",
+    "@fontsource/atkinson-hyperlegible": "^5.3.0",
+    "@types/chrome": "^0.3.7",
+    "@types/jsdom": "^30.0.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "@wxt-dev/module-react": "^1.2.2",
+    "firebase-tools": "^15.36.0",
+    "jsdom": "^31.0.1",
+    "playwright": "^1.65.1",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0",
+    "wxt": "^0.21.5"
+  }
+}

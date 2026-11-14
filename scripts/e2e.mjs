@@ -1,0 +1,161 @@
+// End-to-end run in a real Chromium with the built extension loaded:
+//   npm run build && npm run e2e
+// It drives the practice pages in demo/ and saves screenshots to docs/screenshots.
+// With no .env this exercises the built-in-rules path; with Firebase configured
+// the same steps run through the live cloud path.
+import { existsSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
+import { chromium } from 'playwright';
+import { createServer } from 'vite';
+
+const EXT = resolve('.output/chrome-mv3');
+const SHOTS = resolve('docs/screenshots');
+const DEMO = 'http://localhost:4174';
+if (!existsSync(join(EXT, 'manifest.json'))) throw new Error('Build the extension first: npm run build');
+mkdirSync(SHOTS, { recursive: true });
+
+const server = await createServer({ root: 'demo', configFile: false, logLevel: 'error', server: { port: 4174, strictPort: true } });
+await server.listen();
+const profile = mkdtempSync(join(tmpdir(), 'tripwire-e2e-'));
+const context = await chromium.launchPersistentContext(profile, {
+  channel: 'chromium',
+  headless: !process.argv.includes('--headed'),
+  viewport: { width: 1280, height: 800 },
+  args: [`--disable-extensions-except=${EXT}`, `--load-extension=${EXT}`],
+});
+
+const results = [];
+async function step(name, fn) {
+  try {
+    await fn();
+    results.push(['pass', name]);
+    console.log(`  ok    ${name}`);
+  } catch (err) {
+    results.push(['FAIL', name]);
+    console.log(`  FAIL  ${name}\n        ${String(err.message ?? err).split('\n')[0]}`);
+  }
+}
+const shot = (page, name) => page.screenshot({ path: join(SHOTS, `${name}.png`) });
+const ui = (page, selector = '') => page.locator(`tripwire-ui ${selector}`.trim());
+const expectVisible = (locator, timeout = 15_000) => locator.first().waitFor({ state: 'visible', timeout });
+const text = async (locator) => (await locator.first().innerText()).replace(/\s+/g, ' ');
+
+try {
+  const worker = context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker', { timeout: 20_000 }));
+  const id = new URL(worker.url()).host;
+  const ext = (path) => `chrome-extension://${id}/${path}`;
+  console.log(`Extension ${id}\n`);
+
+  await step('setup opens on install and walks through three screens', async () => {
+    const page = context.pages().find((p) => p.url().includes('onboarding.html')) ?? (await context.waitForEvent('page', { predicate: (p) => p.url().includes('onboarding.html'), timeout: 10_000 }));
+    await expectVisible(page.getByRole('heading', { name: 'Tripwire steps in at the moment it matters.' }));
+    await shot(page, 'onboarding-1-what');
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await expectVisible(page.getByText('The most that is ever sent'));
+    await page.waitForTimeout(800);
+    await shot(page, 'onboarding-2-privacy');
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await expectVisible(page.getByRole('button', { name: 'Show a pairing code' }));
+    await shot(page, 'onboarding-3-family');
+    await page.close();
+  });
+
+  const page = await context.newPage();
+
+  await step('ordinary checkout: nothing is added to the page, even with a card number typed', async () => {
+    await page.goto(`${DEMO}/shop.html`);
+    await page.locator('#cc').click();
+    await page.keyboard.type('4111 1111 1111 1111', { delay: 20 });
+    await page.waitForTimeout(4000);
+    if ((await page.locator('tripwire-ui').count()) !== 0) throw new Error('Tripwire UI appeared on a safe page');
+  });
+
+  let routeLine = '';
+  await step('fake bank message: calm banner with reasons and a route badge', async () => {
+    await page.goto(`${DEMO}/bank.html`);
+    await expectVisible(ui(page, '.tw-banner'));
+    await page.waitForTimeout(500);
+    await shot(page, 'caution-banner');
+    await ui(page, '.tw-banner').getByRole('button', { name: 'Why?' }).click();
+    await expectVisible(ui(page, '.tw-flags li'));
+    routeLine = await text(ui(page, '.tw-route'));
+    await shot(page, 'caution-banner-why');
+  });
+  console.log(`        route shown: ${routeLine}`);
+
+  await step('fake bank message: focusing the card field pauses the page', async () => {
+    await page.locator('#cc').focus();
+    await expectVisible(ui(page, '.tw-overlay'));
+    const said = await text(ui(page, '.tw-overlay'));
+    if (!said.includes('Did someone call, text, or email you')) throw new Error('pause question missing');
+    await page.waitForTimeout(400);
+    await shot(page, 'pause');
+  });
+
+  await step('"Stop and stay safe" leaves the page for the "you stopped" screen', async () => {
+    await ui(page).getByRole('button', { name: 'Stop and stay safe' }).click();
+    await page.waitForURL(/safe\.html/, { timeout: 10_000 });
+    await expectVisible(page.getByRole('heading', { name: 'That was the right call.' }));
+    await shot(page, 'you-stopped');
+  });
+
+  await step('gift card demand: code field pauses; "I\'m sure, continue" lets the person through once', async () => {
+    await page.goto(`${DEMO}/giftcard.html`);
+    await expectVisible(ui(page, '.tw-banner, .tw-overlay'));
+    if ((await ui(page, '.tw-overlay').count()) === 0) await page.locator('#gc').focus();
+    await expectVisible(ui(page, '.tw-overlay'));
+    await ui(page).getByRole('button', { name: 'I’m sure, continue' }).click();
+    await ui(page, '.tw-overlay').waitFor({ state: 'detached', timeout: 5000 });
+    await page.locator('#gc').focus();
+    await page.waitForTimeout(1500);
+    if ((await ui(page, '.tw-overlay').count()) !== 0) throw new Error('paused again after the person chose to continue');
+  });
+
+  await step('investment offer: wallet field pauses the page', async () => {
+    await page.goto(`${DEMO}/crypto.html`);
+    await expectVisible(ui(page, '.tw-banner, .tw-overlay'));
+    if ((await ui(page, '.tw-overlay').count()) === 0) await page.locator('#wallet').focus();
+    await expectVisible(ui(page, '.tw-overlay'));
+  });
+
+  await step('fake tech support: the phone link pauses instead of dialling', async () => {
+    await page.goto(`${DEMO}/support.html`);
+    await expectVisible(ui(page, '.tw-banner, .tw-overlay'));
+    if ((await ui(page, '.tw-overlay').count()) === 0) await page.getByRole('link', { name: 'Call support now' }).click();
+    await expectVisible(ui(page, '.tw-overlay'));
+    await ui(page).getByRole('button', { name: 'I’m sure, continue' }).click();
+    await ui(page, '.tw-overlay').waitFor({ state: 'detached', timeout: 5000 });
+  });
+
+  await step('fake tech support: a remote-access download is paused in its own tab', async () => {
+    const [paused] = await Promise.all([
+      context.waitForEvent('page', { predicate: (p) => p.url().includes('pause.html'), timeout: 15_000 }),
+      page.getByRole('link', { name: 'Download remote support tool' }).click(),
+    ]);
+    await expectVisible(paused.getByText('You are about to install a program that lets a stranger control this computer.'));
+    await shot(paused, 'pause-download');
+    await paused.getByRole('button', { name: 'Stop and stay safe' }).click();
+    await paused.waitForURL(/safe\.html/, { timeout: 10_000 });
+    await paused.close();
+  });
+
+  await step('popup renders its three facts', async () => {
+    const popup = await context.newPage();
+    await popup.setViewportSize({ width: 380, height: 560 });
+    await popup.goto(ext('popup.html'));
+    await expectVisible(popup.getByRole('heading', { name: 'Tripwire is watching for scams.' }));
+    await expectVisible(popup.getByText('Family alerts'));
+    await popup.waitForTimeout(800);
+    await shot(popup, 'popup');
+    await popup.close();
+  });
+} finally {
+  await context.close();
+  await server.close();
+  rmSync(profile, { recursive: true, force: true });
+}
+
+const failed = results.filter(([state]) => state === 'FAIL').length;
+console.log(`\n${results.length - failed} of ${results.length} steps passed. Screenshots: docs/screenshots`);
+process.exit(failed ? 1 : 0);

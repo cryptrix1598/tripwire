@@ -1,0 +1,177 @@
+[
+  {
+    "id": "scam-01-tech-support-popup",
+    "category": "tech_support",
+    "hostname": "windows-defender-alert.example",
+    "trigger": "passive",
+    "text": "WINDOWS DEFENDER SECURITY ALERT. Your computer has been locked. Error code 0x80072ee7. Virus detected: Trojan Spyware. Your personal files, photos and banking passwords are at risk. Do not close this window and do not restart your computer or your data will be lost. Call Microsoft Support immediately at 1-888-555-0142 (toll free). A Microsoft certified technician is standing by to remove the threat."
+  },
+  {
+    "id": "scam-02-apple-security-popup",
+    "category": "tech_support",
+    "hostname": "apple-care-security.example",
+    "trigger": "passive",
+    "text": "Apple Security Warning. Your Mac is infected with 3 viruses. Viruses detected: Tapsnake, CronDNS, Dubfishicv. Your Apple ID and credit card details may already be stolen. Call Apple Support immediately: +1 (877) 555-0188. Do not shut down your device. If you leave this page your Mac will be disabled to protect our network. Time is running out."
+  },
+  {
+    "id": "scam-03-norton-renewal-refund",
+    "category": "tech_support",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "Dear Margaret Ellison, Thank you for renewing Norton 360 Total Protection. Your card ending 4821 has been charged $489.99 today. Invoice number NRT8840217739. If you did not authorise this charge you must call our billing department within 24 hours to claim your refund: 1 (855) 555-0119. After 24 hours the charge cannot be reversed. Regards, Norton Billing Team"
+  },
+  {
+    "id": "scam-04-anydesk-technician",
+    "category": "tech_support",
+    "hostname": "quick-pc-repair-help.example",
+    "trigger": "passive",
+    "text": "Your PC is infected and your internet banking is not secure. To fix this problem right now, download our support tool. Step 1: Click the button below to download AnyDesk. Step 2: Open AnyDesk and read the 9 digit code to the Microsoft technician on the phone. Step 3: Click Accept so our technician can connect to your computer. Stay on the line with your agent until the repair is finished. Do not tell your bank that we are helping you, they will block the repair."
+  },
+  {
+    "id": "scam-05-geek-squad-email",
+    "category": "tech_support",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "Geek Squad Order Confirmation. Hello Robert Hanley, your annual Geek Squad Total Protection plan has been auto-renewed for $399.00 and will be debited from your account within 12 hours. Customer ID 99283411. To cancel this renewal and claim your refund, call now on 1-866-555-0177. Failure to respond today means the amount will be deducted. Thanks, Geek Squad Billing"
+  },
+  {
+    "id": "scam-06-bank-lock-card-form",
+    "category": "bank_impersonation",
+    "hostname": "secure-firstnational-verify.example",
+    "trigger": "card_entry",
+    "text": "First National Bank. Important: your account has been locked. We detected unusual activity on your debit card. To restore access you must verify your identity within 24 hours or your account will be permanently closed. Please enter your card number, expiry date, security code (CVV) and online banking password below. Card number. Expiry. CVV. Enter your PIN. Unlock your account now."
+  },
+  {
+    "id": "scam-07-bank-unusual-activity",
+    "category": "bank_impersonation",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "URGENT: Unauthorized transaction on your account. Dear Customer, a payment of $1,249.00 to an unknown merchant was attempted from your checking account ending 7730. If you do not confirm your identity immediately your account will be suspended. Verify your account here: http://citywide-bank-secure.example/verify?session=8839201&user=d.whitaker@example.com. You must re-enter your Social Security number and one-time passcode. Fraud Department, Citywide Bank"
+  },
+  {
+    "id": "scam-08-amazon-order-call",
+    "category": "shopping_impersonation",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "Amazon Security. Your order #112-4839201-5529834 for an Apple MacBook Pro ($2,399.00) has been placed and will ship to 4410 Birchwood Lane, Tulsa, OK 74105. If you did not place this order, call Amazon Support immediately on 1-844-555-0163 to cancel before it ships. Our agent will help you secure your account. Act now, this order ships within the hour."
+  },
+  {
+    "id": "scam-09-amazon-suspended",
+    "category": "shopping_impersonation",
+    "hostname": "amaz0n-account-review.example",
+    "trigger": "card_entry",
+    "text": "Amazon. Your account has been suspended. We were unable to verify your payment method. To reactivate your account you must update your billing information within 48 hours, otherwise your account will be permanently deleted along with your order history and Prime membership. Update your payment. Name on card. Card number. Expiration date. Security code. Confirm your identity to continue."
+  },
+  {
+    "id": "scam-10-paypal-invoice",
+    "category": "payment_request",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "PayPal Security notice. You sent a payment of $629.99 USD to Crypto Hub Trading. Transaction ID 7HG28819KL0442611. If you did not make this payment, it is an unauthorized transaction. Call our fraud department right away at +1 888 555 0126 to dispute and claim your refund. Do not ignore this message. The money will leave your account within 24 hours."
+  },
+  {
+    "id": "scam-11-gift-card-boss",
+    "category": "gift_card",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "Hi Linda, are you at your desk? I need a quick favour and I'm in a meeting so I can't talk right now. I need you to buy 5 Apple gift cards at $100 each for client gifts. Please scratch off the back and send me the codes by email as soon as possible. Keep this between us for now, it's a surprise for the team. I'll reimburse you this afternoon. Thanks, David Marsh, CEO. Sent from my iPhone"
+  },
+  {
+    "id": "scam-12-grandchild-gift-cards",
+    "category": "gift_card",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "Grandma it's me. I'm in trouble and I need your help right away. I was in a car accident and the lawyer says I need $2,000 for bail today. Please don't tell Mom and Dad, I'm so embarrassed. The lawyer said the fastest way is Google Play gift cards from the pharmacy. Buy four $500 gift cards and send me a photo of the back of the card with the numbers. Do not tell the cashier what they are for. Please hurry."
+  },
+  {
+    "id": "scam-13-utility-shutoff-gift-cards",
+    "category": "gift_card",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "FINAL NOTICE from Tri-County Power & Light. Your electricity account 5530198842 is overdue by $486.20 and service will be disconnected within the hour. To avoid disconnection you must pay immediately using a prepaid gift card. Purchase a Target card or Walmart card, then call our disconnection desk at 1-800-555-0101 and read me the numbers from the back. Do not go to our office, payments are not accepted there today."
+  },
+  {
+    "id": "scam-14-crypto-guaranteed-returns",
+    "category": "investment_crypto",
+    "hostname": "apex-quantum-invest.example",
+    "trigger": "passive",
+    "text": "Apex Quantum Trading. Join 40,000 members earning guaranteed returns of 3% every day. Our AI trading robot cannot lose. Deposit $500 in Bitcoin and double your money in 30 days, risk-free investment, guaranteed profit. Spots close before midnight. Send your deposit to our wallet address bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh and message your account manager on WhatsApp +44 7700 900123 to activate daily returns."
+  },
+  {
+    "id": "scam-15-crypto-romance",
+    "category": "romance",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "My dearest Patricia, I think about you every day. I am still stuck on the oil rig and the company froze my salary account. My uncle showed me a crypto platform with guaranteed returns and I already made $80,000 but I cannot withdraw without paying a release fee. Could you send $3,500 in USDT to this wallet address 0x52908400098527886E0F7030069857D2E4169EE7 today? Please keep this private, your family would not understand us. I will repay you double when I land."
+  },
+  {
+    "id": "scam-16-bitcoin-atm-fine",
+    "category": "government_impersonation",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "Notice from Officer Daniel Reyes, Federal Investigations Unit. A warrant for your arrest has been issued for missed jury duty, case number 2291884-JD. To avoid arrest you must pay the $4,800 fine immediately. Withdraw cash from your bank and deposit it at the nearest Bitcoin ATM using the QR code we send. Do not tell the bank why you are withdrawing the money. Stay on the phone with the officer the whole time. Failure to act today means police will come to your home."
+  },
+  {
+    "id": "scam-17-usps-redelivery-fee",
+    "category": "delivery",
+    "hostname": "usps-parcel-redeliver.example",
+    "trigger": "card_entry",
+    "text": "U.S. Postal Service. Delivery attempt failed. Your package 9400111899223100012847 could not be delivered because of an incomplete address. To schedule redelivery, pay the small redelivery fee of $1.99 within 24 hours or the parcel will be returned to sender. Enter your card details to pay the redelivery fee. Full name. Street address. Card number. Expiry date. CVV. Confirm your details."
+  },
+  {
+    "id": "scam-18-customs-fee",
+    "category": "delivery",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "DHL Express: Your parcel is on hold at customs. Dear Customer, your shipment JD014600006281234567 cannot be released until the customs fee of $2.75 is paid. Pay now to avoid return of the parcel: https://dhl-customs-release.example/pay?id=JD014600006281234567&email=r.okafor@example.net. This is the final notice. Payment required within 12 hours. You will be asked to enter your card and confirm your identity."
+  },
+  {
+    "id": "scam-19-irs-warrant",
+    "category": "government_impersonation",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "Internal Revenue Service, Final Warning. Our records show you owe $6,340.18 in back taxes. A warrant for your arrest will be issued today and legal action has begun. To stop this immediately you must call the IRS tax office at 1-877-555-0155 and settle your outstanding balance by wire transfer or gift cards. Do not contact your accountant, this matter is confidential. Failure to respond will result in arrest within 24 hours."
+  },
+  {
+    "id": "scam-20-ssn-suspended",
+    "category": "government_impersonation",
+    "hostname": "ssa-benefit-review.example",
+    "trigger": "passive",
+    "text": "Social Security Administration. Your Social Security number has been suspended because of suspicious activity in Texas. Your benefits will be stopped and your bank accounts frozen. To restore access you must verify your identity immediately. Call the security department now at 1-833-555-0190 and have your Social Security number and bank details ready. A federal agent will move your money to a safe government account. Do not tell anyone about this investigation."
+  },
+  {
+    "id": "scam-21-medicare-new-card",
+    "category": "government_impersonation",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "Medicare Notice: Your new plastic Medicare card is ready. Hello Dorothy Bennett, your current card expires today and your benefits will be cancelled unless you confirm your details. To receive the new card you must verify your identity with your Medicare number, Social Security number and bank account for the $9.95 processing fee. Call now on 1-866-555-0134. Urgent: your benefits will be interrupted if we do not hear from you within 24 hours."
+  },
+  {
+    "id": "scam-22-lottery-fee",
+    "category": "prize_lottery",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "CONGRATULATIONS! You have won $850,000.00 in the International Mega Sweepstakes. You are our winner, ticket number 0098-4471-2205. To claim your prize you must pay the release fee and taxes of $1,250 by Western Union or MoneyGram to our claims agent. Keep this confidential until your prize is paid to avoid double claims. Reply with your full name, address, date of birth and bank details right away. Offer expires today."
+  },
+  {
+    "id": "scam-23-refund-overpayment",
+    "category": "tech_support",
+    "hostname": "refund-desk-support.example",
+    "trigger": "passive",
+    "text": "Refund Department. You are owed a refund of $299 for your cancelled security subscription. To claim your refund, our agent needs remote access to fill in the refund form with you. Download TeamViewer from the link below and share your screen. Oh no, we accidentally sent you $2,990 instead of $299. You must wire the money back immediately or I will lose my job. Go to your bank and wire the funds today. Do not tell the bank it is for a refund, stay on the phone with me."
+  },
+  {
+    "id": "scam-24-email-storage-phish",
+    "category": "phishing_login",
+    "hostname": "webmail-storage-upgrade.example",
+    "trigger": "passive",
+    "text": "Mail Administrator. Your mailbox is 99% full. Incoming messages are being rejected. Your account will be closed within 24 hours and all emails permanently deleted unless you validate your account now. Confirm your account to keep your address. Email address. Password. Confirm password. Final warning: failure to act will result in data loss."
+  },
+  {
+    "id": "scam-25-romance-wire",
+    "category": "romance",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "My love, the hospital will not release me until the bill is paid and my cards do not work in this country. I hate to ask, but can you wire the money today? Please go to Western Union and send $2,200 to my friend who is helping me. If the cashier asks, say it is for a family member, do not tell the bank anything else. Please do this right now, I am scared. Do not tell your family yet, I want to meet them properly first."
+  }
+]

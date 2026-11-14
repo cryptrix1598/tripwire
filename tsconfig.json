@@ -1,0 +1,16 @@
+{
+  "extends": "./.wxt/tsconfig.json",
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "resolveJsonModule": true,
+    "jsx": "react-jsx",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "types": ["chrome", "node"]
+  },
+  "include": ["src/**/*", "dashboard/**/*", "scripts/**/*", "tests/**/*", "corpus/**/*.json", ".wxt/wxt.d.ts", "*.ts"],
+  "exclude": ["node_modules", ".output", "dashboard/dist"]
+}

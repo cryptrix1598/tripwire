@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Citywide Bank: Security Alert</title>
+    <link rel="stylesheet" href="./demo.css" />
+  </head>
+  <body>
+    <p class="practice">Practice page. Everything on it is invented. <a href="./">Back to the list</a></p>
+    <div class="site" style="background: #0b4f8a">Citywide Bank</div>
+    <main data-scenario="scam" data-trigger="card_entry">
+      <h1>URGENT: Your account has been suspended</h1>
+      <p class="meta">Citywide Bank Fraud Department</p>
+      <p>Dear Customer, we detected unauthorized activity on your checking account. A payment of $1,249.00 to an unknown merchant was attempted this morning.</p>
+      <p>You must verify your identity immediately. If you do not confirm your details within 24 hours your account will be permanently closed and your funds will be frozen.</p>
+      <p>Do not contact your local branch about this case, as it is under confidential investigation. Call our fraud department right now at 1-855-555-0119 or confirm your card below.</p>
+      <form onsubmit="return false">
+        <label for="cc">Card number</label>
+        <input id="cc" name="cardnumber" autocomplete="cc-number" inputmode="numeric" placeholder="1234 5678 9012 3456" />
+        <label for="pin">Card PIN and one-time passcode</label>
+        <input id="pin" name="otp" inputmode="numeric" />
+        <button class="cta" type="submit">Verify my account now</button>
+      </form>
+    </main>
+  </body>
+</html>

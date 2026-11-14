@@ -1,0 +1,21 @@
+/* Plain, generic "some website" styling for the practice pages. Deliberately
+   not Tripwire's look, so Tripwire's own banner and pause stand apart. */
+* { box-sizing: border-box; }
+body { margin: 0; font: 16px/1.6 Arial, Helvetica, sans-serif; color: #23282e; background: #f4f5f7; }
+.practice { margin: 0; padding: 8px 16px; background: #23282e; color: #fff; font-size: 14px; text-align: center; }
+.practice a { color: #fff; }
+.site { padding: 16px 24px; color: #fff; font-size: 20px; font-weight: bold; }
+main { max-width: 720px; margin: 32px auto; padding: 32px; background: #fff; border: 1px solid #d9dde3; border-radius: 6px; }
+h1 { margin: 0 0 16px; font-size: 26px; line-height: 1.25; }
+h2 { font-size: 18px; margin: 24px 0 8px; }
+.meta { color: #5b6570; font-size: 14px; }
+label { display: block; margin: 16px 0 6px; font-weight: bold; }
+input { width: 100%; max-width: 360px; padding: 10px 12px; font-size: 16px; border: 1px solid #8a94a0; border-radius: 4px; }
+.cta { display: inline-block; margin-top: 20px; padding: 12px 22px; border: 0; border-radius: 4px; background: #c22f2f; color: #fff; font-size: 16px; font-weight: bold; text-decoration: none; cursor: pointer; }
+.cta.calm { background: #2f6fc2; }
+.alarm { border: 3px solid #c22f2f; }
+.alarm h1 { color: #c22f2f; }
+ul.cases { list-style: none; padding: 0; }
+ul.cases li { padding: 16px 0; border-top: 1px solid #d9dde3; }
+ul.cases a { font-size: 18px; font-weight: bold; color: #1a56c4; }
+ul.cases p { margin: 4px 0 0; }

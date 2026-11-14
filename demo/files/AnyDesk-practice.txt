@@ -1,0 +1,2 @@
+This is a harmless text file used by the Tripwire practice page.
+It only borrows the name of a remote-access program so the download tripwire can be shown.

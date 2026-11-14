@@ -1,0 +1,20 @@
+/* Atkinson Hyperlegible (Braille Institute, SIL Open Font License), bundled so nothing loads from the network. */
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/atkinson-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/atkinson-700.woff2') format('woff2');
+}
+html,
+body {
+  margin: 0;
+  background: #eef3f6;
+}

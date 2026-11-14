@@ -1,0 +1,177 @@
+[
+  {
+    "id": "benign-01-bank-new-signin",
+    "category": "bank_notice",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "First National Bank. New sign-in to your account. Hello Margaret, we noticed a sign-in to online banking from a new device on Tuesday at 9:14 AM. If this was you, no action is needed. If you do not recognise this sign-in, sign in to the mobile app and choose Security, or call the number on the back of your card. We will never ask you for your password or PIN by email."
+  },
+  {
+    "id": "benign-02-bank-statement-ready",
+    "category": "bank_notice",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "Your October statement is ready. Hello Robert, your statement for the checking account ending in 4471 is now available in online banking. To view it, sign in the way you normally do. There is nothing you need to do. Thank you for banking with Citywide Bank. Member FDIC."
+  },
+  {
+    "id": "benign-03-bank-fraud-education",
+    "category": "education",
+    "hostname": "firstnational.example",
+    "trigger": "passive",
+    "text": "How to protect yourself from scams. Scammers often pretend to be your bank. They may say your account has been locked or that there is unusual activity, and push you to act immediately. First National Bank will never ask you to buy gift cards, move money to a safe account, or share a one-time passcode. Warning signs of a scam: pressure to act right away, requests for remote access to your computer, and being told to keep it secret. If something feels wrong, hang up and call the number on the back of your card. Report fraud to our team at any branch."
+  },
+  {
+    "id": "benign-04-shipping-out-for-delivery",
+    "category": "shipping",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "Your package is out for delivery. Hi Linda, good news: your order from Hartwell Garden Supply is on the truck and should arrive today between 1 PM and 5 PM. Tracking number 1Z999AA10123456784. No signature is required and no action is needed. You can follow the delivery in the carrier app."
+  },
+  {
+    "id": "benign-05-delivered",
+    "category": "shipping",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "Delivered: your package was left at the front door. Your parcel from Bluebird Books was delivered today at 2:42 PM to 218 Maple Court. Thanks for shopping with us. If you can't find your parcel, check with neighbours first and then visit the Help section of our website."
+  },
+  {
+    "id": "benign-06-order-confirmation",
+    "category": "shopping",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "Thanks for your order, Dorothy. Order #114-2208731-9981462. Arriving Thursday. 1 x Cast Iron Skillet 10 inch, $34.99. Shipping to 77 Harbor View Drive, Portland, ME 04101. Order total $37.44, paid with Visa ending in 1881. You can view or change your order in Your Orders. We hope to see you again soon."
+  },
+  {
+    "id": "benign-07-checkout-page",
+    "category": "shopping",
+    "hostname": "hartwellgarden.example",
+    "trigger": "card_entry",
+    "text": "Checkout. Hartwell Garden Supply. Cart: 2 x Tomato cage, 1 x Garden gloves. Subtotal $41.50. Shipping $5.95. Total $47.45. Contact email. Shipping address. Payment. Card number. Name on card. Expiration date. Security code. Billing address same as shipping. Place order. Returns accepted within 30 days. Secure checkout."
+  },
+  {
+    "id": "benign-08-gift-card-product-page",
+    "category": "gift_card",
+    "hostname": "bluebirdbooks.example",
+    "trigger": "passive",
+    "text": "Bluebird Books Gift Card. The perfect present for the reader in your life. Choose an amount: $25, $50, $100. Gift cards are delivered by email or as a physical card in a gift envelope. Gift cards never expire and can be used in store or online. Add to cart. Gift cards can only be used at Bluebird Books and should only be given as gifts to people you know."
+  },
+  {
+    "id": "benign-09-gift-card-receipt",
+    "category": "gift_card",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "Your gift card order has shipped. Hi Susan, the $50 Bluebird Books gift card you bought for your granddaughter's birthday is on its way to her and should arrive by Friday. Order total $50.00. Thank you for your purchase. Questions? Visit our Help page."
+  },
+  {
+    "id": "benign-10-consumer-article-gift-cards",
+    "category": "education",
+    "hostname": "consumer-advice.example",
+    "trigger": "passive",
+    "text": "Consumer advice: Gift card scams. Only scammers will tell you to buy a gift card, like a Google Play or Apple card, and send them the codes. Scammers may say they are from the IRS, tech support, or a family member in trouble, and that you must pay immediately. How to spot the scam: they say it is urgent, they tell you which gift card to buy, they ask you to read the numbers off the back, and they tell you not to tell the cashier. If you paid a scammer with a gift card, report it to the card company right away. Report a scam to the consumer protection agency."
+  },
+  {
+    "id": "benign-11-remote-software-vendor",
+    "category": "remote_access",
+    "hostname": "teamviewer.example",
+    "trigger": "passive",
+    "text": "TeamViewer Remote. Secure remote access and support for IT teams. Connect to devices across your company, support employees wherever they work, and manage unattended servers. Free for personal use. Download for Windows. Security: protect yourself from misuse. We will never ask you to install our software by cold call. Only grant remote access to people you know and trust. How to recognize a remote access scam."
+  },
+  {
+    "id": "benign-12-it-helpdesk-article",
+    "category": "remote_access",
+    "hostname": "helpdesk.example",
+    "trigger": "passive",
+    "text": "IT Helpdesk knowledge base: Requesting remote support. If you have a problem with your work laptop, open a ticket in the staff portal. A named technician from the IT team will message you in the portal to arrange a remote session at a time that suits you. You will always see the technician's name and ticket number. Our team will never ask for your password. No action is needed until your ticket is assigned."
+  },
+  {
+    "id": "benign-13-irs-official-info",
+    "category": "education",
+    "hostname": "irs.example",
+    "trigger": "passive",
+    "text": "Tax scams and consumer alerts. The IRS does not initiate contact with taxpayers by email, text message or social media to request personal or financial information. The IRS will never ask for payment by gift card or wire transfer, and will never threaten arrest. Scammers often impersonate the IRS and demand that people pay immediately. How to recognize these scams and how to report phishing: forward suspicious messages to the reporting address listed on this page."
+  },
+  {
+    "id": "benign-14-ssa-statement",
+    "category": "government",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "Your Social Security Statement is available. Hello, your annual statement is ready to view. It shows your earnings history and an estimate of future benefits. To see it, sign in to your personal account the way you usually do. This is an informational message and no action is required. Please do not reply to this email."
+  },
+  {
+    "id": "benign-15-medicare-open-enrollment",
+    "category": "government",
+    "hostname": "medicare.example",
+    "trigger": "passive",
+    "text": "Medicare Open Enrollment runs from October 15 to December 7. During this time you can review your coverage and compare plans for next year. If you are happy with your current plan, you do not need to do anything. Medicare will never call you to sell you anything or ask for your Medicare number. Compare plans online or visit a local counselling office for free help."
+  },
+  {
+    "id": "benign-16-crypto-news-article",
+    "category": "finance",
+    "hostname": "dailyledger.example",
+    "trigger": "passive",
+    "text": "Markets: Bitcoin slips as investors weigh interest rate outlook. Bitcoin fell 2.1 percent on Tuesday while Ethereum was little changed. Analysts said cryptocurrency prices remain volatile and investors can lose money. Regulators again warned consumers that no legitimate investment offers guaranteed returns, and urged people to report fraud. Elsewhere, shares in regional banks rose."
+  },
+  {
+    "id": "benign-17-bank-wire-help-article",
+    "category": "finance",
+    "hostname": "citywidebank.example",
+    "trigger": "passive",
+    "text": "Help centre: How to send a wire transfer. You can send a domestic wire transfer from online banking or at any branch. You will need the recipient's name, bank routing number and account number. Wire transfers usually arrive the same business day and cannot be reversed once sent, so only send money to people you know and trust. Scammers often ask for wire transfers. Citywide Bank will never ask you to move money to protect it."
+  },
+  {
+    "id": "benign-18-sale-newsletter",
+    "category": "marketing",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "Last chance: our autumn sale ends tonight. Hurry, 30 percent off all knitwear until midnight. Free shipping on orders over $50. Shop new arrivals, cosy cardigans and wool scarves. You are receiving this email because you signed up at Fernhill Clothing. Unsubscribe at any time."
+  },
+  {
+    "id": "benign-19-password-reset-requested",
+    "category": "account",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "Reset your password. Hi Thomas, we received a request to reset the password for your Bluebird Books account. Use the button below to choose a new password. This link expires in one hour. If you did not request this, you can safely ignore this email and your password will stay the same."
+  },
+  {
+    "id": "benign-20-two-factor-code",
+    "category": "account",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "Your verification code is 482913. Enter this code to finish signing in to Fernhill Clothing. The code expires in 10 minutes. If this was you, no further action is needed after you sign in. We will never ask you to share this code with anyone, including our staff."
+  },
+  {
+    "id": "benign-21-utility-bill-ready",
+    "category": "utility",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "Your Tri-County Power & Light bill is ready. Hello Patricia, your bill for October is $86.20 and is due on November 21. You are enrolled in AutoPay, so your payment will be made automatically from the bank account on file. No action is needed. To view your bill or usage, sign in to your account."
+  },
+  {
+    "id": "benign-22-doctor-appointment",
+    "category": "appointment",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "Appointment reminder from Lakeside Family Practice. Hello Dorothy, this is a reminder of your appointment with Dr. Alvarez on Thursday, November 19 at 10:30 AM. Please arrive 10 minutes early and bring your insurance card. If you need to reschedule, call the front desk on 207-555-0146 during office hours."
+  },
+  {
+    "id": "benign-23-charity-donation-page",
+    "category": "shopping",
+    "hostname": "riverbendfoodbank.example",
+    "trigger": "card_entry",
+    "text": "Donate to Riverbend Community Food Bank. Your gift helps feed local families this winter. Choose an amount: $25, $50, $100, other. Make this a monthly gift. Your details: name, email. Payment: card number, expiration date, security code. Donate now. Riverbend Community Food Bank is a registered nonprofit. You will receive a receipt for your records by email."
+  },
+  {
+    "id": "benign-24-antivirus-blog",
+    "category": "education",
+    "hostname": "safehome-security.example",
+    "trigger": "passive",
+    "text": "Blog: What to do about fake virus pop-ups. A sudden full-screen message saying your computer is infected and telling you to call a number is a tech support scam. Real security software never asks you to call a phone number. How to avoid it: do not call the number, do not let anyone connect to your computer, and close the browser. Scammers will try to keep you on the phone. How to protect yourself from these pop-ups and how to report a scam are explained below."
+  },
+  {
+    "id": "benign-25-subscription-renewal-legit",
+    "category": "account",
+    "hostname": "mail.google.com",
+    "trigger": "passive",
+    "text": "Your SafeHome Security subscription renews on December 3. Hi Robert, this is a reminder that your annual plan will renew for $59.99 using the card on file. You do not need to do anything to keep your protection. To change or cancel your plan, sign in to your account and choose Subscriptions. Thank you for being a customer since 2021."
+  }
+]
