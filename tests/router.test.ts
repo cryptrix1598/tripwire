@@ -86,6 +86,22 @@ describe('router: on-device path', () => {
     expect(v.state).toBe('caution');
   });
 
+  it('lets a confident cloud "this is fine" overrule an unsure device model', async () => {
+    // Found in the live on-device corpus run: device said 75, cloud said 0, and
+    // the old 60/40 blend landed exactly on the caution line for a gift-card shop page.
+    const engine = fakeEngine({ triage: async () => triageJson(75, 0.5), cloud: async () => cloudJson(0, 0.95, 'none') });
+    const v = await run(SCAM.text, engine);
+    expect(v.route).toBe('device_then_cloud');
+    expect(v.state).toBe('safe');
+    expect(v.redFlags).toEqual([]);
+  });
+
+  it('keeps the device vote when the cloud is not confident it is fine', async () => {
+    const engine = fakeEngine({ triage: async () => triageJson(75, 0.5), cloud: async () => cloudJson(10, 0.3, 'none') });
+    const v = await run(SCAM.text, engine);
+    expect(v.state).toBe('caution');
+  });
+
   it('still catches a high-risk page with Wi-Fi off', async () => {
     const engine = fakeEngine({
       triage: async () => triageJson(92),

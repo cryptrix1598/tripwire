@@ -343,12 +343,16 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
   const cloud = await runCloud(modelRedactor, t);
   if (cloud.kind === 'ok') {
     const a = cloud.analysis;
-    // The cloud model has the stronger judgement; the device model keeps a vote.
-    const merged = Math.round(0.6 * a.riskScore + 0.4 * t.riskScore);
+    // The device was unsure, which is the only reason the cloud was asked. If the
+    // stronger model is confident the page is fine, that settles it: a leftover
+    // device vote must never turn an ordinary page into a warning.
+    const cleared = a.riskScore < low && a.confidence >= minTripConfidence;
+    // Otherwise the cloud model leads and the device model keeps a vote.
+    const merged = cleared ? a.riskScore : Math.round(0.6 * a.riskScore + 0.4 * t.riskScore);
     return finish({
       score: merged,
-      scamType: a.scamType !== 'none' ? a.scamType : t.scamType,
-      redFlags: [...a.redFlags, ...t.redFlags],
+      scamType: cleared ? 'none' : a.scamType !== 'none' ? a.scamType : t.scamType,
+      redFlags: cleared ? [] : [...a.redFlags, ...t.redFlags],
       explanation: a.plainEnglishExplanation,
       confidence: Math.max(a.confidence, t.confidence),
       route: 'device_then_cloud',

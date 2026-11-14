@@ -158,15 +158,17 @@ Corpus: 25 scam and 25 ordinary messages in [corpus/](corpus).
 | --- | --- | --- | --- |
 | Built-in rules only (`npm run eval`) | 23 / 25 (3 paused) | **0 / 25** | 0 |
 | Live through Firebase AI Logic, cloud path (`npm run live`) | **25 / 25** (25 paused) | **0 / 25** | 14,162, all redacted first |
-| Live, on-device model first | not run yet (needs Gemini Nano on the test machine) | | |
+| Live, Gemini Nano on the device first (`node scripts/nano-probe.mjs --checks --corpus`) | **25 / 25** (25 paused), three runs | **0 / 25**, three runs | 310 to 1,010 per run, all redacted first |
 
-The two misses on rules alone are refund-style messages with few warning words; the model catches both. In the live run 15 of the 50 samples were never sent anywhere (no warning signs), and the other 35 went to the cloud only after redaction. Raw results: [eval-results/live.json](eval-results/live.json).
+The two misses on rules alone are refund-style messages with few warning words; the model catches both. In the cloud-path run 15 of the 50 samples were never sent anywhere (no warning signs), and the other 35 went to the cloud only after redaction. Raw results: [eval-results/live.json](eval-results/live.json).
+
+**With the on-device model, 34 to 36 of the 50 samples were decided entirely on the device, 13 needed no model at all, and only 1 to 3 went to the cloud: 310 to 1,010 redacted bytes per run, against 14,162 without the on-device gate.** Raw results of the last run: [eval-results/live-on-device.json](eval-results/live-on-device.json). These runs used desktop Chrome 157 with Gemini Nano, through the Developer checks page served as a web page (Chrome will not load an unpacked extension under automation). The on-device model's answers vary a little from run to run, so the corpus was run three times after the last change; all three had zero false alarms. A run before that produced one borderline false alarm on a gift-card shop page, which led to a router fix and a regression test (a confident "this is fine" from the cloud model now overrules an unsure device model).
 
 The same live run (`npm run live`) also checks, against the real project: an App Check token is issued for the extension, one hybrid Firebase AI Logic call answers, a pairing code is created, a guardian pairs on the hosted family page, and stopping a scam makes an alert appear there within seconds.
 
 ![A live alert on the hosted family page](docs/screenshots/family-live.png)
 
-Unit tests: 93 passing. Security-rules tests: 12 passing. End-to-end in Chromium: 11 of 11 steps passing on the built-in-rules path (setup, silent on an ordinary checkout, banner, pause on card / gift card / wallet / phone link, paused download, stop, continue, popup, family page gallery).
+Unit tests: 95 passing. Security-rules tests: 12 passing. End-to-end in Chromium: 11 of 11 steps passing on the built-in-rules path (setup, silent on an ordinary checkout, banner, pause on card / gift card / wallet / phone link, paused download, stop, continue, popup, family page gallery).
 
 Accessibility: the same run audits every screen with axe-core. WCAG 2.2 A/AA: 0 problems. All text also meets AAA contrast (7:1).
 
@@ -174,8 +176,8 @@ Accessibility: the same run audits every screen with axe-core. WCAG 2.2 A/AA: 0 
 
 Stated plainly so nobody is surprised:
 
-- The on-device half has not run yet. The automated runs use Playwright's Chromium, which has no Gemini Nano, so every live check so far took the "no on-device AI" route (regex redaction, then cloud). The on-device triage, on-device redaction and the offline demo still need a run in desktop Chrome with the model downloaded.
-- Whether Chrome exposes the Prompt API inside an offscreen document has not been confirmed on a real machine. If it does not, the fallback is to host the model in an extension page (the Developer checks page already does this).
+- The on-device model has been run through Firebase AI Logic in desktop Chrome (triage, redaction and the full router), but from a web page, not from inside the loaded extension. Chrome does expose the Prompt API in the extension's offscreen document (checked in Chromium 159: the API is present), but the model actually answering there, and the Wi-Fi-off demo, still need one manual run with the extension loaded in desktop Chrome. If the offscreen document cannot run the model, the fallback is to host it in an extension page (the Developer checks page already does this).
+- Scanning inside Gmail has not been tested against a real mailbox.
 - App Check is enforced for Firebase AI Logic, and that was tested: the same request without an App Check token is refused with HTTP 401, while the extension's calls pass. It is not enforced for Firestore yet, because the hosted family page has no reCAPTCHA key; Firestore is protected by the security rules.
 
 ## Project layout
