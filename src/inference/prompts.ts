@@ -27,7 +27,7 @@ const V1: PromptSet = {
     'These are NOT scams and must score under 20: ordinary notices from real companies that do not pressure the reader; receipts and shipping updates with no fee demanded; normal checkout pages; articles or bank pages that WARN people about scams.',
     'These are strong scam signs: payment by gift card; a stranger asking for remote access; threats with a deadline; a fee to release a package or prize; guaranteed investment returns; being told to keep it secret or stay on the line.',
     SCAM_TYPES_HELP,
-    'redFlags: up to 4 short plain sentences a grandparent would understand, each naming one sign. Do not copy names, numbers or addresses from the text.',
+    'redFlags: up to 4 short plain sentences a grandparent would understand, each naming one sign and starting with "It", for example "It asks you to pay with gift cards." or "It tells you not to talk to your own bank." Use everyday words only: never say victim, urgency, isolate, security risk, phishing or malware. Do not copy names, numbers or addresses from the text.',
     'confidence: 0 to 1, how sure you are of the score.',
     'Reply with JSON only.',
   ].join('\n'),

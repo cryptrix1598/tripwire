@@ -54,8 +54,8 @@ TypeScript (strict), Manifest V3 with WXT, React, Shadow DOM for the in-page UI,
 ## Results
 
 - Test corpus of 25 scam and 25 ordinary messages.
-- **With Gemini Nano on the device first (three runs): 25 of 25 scams flagged, 0 of 25 false alarms, every run.** 34 to 36 of the 50 samples were decided entirely on the device, 13 needed no model, and only 1 to 3 went to the cloud.
-- **The privacy gate, measured:** 310 to 1,010 redacted bytes left the device per run, against 14,162 when the same corpus runs without the on-device model. That is a 93 to 98 percent cut in what is sent, with the same detection.
+- **With Gemini Nano on the device first (four runs): 25 of 25 scams flagged, 0 of 25 false alarms, every run.** 33 to 36 of the 50 samples were decided entirely on the device, 13 needed no model, and only 1 to 4 went to the cloud.
+- **The privacy gate, measured:** 310 to 1,351 redacted bytes left the device per run, against 14,162 when the same corpus runs without the on-device model. That is a 90 to 98 percent cut in what is sent, with the same detection.
 - Cloud path only (a device with no on-device AI): 25 of 25 flagged, 0 false alarms; 15 samples never sent, 35 redacted first.
 - With no AI at all (offline, rules only): 23 of 25 flagged, 0 false alarms.
 - 95 unit tests, 12 security-rules tests, an 11-step end-to-end run in Chromium, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems; all text meets AAA contrast).

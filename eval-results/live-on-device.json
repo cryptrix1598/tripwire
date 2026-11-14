@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-11-14T21:02:56.732Z",
+  "ranAt": "2026-11-14T21:50:13.077Z",
   "mode": "live-extension",
   "promptVersion": "v1",
   "scams": 25,
@@ -10,11 +10,11 @@
   "detectionRate": 1,
   "falsePositiveRate": 0,
   "routes": {
-    "on_device": 35,
-    "device_then_cloud": 2,
+    "on_device": 33,
+    "device_then_cloud": 4,
     "not_checked": 13
   },
-  "totalBytesSentToCloud": 667,
+  "totalBytesSentToCloud": 1351,
   "rows": [
     {
       "id": "scam-01-tech-support-popup",
@@ -26,7 +26,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4968,
+      "elapsedMs": 3216,
       "correct": true
     },
     {
@@ -39,7 +39,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4170,
+      "elapsedMs": 3175,
       "correct": true
     },
     {
@@ -52,7 +52,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4691,
+      "elapsedMs": 3270,
       "correct": true
     },
     {
@@ -65,7 +65,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 3964,
+      "elapsedMs": 3453,
       "correct": true
     },
     {
@@ -78,7 +78,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4317,
+      "elapsedMs": 2959,
       "correct": true
     },
     {
@@ -91,7 +91,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4589,
+      "elapsedMs": 3287,
       "correct": true
     },
     {
@@ -104,7 +104,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4426,
+      "elapsedMs": 3182,
       "correct": true
     },
     {
@@ -117,7 +117,7 @@
       "bytesSentToCloud": 310,
       "redactionCount": 3,
       "failSafe": false,
-      "elapsedMs": 8482,
+      "elapsedMs": 7416,
       "correct": true
     },
     {
@@ -130,7 +130,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4110,
+      "elapsedMs": 3697,
       "correct": true
     },
     {
@@ -143,7 +143,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4163,
+      "elapsedMs": 2863,
       "correct": true
     },
     {
@@ -156,7 +156,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 3894,
+      "elapsedMs": 2887,
       "correct": true
     },
     {
@@ -169,7 +169,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 3852,
+      "elapsedMs": 3068,
       "correct": true
     },
     {
@@ -177,12 +177,12 @@
       "label": "scam",
       "category": "gift_card",
       "state": "tripped",
-      "riskScore": 92,
+      "riskScore": 90,
       "route": "on_device",
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4303,
+      "elapsedMs": 3227,
       "correct": true
     },
     {
@@ -195,7 +195,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 3263,
+      "elapsedMs": 2740,
       "correct": true
     },
     {
@@ -208,7 +208,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 3986,
+      "elapsedMs": 2920,
       "correct": true
     },
     {
@@ -221,7 +221,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4033,
+      "elapsedMs": 3270,
       "correct": true
     },
     {
@@ -234,7 +234,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4399,
+      "elapsedMs": 3357,
       "correct": true
     },
     {
@@ -247,7 +247,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 3401,
+      "elapsedMs": 2912,
       "correct": true
     },
     {
@@ -260,7 +260,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4446,
+      "elapsedMs": 3174,
       "correct": true
     },
     {
@@ -273,7 +273,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 3984,
+      "elapsedMs": 3120,
       "correct": true
     },
     {
@@ -286,7 +286,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4433,
+      "elapsedMs": 3112,
       "correct": true
     },
     {
@@ -299,7 +299,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 3702,
+      "elapsedMs": 3045,
       "correct": true
     },
     {
@@ -312,7 +312,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4188,
+      "elapsedMs": 3194,
       "correct": true
     },
     {
@@ -325,7 +325,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 3664,
+      "elapsedMs": 2993,
       "correct": true
     },
     {
@@ -338,7 +338,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 3397,
+      "elapsedMs": 2961,
       "correct": true
     },
     {
@@ -377,7 +377,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 3598,
+      "elapsedMs": 2879,
       "correct": true
     },
     {
@@ -424,12 +424,12 @@
       "label": "benign",
       "category": "shopping",
       "state": "safe",
-      "riskScore": 10,
-      "route": "on_device",
-      "bytesSentToCloud": 0,
-      "redactionCount": 0,
+      "riskScore": 5,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 320,
+      "redactionCount": 6,
       "failSafe": false,
-      "elapsedMs": 4021,
+      "elapsedMs": 7268,
       "correct": true
     },
     {
@@ -437,12 +437,12 @@
       "label": "benign",
       "category": "gift_card",
       "state": "safe",
-      "riskScore": 2,
+      "riskScore": 0,
       "route": "device_then_cloud",
       "bytesSentToCloud": 357,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 9225,
+      "elapsedMs": 6869,
       "correct": true
     },
     {
@@ -455,7 +455,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4660,
+      "elapsedMs": 2606,
       "correct": true
     },
     {
@@ -468,7 +468,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 3780,
+      "elapsedMs": 2990,
       "correct": true
     },
     {
@@ -481,7 +481,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 3671,
+      "elapsedMs": 2011,
       "correct": true
     },
     {
@@ -489,12 +489,12 @@
       "label": "benign",
       "category": "remote_access",
       "state": "safe",
-      "riskScore": 10,
+      "riskScore": 20,
       "route": "on_device",
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 3528,
+      "elapsedMs": 3215,
       "correct": true
     },
     {
@@ -507,7 +507,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 3981,
+      "elapsedMs": 3152,
       "correct": true
     },
     {
@@ -541,12 +541,12 @@
       "label": "benign",
       "category": "finance",
       "state": "safe",
-      "riskScore": 15,
+      "riskScore": 10,
       "route": "on_device",
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 3492,
+      "elapsedMs": 3036,
       "correct": true
     },
     {
@@ -554,12 +554,12 @@
       "label": "benign",
       "category": "finance",
       "state": "safe",
-      "riskScore": 10,
+      "riskScore": 20,
       "route": "on_device",
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4558,
+      "elapsedMs": 3150,
       "correct": true
     },
     {
@@ -598,7 +598,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 1,
+      "elapsedMs": 0,
       "correct": true
     },
     {
@@ -632,12 +632,12 @@
       "label": "benign",
       "category": "shopping",
       "state": "safe",
-      "riskScore": 15,
-      "route": "on_device",
-      "bytesSentToCloud": 0,
-      "redactionCount": 0,
+      "riskScore": 5,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 364,
+      "redactionCount": 2,
       "failSafe": false,
-      "elapsedMs": 4333,
+      "elapsedMs": 6863,
       "correct": true
     },
     {
@@ -645,12 +645,12 @@
       "label": "benign",
       "category": "education",
       "state": "safe",
-      "riskScore": 5,
+      "riskScore": 25,
       "route": "on_device",
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 3965,
+      "elapsedMs": 3148,
       "correct": true
     },
     {

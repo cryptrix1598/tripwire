@@ -58,7 +58,7 @@ export function routeExplanation(verdict: Verdict): string {
 }
 
 export function flagsFor(verdict: Verdict): string[] {
-  const flags = verdict.redFlags.filter((f) => typeof f === 'string' && f.trim().length > 0).slice(0, 5);
+  const flags = verdict.redFlags.filter((f) => typeof f === 'string' && f.trim().length > 0).slice(0, 4);
   return flags.length > 0 ? flags : [WHY.noFlags];
 }
 
