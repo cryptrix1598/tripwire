@@ -209,9 +209,9 @@ export function AlertRow({ alert }: { alert: Alert }) {
       <div className="tw-alert__outcome">
         <p className={`tw-outcome${continued ? ' tw-outcome--continued' : ''}`}>
           {continued ? (
-            <NoticeIcon color="#7A4B00" />
+            <NoticeIcon color="#6b4100" />
           ) : (
-            <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1F6A4B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#17553b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" />
               <polyline points="7,12.5 10.5,16 17,8.5" />
             </svg>

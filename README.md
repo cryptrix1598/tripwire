@@ -34,6 +34,10 @@ Captured by `npm run e2e` from the built extension running in Chromium, on the p
 | --- | --- |
 | ![Onboarding screen 2](docs/screenshots/onboarding-2-privacy.png) | ![Toolbar popup](docs/screenshots/popup.png) |
 
+| Family page: connect | Family page: alerts (sample data) |
+| --- | --- |
+| ![Pairing by six-digit code](docs/screenshots/family-connect.png) | ![Alert feed](docs/screenshots/family-alerts.png) |
+
 ## How it uses Firebase AI Logic
 
 All AI inference goes through Firebase AI Logic (`firebase/ai`), in one file: [src/inference/firebaseEngine.ts](src/inference/firebaseEngine.ts). There are no other model APIs anywhere in the codebase, and no Gemini API key: the Firebase AI Logic proxy holds it server-side.
@@ -154,7 +158,9 @@ Corpus: 25 scam and 25 ordinary messages in [corpus/](corpus).
 
 The two misses on rules alone are refund-style messages with few warning words; they are the cases the models exist for. The live row is filled in from the **Developer checks** page once a Firebase project is connected.
 
-Unit tests: 93 passing. Security-rules tests: 12 passing. End-to-end in Chromium: 10 of 10 steps passing on the built-in-rules path (setup, silent on an ordinary checkout, banner, pause on card / gift card / wallet / phone link, paused download, stop, continue, popup).
+Unit tests: 93 passing. Security-rules tests: 12 passing. End-to-end in Chromium: 11 of 11 steps passing on the built-in-rules path (setup, silent on an ordinary checkout, banner, pause on card / gift card / wallet / phone link, paused download, stop, continue, popup, family page gallery).
+
+Accessibility: the same run audits every screen with axe-core. WCAG 2.2 A/AA: 0 problems. All text also meets AAA contrast (7:1).
 
 ## Not verified yet
 

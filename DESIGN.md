@@ -14,10 +14,10 @@ One look across the in-page UI, the extension pages and the family page. Tokens 
 | `--tw-ink` | `#0E2233` | Text |
 | `--tw-ground` | `#EEF3F6` | Page background |
 | `--tw-surface` | `#FFFFFF` | Cards, the feed |
-| `--tw-text-2` | `#3F5668` | Secondary text |
+| `--tw-text-2` | `#34495a` | Secondary text |
 | `--tw-signal` | `#F0B429` | The signal: mark, focus ring, banner border, progress |
 | `--tw-signal-soft` | `#FFF3D1` | Banner background, "continued anyway" row |
-| `--tw-ok` | `#1F6A4B` | "They stopped", "On" |
+| `--tw-ok` | `#17553b` | "They stopped", "On" |
 
 Route dots: green (on device), orange (redacted, then cloud), blue (no on-device AI), grey (rules only). A dot never stands alone; the words beside it say the same thing.
 

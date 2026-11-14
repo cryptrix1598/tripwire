@@ -76,11 +76,11 @@ export function Split({ side, children }: { side: ReactNode; children: ReactNode
 
 export function Tick({ ok = true }: { ok?: boolean }) {
   return ok ? (
-    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#1F6A4B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#17553b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="4,11 9,16 18,6" />
     </svg>
   ) : (
-    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#3F5668" strokeWidth="2.5" strokeLinecap="round">
+    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#34495a" strokeWidth="2.5" strokeLinecap="round">
       <line x1="5" y1="5" x2="17" y2="17" />
       <line x1="17" y1="5" x2="5" y2="17" />
     </svg>

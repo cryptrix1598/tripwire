@@ -3,7 +3,7 @@
 // It drives the practice pages in demo/ and saves screenshots to docs/screenshots.
 // With no .env this exercises the built-in-rules path; with Firebase configured
 // the same steps run through the live cloud path.
-import { existsSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { chromium } from 'playwright';
@@ -17,6 +17,9 @@ mkdirSync(SHOTS, { recursive: true });
 
 const server = await createServer({ root: 'demo', configFile: false, logLevel: 'error', server: { port: 4174, strictPort: true } });
 await server.listen();
+// The family page's development gallery (sample data, no Firebase needed).
+const family = await createServer({ configFile: resolve('dashboard/vite.config.ts'), logLevel: 'error' });
+await family.listen();
 const profile = mkdtempSync(join(tmpdir(), 'tripwire-e2e-'));
 const context = await chromium.launchPersistentContext(profile, {
   channel: 'chromium',
@@ -36,7 +39,25 @@ async function step(name, fn) {
     console.log(`  FAIL  ${name}\n        ${String(err.message ?? err).split('\n')[0]}`);
   }
 }
-const shot = (page, name) => page.screenshot({ path: join(SHOTS, `${name}.png`) });
+// Accessibility: axe-core runs on every Tripwire surface that gets a screenshot.
+// WCAG A/AA problems fail the run; AAA contrast is reported for information.
+const axeSource = readFileSync('node_modules/axe-core/axe.min.js', 'utf8');
+const a11y = { aa: [], aaa: [] };
+async function audit(page, name, inPage = false) {
+  await page.evaluate(axeSource);
+  const found = await page.evaluate(async (scoped) => {
+    const root = scoped ? document.querySelector('tripwire-ui') : document;
+    const run = (values, type = 'tag') => window.axe.run(root, { runOnly: { type, values } });
+    const list = (r) => r.violations.map((v) => `${v.id} [${v.impact}] x${v.nodes.length}: ${v.nodes[0].html.slice(0, 90)}`);
+    return { aa: list(await run(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])), aaa: list(await run(['color-contrast-enhanced'], 'rule')) };
+  }, inPage);
+  a11y.aa.push(...found.aa.map((v) => `${name}: ${v}`));
+  a11y.aaa.push(...found.aaa.map((v) => `${name}: ${v}`));
+}
+const shot = async (page, name, inPage = false) => {
+  await page.screenshot({ path: join(SHOTS, `${name}.png`) });
+  await audit(page, name, inPage);
+};
 const ui = (page, selector = '') => page.locator(`tripwire-ui ${selector}`.trim());
 const expectVisible = (locator, timeout = 15_000) => locator.first().waitFor({ state: 'visible', timeout });
 const text = async (locator) => (await locator.first().innerText()).replace(/\s+/g, ' ');
@@ -76,11 +97,11 @@ try {
     await page.goto(`${DEMO}/bank.html`);
     await expectVisible(ui(page, '.tw-banner'));
     await page.waitForTimeout(500);
-    await shot(page, 'caution-banner');
+    await shot(page, 'caution-banner', true);
     await ui(page, '.tw-banner').getByRole('button', { name: 'Why?' }).click();
     await expectVisible(ui(page, '.tw-flags li'));
     routeLine = await text(ui(page, '.tw-route'));
-    await shot(page, 'caution-banner-why');
+    await shot(page, 'caution-banner-why', true);
   });
   console.log(`        route shown: ${routeLine}`);
 
@@ -90,7 +111,7 @@ try {
     const said = await text(ui(page, '.tw-overlay'));
     if (!said.includes('Did someone call, text, or email you')) throw new Error('pause question missing');
     await page.waitForTimeout(400);
-    await shot(page, 'pause');
+    await shot(page, 'pause', true);
   });
 
   await step('"Stop and stay safe" leaves the page for the "you stopped" screen', async () => {
@@ -150,12 +171,30 @@ try {
     await shot(popup, 'popup');
     await popup.close();
   });
+
+  await step('family page: connect screen and alert feed render (sample data)', async () => {
+    const fam = await context.newPage();
+    await fam.goto('http://localhost:5174/preview.html?page=pair');
+    await expectVisible(fam.getByRole('heading', { name: 'Connect to their Tripwire' }));
+    await fam.waitForTimeout(500);
+    await shot(fam, 'family-connect');
+    await fam.goto('http://localhost:5174/preview.html?page=alerts');
+    await expectVisible(fam.getByText('They continued anyway'));
+    await fam.waitForTimeout(500);
+    await shot(fam, 'family-alerts');
+    await fam.close();
+  });
 } finally {
   await context.close();
   await server.close();
+  await family.close();
   rmSync(profile, { recursive: true, force: true });
 }
 
 const failed = results.filter(([state]) => state === 'FAIL').length;
 console.log(`\n${results.length - failed} of ${results.length} steps passed. Screenshots: docs/screenshots`);
-process.exit(failed ? 1 : 0);
+console.log(`Accessibility (axe-core, WCAG 2.2 A/AA): ${a11y.aa.length} problem(s)`);
+a11y.aa.forEach((line) => console.log(`  ${line}`));
+console.log(`AAA contrast, for information: ${a11y.aaa.length} note(s)`);
+a11y.aaa.forEach((line) => console.log(`  ${line}`));
+process.exit(failed || a11y.aa.length ? 1 : 0);
