@@ -65,6 +65,7 @@ const status: StatusReply = {
   },
   tabs: { query: async () => [{ id: 1, url: 'https://example.test/' }], create: () => undefined, getCurrent: async () => null },
   storage: { local: { get: async () => ({}), set: async () => undefined }, onChanged: { addListener: () => undefined } },
+  i18n: { getUILanguage: () => params.get('lang') ?? 'es-ES' },
 };
 
 const ago = (hours: number) => Timestamp.fromMillis(Date.now() - hours * 3_600_000);
@@ -84,8 +85,9 @@ const shell = (children: React.ReactNode) => (
   </div>
 );
 
-if (page === 'popup' || page === 'onboarding' || page === 'safe' || page === 'checks') {
+if (page === 'popup' || page === 'onboarding' || page === 'safe' || page === 'checks' || page === 'settings') {
   const pages = {
+    settings: () => import('../../src/entrypoints/settings/main'),
     // The Developer checks page as a plain web page: lets the on-device model be
     // exercised in Chrome without loading the extension (scripts/nano-probe.mjs).
     checks: () => import('../../src/entrypoints/checks/main'),

@@ -70,8 +70,8 @@ export function Pause({
             </button>
             {open && (
               <>
-                {verdict.explanation && <p>{verdict.explanation}</p>}
-                <ul className="tw-flags">
+                {verdict.explanation && <p lang={verdict.explanationLanguage}>{verdict.explanation}</p>}
+                <ul className="tw-flags" lang={verdict.explanationLanguage}>
                   {flagsFor(verdict).map((flag) => (
                     <li key={flag}>
                       <span>{flag}</span>

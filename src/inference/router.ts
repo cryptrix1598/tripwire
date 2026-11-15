@@ -29,10 +29,19 @@ import type { TripwireConfig } from '../config/defaults';
 import { redactForCloud, type ModelRedactor } from '../redaction/pipeline';
 import { EXPLANATION, RULE_FLAG } from '../ui/copy';
 import { withTimeout, type AiEngine, type OnDeviceStatus } from './engine';
-import { buildCloudPrompt, buildRedactPrompt, buildTriagePrompt, promptSet, type PromptContext } from './prompts';
+import {
+  buildCloudPrompt,
+  buildRedactPrompt,
+  buildTranslatePrompt,
+  buildTriagePrompt,
+  explainLanguage,
+  promptSet,
+  type PromptContext,
+} from './prompts';
 import {
   CloudAnalysisSchema,
   RedactionSchema,
+  TranslationSchema,
   TriageSchema,
   type CloudAnalysis,
   type Route,
@@ -50,6 +59,8 @@ export interface AssessInput {
   /** Host only, e.g. "example.com". */
   hostname: string;
   trigger: Trigger;
+  /** Browser UI language (e.g. "es-ES"). When not English, the reasons are written in it. */
+  language?: string;
 }
 
 export interface RouterDeps {
@@ -145,6 +156,8 @@ interface Draft {
   cloudUnreachable?: boolean;
   /** Passive trips need corroboration; this says whether it was present. */
   allowTrip?: boolean;
+  /** Set when redFlags and explanation are written in a language other than English. */
+  language?: string;
 }
 
 export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verdict> {
@@ -155,10 +168,34 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
   const prompts = promptSet(config.promptVersion);
   const text = input.text.slice(0, config.maxScanChars);
   const signals = detectSignals(text, config);
+  const language = explainLanguage(input.language);
   const ctx: PromptContext = {
     hostname: input.hostname,
     trigger: input.trigger,
     signalSummary: describeSignals(signals),
+    ...(language ? { language } : {}),
+  };
+
+  /**
+   * Put a verdict that never left the device into the reader's language, on
+   * the device. If the on-device model cannot write that language, the English
+   * reasons are kept: nothing is sent to the cloud just to translate.
+   */
+  const localise = async (d: Draft): Promise<Draft> => {
+    if (!language || !engine.translateOnDevice || d.score < config.thresholds.low) return d;
+    const flags = dedupe(d.redFlags);
+    const texts = [d.explanation, ...flags].filter((t) => t.length > 0);
+    if (texts.length === 0) return d;
+    const translate = engine.translateOnDevice.bind(engine);
+    const result = await callValidated(
+      () => withTimeout(translate(prompts.translateSystem, buildTranslatePrompt(texts, language), language.code), timeouts.onDeviceMs, 'on-device translation'),
+      TranslationSchema,
+    );
+    if (!result.ok || result.value.texts.length !== texts.length) return d;
+    const out = result.value.texts;
+    return d.explanation
+      ? { ...d, explanation: out[0] ?? d.explanation, redFlags: out.slice(1), language: language.code }
+      : { ...d, redFlags: out, language: language.code };
   };
 
   const finish = (d: Draft): Verdict => {
@@ -180,6 +217,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
       cloudUnreachable: d.cloudUnreachable ?? false,
       promptVersion: config.promptVersion,
       elapsedMs: now() - started,
+      ...(d.language && finalState !== 'safe' ? { explanationLanguage: d.language } : {}),
     };
   };
 
@@ -261,6 +299,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
         bytesSentToCloud: cloud.bytes,
         redactionCount: cloud.redactionCount,
         allowTrip: a.confidence >= config.thresholds.minTripConfidence,
+        language: language?.code,
       });
     }
     return rulesVerdict(cloud.kind === 'invalid');
@@ -293,6 +332,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
         bytesSentToCloud: cloud.bytes,
         redactionCount: cloud.redactionCount,
         allowTrip: a.confidence >= config.thresholds.minTripConfidence,
+        language: language?.code,
       });
     }
     return rulesVerdict(true);
@@ -315,15 +355,17 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
   const corroborated = t.confidence >= minTripConfidence && signals.ruleScore >= minCorroboration;
   if (t.riskScore >= high && corroborated) {
     // Local verdict. Nothing leaves the device.
-    return finish({
-      score: t.riskScore,
-      scamType: t.scamType,
-      redFlags: t.redFlags.length ? t.redFlags : ruleFlags(signals),
-      explanation: EXPLANATION.localTrip,
-      confidence: t.confidence,
-      route: 'on_device',
-      allowTrip: true,
-    });
+    return finish(
+      await localise({
+        score: t.riskScore,
+        scamType: t.scamType,
+        redFlags: t.redFlags.length ? t.redFlags : ruleFlags(signals),
+        explanation: EXPLANATION.localTrip,
+        confidence: t.confidence,
+        route: 'on_device',
+        allowTrip: true,
+      }),
+    );
   }
 
   // ── [2] + [3] Uncertain middle band ─────────────────────────────────────
@@ -352,7 +394,9 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
     return finish({
       score: merged,
       scamType: cleared ? 'none' : a.scamType !== 'none' ? a.scamType : t.scamType,
-      redFlags: cleared ? [] : [...a.redFlags, ...t.redFlags],
+      // In another language only the cloud wrote translated reasons; do not mix in English ones.
+      redFlags: cleared ? [] : language && a.redFlags.length ? a.redFlags : [...a.redFlags, ...t.redFlags],
+      language: language?.code,
       explanation: a.plainEnglishExplanation,
       confidence: Math.max(a.confidence, t.confidence),
       route: 'device_then_cloud',
@@ -364,17 +408,19 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
 
   // Cloud not reachable (offline), invalid, or the privacy gate closed.
   // The on-device verdict stands on its own, and nothing was sent.
-  return finish({
-    score: t.riskScore,
-    scamType: t.scamType,
-    redFlags: t.redFlags.length ? t.redFlags : ruleFlags(signals),
-    explanation: EXPLANATION.localCaution,
-    confidence: t.confidence,
-    route: 'on_device',
-    cloudUnreachable: cloud.kind === 'unreachable',
-    failSafe: cloud.kind === 'invalid',
-    allowTrip: corroborated,
-  });
+  return finish(
+    await localise({
+      score: t.riskScore,
+      scamType: t.scamType,
+      redFlags: t.redFlags.length ? t.redFlags : ruleFlags(signals),
+      explanation: EXPLANATION.localCaution,
+      confidence: t.confidence,
+      route: 'on_device',
+      cloudUnreachable: cloud.kind === 'unreachable',
+      failSafe: cloud.kind === 'invalid',
+      allowTrip: corroborated,
+    }),
+  );
 }
 
 /**

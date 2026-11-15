@@ -95,6 +95,20 @@ export const REDACTION_JSON_SCHEMA = {
   required: ['redactedText'],
 } as const;
 
+/** On-device translation of the reasons into the browser's language. */
+export const TranslationSchema = z.object({
+  texts: z.array(z.string().min(1)).min(1).max(8),
+});
+
+export const TRANSLATION_JSON_SCHEMA = {
+  type: 'object',
+  properties: {
+    texts: { type: 'array', items: { type: 'string', nullable: false }, nullable: false },
+  },
+  nullable: false,
+  required: ['texts'],
+} as const;
+
 /** What tripped, or 'passive' for a background page/email scan. */
 export const TRIGGERS = [
   'passive',
@@ -146,4 +160,6 @@ export interface Verdict {
   cloudUnreachable: boolean;
   promptVersion: string;
   elapsedMs: number;
+  /** Language code of `redFlags` and `explanation` when they are not in English. */
+  explanationLanguage?: string;
 }

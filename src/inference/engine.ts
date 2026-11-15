@@ -19,6 +19,12 @@ export interface AiEngine {
   redactOnDevice(systemPrompt: string, userPrompt: string): Promise<string>;
   /** [3] Cloud analysis. Only ever called with redacted text. Resolves to raw JSON text. */
   analyzeInCloud(systemPrompt: string, userPrompt: string, model: string): Promise<string>;
+  /**
+   * Optional: put the reasons into another language, on the device. Used only
+   * for verdicts that never left the device, so that "0 bytes sent" stays true.
+   * Rejects when the on-device model cannot write that language.
+   */
+  translateOnDevice?(systemPrompt: string, userPrompt: string, language: string): Promise<string>;
 }
 
 /** Thrown by an engine when a call that had to stay on-device did not. */

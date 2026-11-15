@@ -6,6 +6,7 @@
  * not one. It also hosts the rest of the Firebase SDK: Remote Config, anonymous
  * Auth and the Firestore writes for Family Guardian.
  */
+import { applySensitivity, loadSettings } from '../../config/settings';
 import { loadConfig } from '../../config/store';
 import { refreshRemoteConfig } from '../../config/remoteConfig';
 import { isFirebaseConfigured } from '../../firebase/config';
@@ -72,7 +73,7 @@ async function pairing(): Promise<PairingReply> {
 async function handle(msg: ToOffscreen): Promise<unknown> {
   switch (msg.type) {
     case 'assess':
-      return assess(msg.input, { engine, config: await loadConfig() });
+      return assess(msg.input, { engine, config: applySensitivity(await loadConfig(), (await loadSettings()).sensitivity) });
     case 'status':
       return status();
     case 'pairing-code':

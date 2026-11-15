@@ -12,14 +12,14 @@ import { Brand, RouteLine } from '../../ui/kit';
 
 function Popup() {
   const [status] = useStatus();
-  const [page, setPage] = useState<{ verdict: Verdict | null; checkable: boolean } | null>(null);
+  const [page, setPage] = useState<{ verdict: Verdict | null; checkable: boolean; trusted?: boolean } | null>(null);
 
   useEffect(() => {
     void (async () => {
       try {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
         const state = tab?.id !== undefined ? await send<TabStateReply>({ target: 'background', type: 'get-tab-state', tabId: tab.id }) : null;
-        setPage({ verdict: state?.verdict ?? null, checkable: /^https?:/.test(tab?.url ?? '') });
+        setPage({ verdict: state?.verdict ?? null, checkable: /^https?:/.test(tab?.url ?? ''), trusted: state?.trusted ?? false });
       } catch {
         setPage({ verdict: null, checkable: false });
       }
@@ -29,7 +29,9 @@ function Popup() {
   const verdict = page?.verdict ?? null;
   const pageText = !page
     ? ''
-    : verdict
+    : page.trusted
+      ? POPUP.pageTrusted
+      : verdict
       ? { safe: POPUP.pageSafe, caution: POPUP.pageCaution, tripped: POPUP.pageTripped }[verdict.state]
       : page.checkable
         ? POPUP.pageNotYet
@@ -58,7 +60,15 @@ function Popup() {
           <dt>{POPUP.thisPage}</dt>
           <dd>
             <span>{pageText}</span>
-            {page && <RouteLine route={verdict?.route ?? 'not_checked'} />}
+            {page &&
+              (page.trusted ? (
+                <p className="tw-route">
+                  <span className="tw-dot" aria-hidden="true" />
+                  <span>{POPUP.trustedDetail}</span>
+                </p>
+              ) : (
+                <RouteLine route={verdict?.route ?? 'not_checked'} />
+              ))}
           </dd>
         </div>
         <div>
@@ -74,12 +84,17 @@ function Popup() {
         <button type="button" className="tw-btn" onClick={() => openTab(demoUrl)}>
           {POPUP.practice}
         </button>
-        <button type="button" className="tw-btn tw-btn--outline" onClick={() => openTab(chrome.runtime.getURL('/onboarding.html'))}>
-          {POPUP.setup}
+        <button type="button" className="tw-btn tw-btn--outline" onClick={() => openTab(chrome.runtime.getURL('/settings.html'))}>
+          {POPUP.settings}
         </button>
-        <button type="button" className="tw-link" onClick={() => openTab(chrome.runtime.getURL('/checks.html'))}>
-          {POPUP.diagnostics}
-        </button>
+        <div className="tw-row" style={{ justifyContent: 'center', gap: '0 24px' }}>
+          <button type="button" className="tw-link" onClick={() => openTab(chrome.runtime.getURL('/onboarding.html'))}>
+            {POPUP.setup}
+          </button>
+          <button type="button" className="tw-link" onClick={() => openTab(chrome.runtime.getURL('/checks.html'))}>
+            {POPUP.diagnostics}
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -83,6 +83,18 @@ try {
     await page.getByRole('button', { name: 'Check this text' }).click();
     const v = JSON.parse(await pre('Check a piece of text', 180_000));
     console.log('sample verdict:', JSON.stringify({ state: v.state, score: v.riskScore, type: v.scamType, route: v.route, bytes: v.bytesSentToCloud, redactions: v.redactionCount, failSafe: v.failSafe, ms: v.elapsedMs, flags: v.redFlags }));
+    // --lang es: a clear scam, explained in another language. A local trip must stay at 0 bytes.
+    const lang = process.argv.includes('--lang') ? process.argv[process.argv.indexOf('--lang') + 1] : '';
+    if (lang) {
+      const scam = JSON.parse(readFileSync('corpus/scams.json', 'utf8')).find((s) => s.id === 'scam-01-tech-support-popup');
+      await page.locator('#sample').fill(scam.text);
+      await page.locator('#language').fill(lang);
+      await page.getByRole('button', { name: 'Check this text' }).click();
+      await page.waitForTimeout(1500);
+      await page.getByRole('button', { name: 'Check this text' }).waitFor({ timeout: 180_000 });
+      const t = JSON.parse(await pre('Check a piece of text', 180_000));
+      console.log(`in "${lang}":`, JSON.stringify({ state: t.state, route: t.route, bytes: t.bytesSentToCloud, explanationLanguage: t.explanationLanguage ?? 'en (not translated)', ms: t.elapsedMs, explanation: t.explanation, flags: t.redFlags }));
+    }
     if (process.argv.includes('--corpus')) {
       await page.getByRole('button', { name: 'Run all 50' }).click();
       await page.getByText('Scams flagged').waitFor({ timeout: 40 * 60_000 });

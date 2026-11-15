@@ -44,6 +44,7 @@ function Checks() {
   const [probe, setProbe] = useState('');
   const [text, setText] = useState<string>(CHECKS.sampleText);
   const [verdict, setVerdict] = useState('');
+  const [language, setLanguage] = useState('');
   const [summary, setSummary] = useState<EvalSummary | null>(null);
   const [progress, setProgress] = useState('');
 
@@ -81,7 +82,7 @@ function Checks() {
     }
   });
   const check = run('check', async () => {
-    setVerdict(show(await assess({ text, hostname: 'example.test', trigger: 'passive' }, { engine: firebaseEngine, config: await loadConfig() })));
+    setVerdict(show(await assess({ text, hostname: 'example.test', trigger: 'passive', language: language.trim() || undefined }, { engine: firebaseEngine, config: await loadConfig() })));
   });
   const corpus = run('corpus', async () => {
     setSummary(null);
@@ -137,6 +138,10 @@ function Checks() {
           </h2>
           <p className="tw-muted">{CHECKS.sampleNote}</p>
           <textarea id="sample" className="tw-textarea" value={text} onChange={(e) => setText(e.target.value)} />
+          <div className="tw-field">
+            <label htmlFor="language">{CHECKS.language}</label>
+            <input id="language" className="tw-input" style={{ maxWidth: 200 }} value={language} onChange={(e) => setLanguage(e.target.value)} placeholder="en" autoComplete="off" />
+          </div>
           <div className="tw-row">{button('check', CHECKS.run, check, false)}</div>
           {verdict && <pre className="tw-pre">{verdict}</pre>}
         </section>

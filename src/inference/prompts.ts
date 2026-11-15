@@ -14,6 +14,26 @@ interface PromptSet {
   triageSystem: string;
   redactSystem: string;
   cloudSystem: string;
+  translateSystem: string;
+}
+
+export interface ExplainLanguage {
+  /** Primary language subtag, such as "es". */
+  code: string;
+  /** English name of the language, such as "Spanish". */
+  name: string;
+}
+
+/** The language to explain in, or null when English (or an unknown tag) is fine. */
+export function explainLanguage(tag: string | undefined): ExplainLanguage | null {
+  const code = (tag ?? '').trim().toLowerCase().split(/[-_]/)[0] ?? '';
+  if (!/^[a-z]{2,3}$/.test(code) || code === 'en') return null;
+  try {
+    const name = new Intl.DisplayNames(['en'], { type: 'language' }).of(code);
+    return name && name.toLowerCase() !== code ? { code, name } : null;
+  } catch {
+    return null;
+  }
 }
 
 const SCAM_TYPES_HELP =
@@ -53,6 +73,13 @@ const V1: PromptSet = {
     'confidence: 0 to 1.',
     'Reply with JSON only.',
   ].join('\n'),
+
+  translateSystem: [
+    'You translate short safety warnings written for an older adult.',
+    'Translate each text into the requested language using plain, kind, everyday words.',
+    'Keep the same number of texts in the same order. Do not add, remove or explain anything.',
+    'Reply with JSON only: {"texts": ["..."]}',
+  ].join('\n'),
 };
 
 const SETS: Record<PromptVersion, PromptSet> = { v1: V1 };
@@ -76,6 +103,12 @@ export interface PromptContext {
   trigger: Trigger;
   /** PII-free list of rule categories that matched. */
   signalSummary: string;
+  /** When set, the reasons are written in this language instead of English. */
+  language?: ExplainLanguage;
+}
+
+export function buildTranslatePrompt(texts: readonly string[], language: ExplainLanguage): string {
+  return [`Translate into ${language.name} (${language.code}):`, JSON.stringify(texts)].join('\n');
 }
 
 export function buildTriagePrompt(text: string, ctx: PromptContext): string {
@@ -103,6 +136,11 @@ export function buildCloudPrompt(redactedText: string, ctx: PromptContext, devic
   if (deviceTriage) {
     lines.push(
       `A small on-device model scored this ${deviceTriage.riskScore}/100 (type: ${deviceTriage.scamType}) and was unsure. Give your own independent judgement.`,
+    );
+  }
+  if (ctx.language) {
+    lines.push(
+      `Write redFlags and plainEnglishExplanation in ${ctx.language.name} (${ctx.language.code}), in plain everyday words. Every other field stays exactly as specified.`,
     );
   }
   lines.push('Text (personal details already removed):', '"""', redactedText, '"""');

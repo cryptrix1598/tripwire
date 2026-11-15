@@ -6,6 +6,7 @@
  * checks to it, remember each tab's verdict, and watch for risky downloads.
  */
 import { DEFAULT_CONFIG } from '../config/defaults';
+import { applySensitivity, isTrusted, loadSettings } from '../config/settings';
 import { loadConfig } from '../config/store';
 import type { AiEngine } from '../inference/engine';
 import { assess, escalateForAction } from '../inference/router';
@@ -32,6 +33,7 @@ interface TabState {
   verdict: Verdict;
   hostname: string;
   at: number;
+  trusted?: boolean;
 }
 interface FlaggedEntry extends TabState {
   tabId: number;
@@ -80,8 +82,8 @@ async function toOffscreen<T>(message: ToOffscreen): Promise<T | null> {
 
 /* ---------- per-tab state ---------- */
 
-async function rememberVerdict(tabId: number, hostname: string, verdict: Verdict, lowThreshold: number): Promise<void> {
-  const state: TabState = { verdict, hostname, at: Date.now() };
+async function rememberVerdict(tabId: number, hostname: string, verdict: Verdict, lowThreshold: number, trusted = false): Promise<void> {
+  const state: TabState = { verdict, hostname, at: Date.now(), trusted };
   const updates: Record<string, unknown> = { [TAB_KEY(tabId)]: state };
 
   if (verdict.riskScore >= lowThreshold || verdict.failSafe) {
@@ -111,11 +113,25 @@ async function paintBadge(tabId: number, verdict: Verdict): Promise<void> {
 /* ---------- message handlers ---------- */
 
 async function handleAssess(msg: Extract<ToBackground, { type: 'assess' }>, tabId: number | undefined): Promise<AssessReply> {
-  const config = await loadConfig();
-  let verdict = await toOffscreen<Verdict>({ target: 'offscreen', type: 'assess', input: msg.input });
+  const settings = await loadSettings();
+  const config = applySensitivity(await loadConfig(), settings.sensitivity);
+
+  // A site the person marked as trusted is never checked: nothing is read into a model, nothing is shown.
+  if (isTrusted(msg.input.hostname, settings.trustedSites)) {
+    const verdict: Verdict = {
+      state: 'safe', riskScore: 0, scamType: 'none', redFlags: [], explanation: '', confidence: 1, route: 'not_checked',
+      trigger: msg.input.trigger, bytesSentToCloud: 0, redactionCount: 0, failSafe: false, cloudUnreachable: false,
+      promptVersion: config.promptVersion, elapsedMs: 0,
+    };
+    if (tabId !== undefined) await rememberVerdict(tabId, msg.input.hostname, verdict, config.thresholds.low, true);
+    return { verdict, acknowledged: false };
+  }
+
+  const input = settings.explainInBrowserLanguage ? msg.input : { ...msg.input, language: undefined };
+  let verdict = await toOffscreen<Verdict>({ target: 'offscreen', type: 'assess', input });
   if (!verdict) {
     // Offscreen document unreachable. Never fail open: fall back to built-in rules.
-    verdict = await assess(msg.input, { engine: noModelEngine, config });
+    verdict = await assess(input, { engine: noModelEngine, config });
   }
 
   let acknowledged = false;
@@ -181,7 +197,7 @@ async function handle(msg: ToBackground, sender: chrome.runtime.MessageSender): 
     case 'get-tab-state': {
       const stored = await chrome.storage.session.get(TAB_KEY(msg.tabId));
       const state = stored[TAB_KEY(msg.tabId)] as TabState | undefined;
-      return { verdict: state?.verdict ?? null, hostname: state?.hostname ?? null } satisfies TabStateReply;
+      return { verdict: state?.verdict ?? null, hostname: state?.hostname ?? null, trusted: state?.trusted ?? false } satisfies TabStateReply;
     }
     case 'get-status':
       return handleStatus();

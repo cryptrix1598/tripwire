@@ -60,6 +60,8 @@ export interface StatusReply {
 export interface TabStateReply {
   verdict: Verdict | null;
   hostname: string | null;
+  /** The person marked this site as trusted, so Tripwire did not check it. */
+  trusted: boolean;
 }
 
 export type PairingReply = { ok: true; code: string; expiresAt: number } | { ok: false; reason: 'not_configured' | 'offline' };

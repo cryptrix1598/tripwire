@@ -34,8 +34,10 @@ export function Banner({ verdict, onDismiss }: { verdict: Verdict; onDismiss: ()
       </div>
       {open && (
         <div className="tw-banner__why">
-          <div className="tw-why__part">
-            <h3 className="tw-why__title">{WHY.flagsLabel}</h3>
+          <div className="tw-why__part" lang={verdict.explanationLanguage}>
+            <h3 className="tw-why__title" lang="en">
+              {WHY.flagsLabel}
+            </h3>
             {verdict.explanation && <p>{verdict.explanation}</p>}
             <ul className="tw-flags">
               {flagsFor(verdict).map((flag) => (

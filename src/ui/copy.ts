@@ -257,6 +257,9 @@ export const POPUP = {
   pageTripped: 'Tripwire paused this page.',
   pageUnknown: 'Tripwire does not check this kind of page.',
   pageNotYet: 'Nothing on this page has needed a check yet.',
+  pageTrusted: 'You marked this site as trusted.',
+  trustedDetail: 'Tripwire is not checking it',
+  settings: 'Settings',
   privateNotSetUp: 'Built-in rules only',
   privateChecks: 'Private checking',
   privateReady: 'On this computer',
@@ -268,6 +271,47 @@ export const POPUP = {
   setup: 'Open setup',
   practice: 'Try a practice example',
   diagnostics: 'Developer checks',
+} as const;
+
+/* ------------------------------------------------------------------ */
+/* Settings page                                                       */
+/* ------------------------------------------------------------------ */
+
+export const SETTINGS = {
+  pageTitle: 'Settings',
+  side: 'These choices stay on this computer.',
+  saved: 'Saved.',
+  careful: {
+    title: 'How careful should Tripwire be?',
+    sliderLabel: 'Warning level',
+    levels: {
+      fewer: { name: 'Fewer warnings', body: 'Tripwire only speaks up when it is very sure. Choose this if it interrupts you too often.' },
+      standard: { name: 'Standard', body: 'The balance Tripwire was tested with. Right for most people.' },
+      more: { name: 'More careful', body: 'Tripwire speaks up sooner, even when it is less sure. Choose this if you have been targeted before.' },
+    },
+  },
+  trusted: {
+    title: 'Sites you trust',
+    body: 'Tripwire never checks or interrupts these sites. Add a site only if you chose it yourself.',
+    warning: 'Never add a site because someone on the phone or in a message told you to. That is how scammers switch protection off.',
+    inputLabel: 'Site name',
+    placeholder: 'For example: mybank.com',
+    add: 'Add site',
+    remove: 'Remove',
+    removeLabel: (site: string) => `Remove ${site}`,
+    empty: 'No trusted sites yet. Tripwire is checking everywhere.',
+    invalid: 'That does not look like a site name. Try something like mybank.com.',
+    duplicate: 'That site is already on the list.',
+    added: (site: string) => `${site} added.`,
+    removed: (site: string) => `${site} removed.`,
+  },
+  language: {
+    title: 'Explanations in your language',
+    toggle: (name: string) => `Explain warnings in ${name}`,
+    body: 'When Tripwire steps in, the reasons are written in your browser’s language. On-device checks are translated on this computer; nothing extra is sent.',
+    english: 'Your browser is set to English, so explanations are already in your language.',
+  },
+  back: 'Close this tab',
 } as const;
 
 /* ------------------------------------------------------------------ */
@@ -399,6 +443,7 @@ export const CHECKS = {
   sample: 'Check a piece of text',
   sampleNote: 'Runs the full router: on-device triage, redaction, then the cloud only if needed.',
   run: 'Check this text',
+  language: 'Explain in (language code, for example es)',
   corpus: 'Run the test corpus',
   corpusNote: '25 scam and 25 ordinary messages through the live router. The target is zero false alarms.',
   runCorpus: 'Run all 50',

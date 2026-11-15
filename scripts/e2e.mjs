@@ -170,6 +170,37 @@ try {
     await paused.close();
   });
 
+  await step('settings: a trusted site is left alone; removing it brings protection back', async () => {
+    const settings = await context.newPage();
+    await settings.goto(ext('settings.html'));
+    await expectVisible(settings.getByRole('heading', { name: 'How careful should Tripwire be?' }));
+    await settings.getByLabel('Site name').fill('not a site');
+    await settings.getByRole('button', { name: 'Add site' }).click();
+    await expectVisible(settings.getByText('That does not look like a site name.'));
+    await settings.getByLabel('Site name').fill('http://localhost:4174/bank.html');
+    await settings.getByRole('button', { name: 'Add site' }).click();
+    await expectVisible(settings.getByText('localhost added.'));
+    await settings.getByLabel('Warning level').focus();
+    await settings.keyboard.press('ArrowRight');
+    await expectVisible(settings.getByText('Tripwire speaks up sooner'));
+    await settings.waitForTimeout(300);
+    await shot(settings, 'settings');
+    await settings.keyboard.press('ArrowLeft');
+
+    await page.goto(`${DEMO}/bank.html`);
+    await page.locator('#cc').click();
+    await page.waitForTimeout(5000);
+    if ((await page.locator('tripwire-ui').count()) !== 0) throw new Error('Tripwire appeared on a trusted site');
+
+    await settings.bringToFront();
+    await settings.getByRole('button', { name: 'Remove localhost' }).click();
+    await expectVisible(settings.getByText('No trusted sites yet.'));
+    await settings.close();
+    await page.bringToFront();
+    await page.goto(`${DEMO}/bank.html`);
+    await expectVisible(ui(page, '.tw-banner, .tw-overlay'), 30_000);
+  });
+
   await step('popup renders its three facts', async () => {
     const popup = await context.newPage();
     await popup.setViewportSize({ width: 380, height: 560 });

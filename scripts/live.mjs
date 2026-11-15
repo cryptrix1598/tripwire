@@ -66,6 +66,16 @@ try {
     return out.replace(/\s+/g, ' ').slice(0, 160);
   });
 
+  await step('explanations in the browser language (Spanish, cloud path)', async () => {
+    await checks.locator('#language').fill('es');
+    await checks.getByRole('button', { name: 'Check this text' }).click();
+    await card('Check a piece of text').locator('pre').waitFor({ timeout: 60_000 });
+    const v = JSON.parse(await lastPre(card('Check a piece of text')));
+    await checks.locator('#language').fill('');
+    if (v.explanationLanguage !== 'es') throw new Error(`explanationLanguage was ${v.explanationLanguage}`);
+    return `${v.route}: ${v.redFlags[0]}`;
+  });
+
   if (!skipCorpus) {
     await step('corpus: 50 samples through the live router', async () => {
       await checks.getByRole('button', { name: 'Run all 50' }).click();

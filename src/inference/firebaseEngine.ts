@@ -48,7 +48,7 @@ import {
 } from 'firebase/ai';
 import { getFirebaseApp } from '../firebase/app';
 import { PrivacyInvariantError, type AiEngine, type OnDeviceStatus } from './engine';
-import { CLOUD_JSON_SCHEMA, REDACTION_JSON_SCHEMA, TRIAGE_JSON_SCHEMA } from './schemas';
+import { CLOUD_JSON_SCHEMA, REDACTION_JSON_SCHEMA, TRANSLATION_JSON_SCHEMA, TRIAGE_JSON_SCHEMA } from './schemas';
 
 const TEXT_EN = [{ type: 'text' as const, languages: ['en'] }];
 
@@ -66,8 +66,8 @@ function getAi(): AI {
 
 const modelCache = new Map<string, GenerativeModel>();
 
-function onDeviceModel(system: string, schema: object): GenerativeModel {
-  const key = `device|${system}|${JSON.stringify(schema)}`;
+function onDeviceModel(system: string, schema: object, outputLanguage = 'en'): GenerativeModel {
+  const key = `device|${outputLanguage}|${system}|${JSON.stringify(schema)}`;
   let model = modelCache.get(key);
   if (!model) {
     const params: HybridParams = {
@@ -75,7 +75,8 @@ function onDeviceModel(system: string, schema: object): GenerativeModel {
       onDeviceParams: {
         createOptions: {
           expectedInputs: TEXT_EN,
-          expectedOutputs: TEXT_EN,
+          // The Prompt API rejects output languages the on-device model cannot write.
+          expectedOutputs: [{ type: 'text' as const, languages: [outputLanguage] }],
           initialPrompts: [{ role: 'system', content: [{ type: 'text', value: system }] }],
         },
         promptOptions: { responseConstraint: schema },
@@ -144,6 +145,10 @@ export const firebaseEngine: AiEngine = {
   async analyzeInCloud(system, user, modelName) {
     const result = await cloudModel(system, modelName, CLOUD_JSON_SCHEMA).generateContent(user);
     return result.response.text();
+  },
+
+  translateOnDevice(system, user, language) {
+    return runOnDevice(onDeviceModel(system, TRANSLATION_JSON_SCHEMA, language), user, 'Translation');
   },
 };
 

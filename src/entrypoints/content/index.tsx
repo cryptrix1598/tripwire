@@ -67,6 +67,13 @@ function startSubFrame(ctx: ContentScriptContext): void {
 function startTopFrame(ctx: ContentScriptContext): void {
   const hostname = location.hostname;
   const gmail = isGmail(hostname);
+  /** The browser's own language. When it is not English, the reasons are written in it. */
+  let uiLanguage: string | undefined;
+  try {
+    uiLanguage = chrome.i18n.getUILanguage();
+  } catch {
+    uiLanguage = undefined;
+  }
 
   let view: View = { kind: 'none' };
   const listeners = new Set<() => void>();
@@ -193,7 +200,7 @@ function startTopFrame(ctx: ContentScriptContext): void {
 
   async function assess(trigger: Trigger): Promise<AssessReply | null> {
     const text = readVisibleText().slice(0, MAX_TEXT);
-    const reply = await send<AssessReply>({ target: 'background', type: 'assess', input: { text, hostname, trigger }, page: pageKey() });
+    const reply = await send<AssessReply>({ target: 'background', type: 'assess', input: { text, hostname, trigger, language: uiLanguage }, page: pageKey() });
     return ctx.isValid ? reply : null;
   }
 
