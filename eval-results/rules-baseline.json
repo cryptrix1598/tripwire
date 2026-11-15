@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-11-15T19:14:03.352Z",
+  "ranAt": "2026-11-15T19:39:11.316Z",
   "mode": "rules-only baseline (Node, no AI)",
   "promptVersion": "v1",
   "scams": 25,
@@ -25,7 +25,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 15,
+      "elapsedMs": 12,
       "correct": true
     },
     {
@@ -38,7 +38,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 7,
+      "elapsedMs": 6,
       "correct": true
     },
     {
@@ -51,7 +51,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 1,
+      "elapsedMs": 0,
       "correct": false
     },
     {
@@ -103,7 +103,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 1,
+      "elapsedMs": 0,
       "correct": true
     },
     {
@@ -116,7 +116,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 0,
+      "elapsedMs": 1,
       "correct": false
     },
     {
@@ -129,7 +129,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 1,
+      "elapsedMs": 0,
       "correct": true
     },
     {
@@ -155,7 +155,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 1,
+      "elapsedMs": 0,
       "correct": true
     },
     {
@@ -168,7 +168,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 0,
+      "elapsedMs": 1,
       "correct": true
     },
     {
@@ -194,7 +194,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 1,
+      "elapsedMs": 0,
       "correct": true
     },
     {
@@ -220,7 +220,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 0,
+      "elapsedMs": 1,
       "correct": true
     },
     {
@@ -233,7 +233,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 1,
+      "elapsedMs": 0,
       "correct": true
     },
     {
@@ -272,7 +272,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 0,
+      "elapsedMs": 1,
       "correct": true
     },
     {
@@ -285,7 +285,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 1,
+      "elapsedMs": 0,
       "correct": true
     },
     {
@@ -376,7 +376,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 0,
+      "elapsedMs": 1,
       "correct": true
     },
     {
@@ -389,7 +389,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 1,
+      "elapsedMs": 0,
       "correct": true
     },
     {

@@ -147,6 +147,7 @@ export const EXPLANATION = {
   failSafe: 'Tripwire could not finish checking this page, so it is being careful.',
   localTrip: 'Your computer recognised this as a likely scam without sending anything anywhere.',
   localCaution: 'Your computer found some warning signs on this page.',
+  steering: 'This page contains hidden instructions aimed at safety tools. Ordinary pages do not have those.',
 } as const;
 
 /* ------------------------------------------------------------------ */

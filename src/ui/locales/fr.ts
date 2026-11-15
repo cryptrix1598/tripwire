@@ -104,6 +104,7 @@ export const FR: LocaleBundle = {
     failSafe: 'Tripwire n’a pas pu finir de vérifier cette page, il reste donc prudent.',
     localTrip: 'Votre ordinateur a reconnu ceci comme une arnaque probable sans rien envoyer où que ce soit.',
     localCaution: 'Votre ordinateur a trouvé quelques signes d’alerte sur cette page.',
+    steering: 'Cette page contient des instructions cachées destinées aux outils de sécurité. Les pages ordinaires n’en ont pas.',
   },
   SAFE_PAGE: {
     title: 'Vous avez bien fait.',

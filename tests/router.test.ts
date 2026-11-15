@@ -61,7 +61,8 @@ describe('router: the gate', () => {
 describe('router: on-device path', () => {
   it('stays silent and local when triage scores below LOW', async () => {
     const engine = fakeEngine({ triage: async () => triageJson(10, 0.9, 'none') });
-    const v = await run(SCAM.text, engine);
+    // A page with the shape of an ask but no strong rule evidence: the small model's all-clear stands.
+    const v = await run('Your order has shipped. You can pay your invoice of $40 online today or call us on 1-855-555-0100 with any questions.', engine);
     expect(v.state).toBe('safe');
     expect(v.route).toBe('on_device');
     expect(v.bytesSentToCloud).toBe(0);

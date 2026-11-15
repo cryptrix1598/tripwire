@@ -104,6 +104,7 @@ export const ES: LocaleBundle = {
     failSafe: 'Tripwire no pudo terminar de revisar esta página, así que está siendo prudente.',
     localTrip: 'Su computadora reconoció esto como una probable estafa sin enviar nada a ningún lugar.',
     localCaution: 'Su computadora encontró algunas señales de alerta en esta página.',
+    steering: 'Esta página contiene instrucciones ocultas dirigidas a las herramientas de seguridad. Las páginas normales no las tienen.',
   },
   SAFE_PAGE: {
     title: 'Hizo lo correcto.',

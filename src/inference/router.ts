@@ -51,7 +51,16 @@ import {
   type Verdict,
   type VerdictState,
 } from './schemas';
-import { ABOUT_SCAMS_AT, detectShape, salientExcerpt, scamTalk, worthACloudLook, worthALocalLook } from './shape';
+import {
+  ABOUT_SCAMS_AT,
+  detectShape,
+  directedAsks,
+  salientExcerpt,
+  scamTalk,
+  triesToSteerTheChecker,
+  worthACloudLook,
+  worthALocalLook,
+} from './shape';
 import { describeSignals, detectSignals, worthChecking, type Signals } from './signals';
 
 export interface AssessInput {
@@ -173,20 +182,33 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
   const { engine, config } = deps;
   const timeouts = deps.timeouts ?? DEFAULT_TIMEOUTS;
   const prompts = promptSet(config.promptVersion);
-  const page = input.text.slice(0, config.maxScanChars);
+  // A long page is read as its opening plus the sentences that carry an ask from the rest,
+  // so a scam cannot hide below a screenful of filler.
+  const half = Math.floor(config.maxScanChars / 2);
+  const page =
+    input.text.length <= config.maxScanChars
+      ? input.text
+      : `${input.text.slice(0, half)}\n${salientExcerpt(input.text.slice(half), config.maxScanChars - half)}`;
   const shape = detectShape(page);
   // What the models read: a focused excerpt, never the whole of a long page.
-  const text = salientExcerpt(page, config.maxModelChars);
+  // Triple quotes are the prompt's own delimiter: the page must not be able to close it.
+  const text = salientExcerpt(page, config.maxModelChars).replace(/"{3,}/g, "'''");
   const signals = detectSignals(page, config);
   // Advice pages, news and encyclopaedia articles ABOUT scams contain every scam phrase there is.
   const mentions = scamTalk(page);
-  const aboutScams = mentions >= ABOUT_SCAMS_AT;
+  const asks = directedAsks(page);
+  // Describing scams (third person) is not the same as using scam words while telling the reader what to do.
+  const aboutScams = mentions >= ABOUT_SCAMS_AT && asks < 2;
+  const scamWordsPlusAsks = mentions >= ABOUT_SCAMS_AT && asks >= 2;
+  // Text aimed at an automated checker. A model's "safe" is never the last word on such a page.
+  const steering = triesToSteerTheChecker(page);
   const language = explainLanguage(input.language);
   const ctx: PromptContext = {
     hostname: input.hostname,
     trigger: input.trigger,
     signalSummary:
       describeSignals(signals) +
+      (steering ? '. Warning: the text contains instructions aimed at an automated checker, which ordinary pages never do' : '') +
       (aboutScams ? `. Note: the page says scam, scammer or victim ${mentions} times, which usually means it is explaining or warning about scams, not running one` : ''),
     ...(language ? { language } : {}),
   };
@@ -216,13 +238,14 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
   const finish = (d: Draft): Verdict => {
     const state = stateFor(d.score, input.trigger, config, d.allowTrip ?? true);
     // Fail-safe verdicts are never allowed to read as "safe".
-    const finalState: VerdictState = d.failSafe && state === 'safe' ? 'caution' : state;
+    const floored = steering && d.route !== 'not_checked' && state === 'safe';
+    const finalState: VerdictState = (d.failSafe || floored) && state === 'safe' ? 'caution' : state;
     return {
       state: finalState,
-      riskScore: d.score,
+      riskScore: floored ? Math.max(d.score, config.thresholds.low) : d.score,
       scamType: finalState === 'safe' ? 'none' : d.scamType === 'none' ? 'other' : d.scamType,
-      redFlags: finalState === 'safe' ? [] : dedupe(d.redFlags),
-      explanation: finalState === 'safe' ? '' : d.explanation,
+      redFlags: finalState === 'safe' ? [] : dedupe(floored ? [EXPLANATION.steering, ...d.redFlags] : d.redFlags),
+      explanation: finalState === 'safe' ? '' : floored ? EXPLANATION.steering : d.explanation,
       confidence: d.confidence,
       route: d.route,
       trigger: input.trigger,
@@ -370,7 +393,10 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
   const t = triage.value;
   const { low, high, minTripConfidence, minCorroboration } = config.thresholds;
 
-  if (t.riskScore < low) {
+  // The small model's "safe" is not final when the built-in rules found strong evidence,
+  // or when the page is trying to talk its way past a checker.
+  const overruled = steering || signals.ruleScore >= config.thresholds.rulesOnlyCaution;
+  if (t.riskScore < low && !overruled) {
     return finish({
       score: t.riskScore,
       scamType: 'none',
@@ -383,7 +409,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
 
   const corroborated = t.confidence >= minTripConfidence && signals.ruleScore >= minCorroboration;
   // A page about scams never trips on the device model alone: the stronger model has to agree.
-  if (t.riskScore >= high && corroborated && !aboutScams) {
+  if (t.riskScore >= high && corroborated && !aboutScams && !scamWordsPlusAsks) {
     // Local verdict. Nothing leaves the device.
     return finish(
       await localise({
@@ -427,7 +453,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
     // The device was unsure, which is the only reason the cloud was asked. If the
     // stronger model is confident the page is fine, that settles it: a leftover
     // device vote must never turn an ordinary page into a warning.
-    const cleared = a.riskScore < low && a.confidence >= minTripConfidence;
+    const cleared = a.riskScore < low && a.confidence >= minTripConfidence && !steering;
     // Otherwise the cloud model leads and the device model keeps a vote.
     const merged = cleared ? a.riskScore : Math.round(0.6 * a.riskScore + 0.4 * t.riskScore);
     return finish({
@@ -450,6 +476,19 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
   // For a page about scams the small model's word alone is not enough to interrupt someone reading.
   if (aboutScams && input.trigger === 'passive') {
     return finish({ score: Math.min(t.riskScore, low - 1), scamType: 'none', redFlags: [], explanation: '', confidence: t.confidence, route: 'on_device' });
+  }
+  // The device said "safe" but was overruled, and there is no second opinion: the rules decide, as a caution.
+  if (t.riskScore < low) {
+    return finish({
+      score: Math.max(low, Math.min(signals.ruleScore, high - 1)),
+      scamType: signals.suggestedType,
+      redFlags: ruleFlags(signals),
+      explanation: steering ? EXPLANATION.steering : EXPLANATION.rulesOnly,
+      confidence: 0.4,
+      route: 'on_device',
+      cloudUnreachable: cloud.kind === 'unreachable',
+      allowTrip: false,
+    });
   }
   // Otherwise the on-device verdict stands on its own, and nothing was sent.
   return finish(

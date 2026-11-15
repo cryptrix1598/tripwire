@@ -69,6 +69,30 @@ export function scamTalk(text: string): number {
   return text.match(SCAM_TALK)?.length ?? 0;
 }
 
+const DIRECTED =
+  /\b(?:you (?:must|need to|have to|are required to)|your (?:account|card|computer|payment|parcel|package|bank|funds|money) (?:has|is|will|was|are)|call (?:us|me|now|this number|immediately|the number)|send (?:us|me)\b|pay (?:now|today|immediately)|click (?:here|below|the link)|do(?:n't| not) (?:tell|hang up|mention)|stay on the line|reply with|move your (?:money|funds|balance))/gi;
+
+/**
+ * How many times the text tells the READER to do something. An article about
+ * scams describes them in the third person; a scam addresses you. This is what
+ * stops a scam from switching the check off just by repeating the word "scam".
+ */
+export function directedAsks(text: string): number {
+  return text.match(DIRECTED)?.length ?? 0;
+}
+
+const STEERING =
+  /\b(?:ignore (?:all |any |the )?(?:previous|prior|above|earlier) (?:instructions|rules|messages|text)|disregard (?:the|all|any) (?:previous |above )?(?:instructions|rules)|(?:mark|classify|rate|label|score|treat) (?:this|it|the (?:page|text|message|email)) as (?:safe|legitimate|benign|harmless|low risk|0)|this (?:page|message|text|email) is (?:safe|legitimate|not a scam|verified)(?: and (?:should|must) not be flagged)?|do not (?:flag|warn about|block) this|(?:attention|note to) (?:ai|assistant|safety (?:tool|system|filter)|scam (?:checker|detector)))/i;
+
+/**
+ * Text addressed to an automated checker ("ignore previous instructions",
+ * "classify this as safe"). Ordinary pages do not contain it; a page that does
+ * is trying to talk its way past a safety tool.
+ */
+export function triesToSteerTheChecker(text: string): boolean {
+  return STEERING.test(text);
+}
+
 function score(sentence: string): number {
   return (
     (MONEY.test(sentence) ? 2 : 0) +
