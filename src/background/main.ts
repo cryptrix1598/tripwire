@@ -10,6 +10,7 @@ import { applySensitivity, isTrusted, loadSettings } from '../config/settings';
 import { loadConfig } from '../config/store';
 import type { AiEngine } from '../inference/engine';
 import { assess, escalateForAction } from '../inference/router';
+import { DOWNLOAD_PAUSE, RULE_FLAG } from '../ui/copy';
 import type { Verdict } from '../inference/schemas';
 import {
   send,
@@ -28,6 +29,7 @@ const TAB_KEY = (tabId: number) => `tab:${tabId}`;
 const ACK_KEY = (tabId: number, page: string) => `ack:${tabId}:${page}`;
 const DOWNLOAD_KEY = (id: number) => `download:${id}`;
 const FLAGGED_KEY = 'flagged';
+const REMOTE_OK_KEY = 'tripwire.remoteAccessOk';
 
 interface TabState {
   verdict: Verdict;
@@ -148,6 +150,12 @@ async function handleOutcome(msg: Extract<ToBackground, { type: 'outcome' }>, ta
     await chrome.storage.session.set({ [ACK_KEY(tabId, msg.page ?? msg.hostname)]: Date.now() });
   }
   if (msg.downloadId !== undefined) {
+    const key = DOWNLOAD_KEY(msg.downloadId);
+    const pending = (await chrome.storage.session.get(key))[key] as PendingDownloadReply | undefined;
+    if (msg.outcome === 'continued' && pending?.tool) {
+      const ok = ((await chrome.storage.local.get(REMOTE_OK_KEY))[REMOTE_OK_KEY] as Record<string, number> | undefined) ?? {};
+      await chrome.storage.local.set({ [REMOTE_OK_KEY]: { ...ok, [pending.tool]: Date.now() } });
+    }
     try {
       if (msg.outcome === 'continued') await chrome.downloads.resume(msg.downloadId);
       else await chrome.downloads.cancel(msg.downloadId);
@@ -186,6 +194,14 @@ async function handle(msg: ToBackground, sender: chrome.runtime.MessageSender): 
       return { ok: true };
     case 'leave':
       if (tabId !== undefined) await chrome.tabs.update(tabId, { url: chrome.runtime.getURL('/safe.html') });
+      return { ok: true };
+    case 'takeover':
+      if (tabId !== undefined) {
+        // Stored like a paused download, under an id no real download can have.
+        const pending: PendingDownloadReply = { verdict: msg.verdict, filename: '', page: msg.page, hostname: msg.hostname };
+        await chrome.storage.session.set({ [DOWNLOAD_KEY(-tabId)]: pending });
+        await chrome.tabs.update(tabId, { url: chrome.runtime.getURL(`/pause.html#${-tabId}`) });
+      }
       return { ok: true };
     case 'frame-card-intent':
       // A payment field in an embedded frame was focused: let the top frame decide.
@@ -237,7 +253,13 @@ async function inspectDownload(id: number, ...names: Array<string | undefined>):
   const cutoff = Date.now() - config.flaggedPageMemoryMinutes * 60_000;
   const recent = ((stored[FLAGGED_KEY] as FlaggedEntry[] | undefined) ?? []).filter((e) => e.at >= cutoff);
   const flagged = recent.sort((a, b) => b.verdict.riskScore - a.verdict.riskScore)[0];
-  if (!flagged) return;
+  const tool = config.remoteAccessTools.find((t) => haystack.includes(t.toLowerCase())) ?? '';
+  if (!flagged) {
+    // No suspicious page was open, which is exactly the phone-scam case: the caller names the
+    // site. Tripwire asks once per tool; saying "continue" is remembered for 30 days.
+    const ok = ((await chrome.storage.local.get(REMOTE_OK_KEY))[REMOTE_OK_KEY] as Record<string, number> | undefined) ?? {};
+    if ((ok[tool] ?? 0) > Date.now() - 30 * 86_400_000) return;
+  }
 
   handledDownloads.add(id);
   try {
@@ -246,9 +268,15 @@ async function inspectDownload(id: number, ...names: Array<string | undefined>):
     // Too late to pause (tiny file): still warn.
   }
 
-  const verdict = escalateForAction(flagged.verdict, 'remote_download', config);
+  const verdict: Verdict = flagged
+    ? escalateForAction(flagged.verdict, 'remote_download', config)
+    : {
+        state: 'tripped', riskScore: config.thresholds.high, scamType: 'tech_support', redFlags: [RULE_FLAG.remoteAccess],
+        explanation: DOWNLOAD_PAUSE.alwaysAsk, confidence: 0.5, route: 'rules_only', trigger: 'remote_download',
+        bytesSentToCloud: 0, redactionCount: 0, failSafe: false, cloudUnreachable: false, promptVersion: config.promptVersion, elapsedMs: 0,
+      };
   const filename = names.find(Boolean)?.split(/[\\/]/).pop() ?? '';
-  const pending: PendingDownloadReply = { verdict, filename };
+  const pending: PendingDownloadReply = { verdict, filename, tool };
   await chrome.storage.session.set({ [DOWNLOAD_KEY(id)]: pending });
   await chrome.tabs.create({ url: chrome.runtime.getURL(`/pause.html#${id}`), active: true });
 }

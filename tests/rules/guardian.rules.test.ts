@@ -7,7 +7,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { assertFails, assertSucceeds, initializeTestEnvironment, type RulesTestEnvironment } from '@firebase/rules-unit-testing';
-import { Timestamp, collection, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
+import { Timestamp, collection, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest';
 import { buildAlert } from '../../src/guardian/model';
 import { SCAM_TYPES } from '../../src/inference/schemas';
@@ -22,7 +22,7 @@ const as = (uid: string) => env.authenticatedContext(uid).firestore();
 const inMinutes = (m: number) => Timestamp.fromMillis(Date.now() + m * 60_000);
 const validAlert = () => ({ ...buildAlert('bank_impersonation', 'card_entry', 'stopped'), createdAt: serverTimestamp() });
 
-async function seedCode(expiresInMinutes = 15) {
+async function seedCode(expiresInMinutes = 5) {
   await env.withSecurityRulesDisabled(async (ctx) => {
     await setDoc(doc(ctx.firestore(), 'pairingCodes', CODE), { deviceId: DEVICE, createdAt: Timestamp.now(), expiresAt: inMinutes(expiresInMinutes) });
   });
@@ -42,12 +42,12 @@ beforeEach(() => env.clearFirestore());
 
 describe('pairing codes', () => {
   it('lets a device publish its own short-lived code', async () => {
-    await assertSucceeds(setDoc(doc(as(DEVICE), 'pairingCodes', CODE), { deviceId: DEVICE, createdAt: serverTimestamp(), expiresAt: inMinutes(15) }));
+    await assertSucceeds(setDoc(doc(as(DEVICE), 'pairingCodes', CODE), { deviceId: DEVICE, createdAt: serverTimestamp(), expiresAt: inMinutes(5) }));
   });
   it('rejects a code for someone else, a long-lived code, and a malformed code', async () => {
-    await assertFails(setDoc(doc(as(STRANGER), 'pairingCodes', CODE), { deviceId: DEVICE, createdAt: serverTimestamp(), expiresAt: inMinutes(15) }));
-    await assertFails(setDoc(doc(as(DEVICE), 'pairingCodes', CODE), { deviceId: DEVICE, createdAt: serverTimestamp(), expiresAt: inMinutes(600) }));
-    await assertFails(setDoc(doc(as(DEVICE), 'pairingCodes', 'abc123'), { deviceId: DEVICE, createdAt: serverTimestamp(), expiresAt: inMinutes(15) }));
+    await assertFails(setDoc(doc(as(STRANGER), 'pairingCodes', CODE), { deviceId: DEVICE, createdAt: serverTimestamp(), expiresAt: inMinutes(5) }));
+    await assertFails(setDoc(doc(as(DEVICE), 'pairingCodes', CODE), { deviceId: DEVICE, createdAt: serverTimestamp(), expiresAt: inMinutes(10) }));
+    await assertFails(setDoc(doc(as(DEVICE), 'pairingCodes', 'abc123'), { deviceId: DEVICE, createdAt: serverTimestamp(), expiresAt: inMinutes(5) }));
   });
   it('can be looked up one at a time but never listed', async () => {
     await seedCode();
@@ -58,7 +58,14 @@ describe('pairing codes', () => {
 });
 
 describe('guardian links', () => {
-  const link = (uid: string, code = CODE) => setDoc(doc(as(uid), 'devices', DEVICE, 'guardians', uid), { code, pairedAt: serverTimestamp() });
+  // Pairing is one atomic write: claim the code, create the link.
+  const link = (uid: string, code = CODE) => {
+    const db = as(uid);
+    return writeBatch(db)
+      .update(doc(db, 'pairingCodes', code), { usedBy: uid })
+      .set(doc(db, 'devices', DEVICE, 'guardians', uid), { code, pairedAt: serverTimestamp() })
+      .commit();
+  };
 
   it('links with a live code', async () => {
     await seedCode();
@@ -71,6 +78,23 @@ describe('guardian links', () => {
     await seedCode(-1);
     await assertFails(link(GUARDIAN));
   });
+  it('lets a code be used once only: a second person with the same code is refused', async () => {
+    await seedCode();
+    await assertSucceeds(link(GUARDIAN));
+    await assertFails(link(STRANGER));
+  });
+
+  it('refuses a link that does not claim the code in the same write', async () => {
+    await seedCode();
+    await assertFails(setDoc(doc(as(GUARDIAN), 'devices', DEVICE, 'guardians', GUARDIAN), { code: CODE, pairedAt: serverTimestamp() }));
+  });
+
+  it('does not let a claim change anything else about the code', async () => {
+    await seedCode();
+    await assertFails(updateDoc(doc(as(STRANGER), 'pairingCodes', CODE), { usedBy: STRANGER, deviceId: STRANGER }));
+    await assertFails(updateDoc(doc(as(STRANGER), 'pairingCodes', CODE), { usedBy: GUARDIAN }));
+  });
+
   it('refuses linking someone else, or a device to itself', async () => {
     await seedCode();
     await assertFails(setDoc(doc(as(STRANGER), 'devices', DEVICE, 'guardians', GUARDIAN), { code: CODE, pairedAt: serverTimestamp() }));

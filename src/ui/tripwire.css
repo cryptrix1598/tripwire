@@ -940,6 +940,19 @@
     transition: none !important;
   }
 }
+/* Wide screens: the deep field stays put while the content scrolls, so its status line is always in view. */
+@media (min-width: 981px) {
+  .tw-split__side {
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    height: 100vh;
+  }
+  .tw-overlay .tw-split__side {
+    height: 100%;
+    max-height: 100vh;
+  }
+}
 @media (max-width: 560px) {
   .tw-banner__row {
     padding: 18px;

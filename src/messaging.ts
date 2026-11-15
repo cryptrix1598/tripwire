@@ -17,6 +17,8 @@ export type ToBackground =
   | { target: 'background'; type: 'assess'; input: AssessInput; page?: string }
   | { target: 'background'; type: 'outcome'; scamType: ScamType; trigger: Trigger; outcome: Outcome; hostname: string; page?: string; downloadId?: number }
   | { target: 'background'; type: 'leave' }
+  // The page keeps removing the warning: show the pause on an extension page instead.
+  | { target: 'background'; type: 'takeover'; verdict: Verdict; page: string; hostname: string }
   | { target: 'background'; type: 'frame-card-intent' }
   | { target: 'background'; type: 'get-tab-state'; tabId: number }
   | { target: 'background'; type: 'get-status' }
@@ -73,6 +75,11 @@ export type PairingReply = { ok: true; code: string; expiresAt: number } | { ok:
 export interface PendingDownloadReply {
   verdict: Verdict | null;
   filename: string;
+  /** Set when the pause was moved off a page that kept removing it. */
+  page?: string;
+  hostname?: string;
+  /** The remote-access tool, so "continue" can be remembered for it. */
+  tool?: string;
 }
 
 /** Send a message and resolve to null instead of throwing if nothing answers. */

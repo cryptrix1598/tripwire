@@ -41,7 +41,7 @@ Action tripwires: typing or focusing a card number field (Luhn checked, locally)
 
 **Settings**: a three-step warning level (fewer warnings, standard, more careful) and a list of trusted sites that Tripwire never checks. The trusted-sites screen carries a warning written for the exact way a scammer would try to abuse it.
 
-**Explanations in your language**: when the browser is not set to English, the reasons are written in the browser's language. A verdict that never left the device is translated on the device, so "0 bytes sent" stays true; a verdict that used the cloud is written in that language by the cloud model. Buttons and headings stay in English.
+**Explanations in your language**: when the browser is not set to English, the reasons are written in the browser's language. A verdict that never left the device is translated on the device, so "0 bytes sent" stays true; a verdict that used the cloud is written in that language by the cloud model. The banner, the pause, the reasons and the "you stopped" page are also shown in Spanish or French; setup, settings and the family page are English only.
 
 ## Screenshots
 
@@ -239,7 +239,7 @@ The first run was a bad result and it was right:
 - **Long real pages took about 50 seconds**, because the on-device model was handed whole pages and timed out. Models now read a focused excerpt, a timeout is not retried, and on-device redaction lists details instead of rewriting text.
 - A middle run then **paused the Wikipedia article on tech support scams**. Pages that are about scams now need the cloud model to agree.
 
-Because those fixes were made after seeing round one, a second round of six new scam messages was written afterwards and nothing was changed after running it: 6 of 6 were caught. The real pages are no longer strictly held-out either (one false alarm on them was found and fixed), so the "0 of 16" is a result on pages the design has now seen. Four pages (three on consumer.ftc.gov and anydesk.com) refused the automated browser and were skipped. All runs are in [eval-results/holdout/](eval-results/holdout).
+Because those fixes were made after seeing round one, a second round of six new scam messages was written afterwards. Its first run caught 6 of 6. That same run had the Wikipedia false alarm, so one more change followed (pages about scams), and round two was still 6 of 6 after it. The real pages are no longer strictly held-out either (one false alarm on them was found and fixed), so the "0 of 16" is a result on pages the design has now seen. Four pages (three on consumer.ftc.gov and anydesk.com) refused the automated browser and were skipped. All runs are in [eval-results/holdout/](eval-results/holdout).
 
 ### Everything else
 

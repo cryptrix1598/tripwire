@@ -14,7 +14,7 @@ import '../../ui/tripwire.css';
 import { useSyncExternalStore } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { createShadowRootUi, defineContentScript, type ContentScriptContext } from '#imports';
-import { createScanScheduler, isGmail, readVisibleText } from '../../content/scan';
+import { createScanScheduler, isGmail, isWebmail, readVisibleText } from '../../content/scan';
 import type { Trigger, Verdict } from '../../inference/schemas';
 import { send, type AssessReply, type ToContent } from '../../messaging';
 import { describeField, isCardField, mayInspectValue, valueIsCardNumber } from '../../tripwires/cardField';
@@ -22,7 +22,7 @@ import { Banner } from '../../ui/Banner';
 import { applyLocale } from '../../ui/locale';
 import { Pause } from '../../ui/Pause';
 
-const MAX_TEXT = 20_000;
+const MAX_TEXT = 40_000;
 const ACTION_COOLDOWN_MS = 8_000;
 const GIFT_FIELD = /gift\s*-?\s*card|card\s*(?:pin|code)|claim\s*code|redemption\s*code|voucher\s*code|itunes|google\s*play\s*code|steam\s*(?:wallet|code)/i;
 const WALLET_FIELD = /wallet|bitcoin|\bbtc\b|\beth(?:ereum)?\b|\busdt\b|crypto|recipient\s*address/i;
@@ -166,6 +166,36 @@ function startTopFrame(ctx: ContentScriptContext): void {
       .catch(() => undefined);
   }
 
+  // A hostile page can try to delete the warning or undo the lock. While something is
+  // showing, put it back; if the page keeps fighting, hand the pause to an extension
+  // page the site cannot touch.
+  let tampering = 0;
+  const guard = setInterval(() => {
+    if (view.kind === 'none' || !uiReady) return;
+    void uiReady.then((ui) => {
+      const host = ui.shadowHost;
+      const hidden = host.isConnected && getComputedStyle(host).display === 'none';
+      if (!host.isConnected || hidden) {
+        tampering += 1;
+        host.removeAttribute('style');
+        host.hidden = false;
+        (document.body ?? document.documentElement).append(host);
+      }
+      if (view.kind === 'pause') {
+        const unlocked = Array.from(document.body?.children ?? []).some((el) => el !== host && !el.hasAttribute('inert'));
+        if (unlocked) {
+          unlock?.();
+          lockPage(host);
+        }
+        if (tampering >= 3) {
+          tampering = 0;
+          void send({ target: 'background', type: 'takeover', verdict: view.verdict, page: pageKey(), hostname });
+        }
+      }
+    });
+  }, 400);
+  ctx.onInvalidated(() => clearInterval(guard));
+
   function hide(): void {
     unlock?.();
     if (view.kind !== 'none') setView({ kind: 'none' });
@@ -241,7 +271,7 @@ function startTopFrame(ctx: ContentScriptContext): void {
     if (reply.verdict.state === 'tripped') show({ kind: 'pause', verdict: reply.verdict });
   }
 
-  const scheduler = createScanScheduler(() => void onPageText().catch(() => undefined), { maxScans: gmail ? 60 : 8 });
+  const scheduler = createScanScheduler(() => void onPageText().catch(() => undefined), { maxScans: isWebmail(hostname) ? 60 : 8 });
 
   ctx.addEventListener(
     document,
@@ -285,8 +315,16 @@ function startTopFrame(ctx: ContentScriptContext): void {
     (event) => {
       try {
         const target = event.target;
-        if (!(target instanceof Element) || !target.closest('a[href^="tel:" i]')) return;
-        void onAction('phone_call', event);
+        const link = target instanceof Element ? target.closest<HTMLAnchorElement>('a[href^="tel:" i]') : null;
+        if (!link) return;
+        if (last || acknowledged || view.kind === 'pause') return void onAction('phone_call', event);
+        // The page has not been checked yet: hold the call until it has, so the dialer cannot open first.
+        event.preventDefault();
+        const href = link.href;
+        void assess('phone_call').then((reply) => {
+          if (reply?.verdict.state === 'tripped' && !reply.acknowledged) show({ kind: 'pause', verdict: reply.verdict });
+          else location.href = href;
+        });
       } catch {
         /* ignore */
       }
@@ -309,6 +347,7 @@ function startTopFrame(ctx: ContentScriptContext): void {
       dismissed = false;
       acknowledged = false;
       last = null;
+      scheduler.reset(); // a single-page site gets a fresh scan budget for each page
       if (view.kind === 'banner') hide();
     }
     scheduler.request();

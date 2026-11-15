@@ -18,7 +18,7 @@
  * Production path: keep the CustomProvider, but have getToken() call a small
  * backend (Cloud Functions + Admin SDK `appCheck().createToken(appId)`) that
  * first verifies the caller, for example with a Chrome Web Store licence or a
- * signed-in user. See README → "App Check from a chrome-extension:// origin".
+ * signed-in user. See README → "How it uses Firebase AI Logic".
  */
 import { getApp, getApps, initializeApp, type FirebaseApp } from 'firebase/app';
 import { CustomProvider, getToken, initializeAppCheck, type AppCheck } from 'firebase/app-check';

@@ -3,7 +3,7 @@
 // 1. Developer checks: status, one hybrid call, the whole corpus through the live router.
 // 2. Family Guardian: pairing code -> family page -> stop a scam -> alert arrives.
 // Results are saved to eval-results/live.json and docs/screenshots.
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { chromium } from 'playwright';
@@ -29,12 +29,15 @@ const context = await chromium.launchPersistentContext(profile, {
 });
 
 let failed = 0;
+const record = [];
 async function step(name, fn) {
   try {
     const note = await fn();
+    record.push({ state: 'pass', name, note: note ?? '' });
     console.log(`  ok    ${name}${note ? `\n        ${note}` : ''}`);
   } catch (err) {
     failed += 1;
+    record.push({ state: 'FAIL', name, note: String(err.message ?? err).split('\n')[0] });
     console.log(`  FAIL  ${name}\n        ${String(err.message ?? err).split('\n')[0]}`);
   }
 }
@@ -149,4 +152,5 @@ try {
   rmSync(profile, { recursive: true, force: true });
 }
 console.log(failed ? `\n${failed} step(s) failed.` : '\nAll live steps passed.');
+writeFileSync('eval-results/live-checks.json', JSON.stringify({ ranAt: new Date().toISOString(), where: 'live Firebase project, Chromium with the extension loaded', steps: record }, null, 2));
 process.exit(failed ? 1 : 0);

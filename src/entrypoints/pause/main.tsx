@@ -42,7 +42,10 @@ function PausedDownload() {
   }
 
   const decide = (outcome: 'stopped' | 'continued') =>
-    send({ target: 'background', type: 'outcome', scamType: verdict.scamType, trigger: 'remote_download', outcome, hostname: '', downloadId });
+    send({
+      target: 'background', type: 'outcome', scamType: verdict.scamType, trigger: verdict.trigger, outcome,
+      hostname: pending?.hostname ?? '', page: pending?.page, downloadId,
+    });
 
   return (
     <div className="tw-page">
@@ -50,7 +53,7 @@ function PausedDownload() {
         verdict={verdict}
         note={pending.filename ? <p className="tw-muted">{DOWNLOAD_PAUSE.file(pending.filename)}</p> : undefined}
         onStop={() => void decide('stopped').then(() => location.replace(chrome.runtime.getURL('/safe.html')))}
-        onContinue={() => void decide('continued').then(() => closeThisTab())}
+        onContinue={() => void decide('continued').then(() => (pending?.page ? history.back() : closeThisTab()))}
       />
     </div>
   );

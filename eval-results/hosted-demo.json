@@ -1,0 +1,26 @@
+{
+  "ranAt": "2026-11-15T19:46:13.030Z",
+  "where": "hosted site, plain Chromium with no extension",
+  "steps": [
+    {
+      "state": "pass",
+      "name": "fake bank page is flagged with no extension installed",
+      "note": "route: Your device doesn't support on-device AI · personal info removed before checking\n        sent (start): Site: tripwire-buildhybridai.web.app Situation: The reader has just opened this. Warning signs matched by simple rules: credentialPressure, urgency, i"
+    },
+    {
+      "state": "pass",
+      "name": "\"Stop and stay safe\" goes to the \"you stopped\" page",
+      "note": ""
+    },
+    {
+      "state": "pass",
+      "name": "ordinary checkout stays silent, even with a card number typed",
+      "note": ""
+    },
+    {
+      "state": "pass",
+      "name": "gift card demand pauses on the code field",
+      "note": ""
+    }
+  ]
+}

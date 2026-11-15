@@ -16,7 +16,7 @@
 import { SCAM_TYPES, TRIGGERS, type ScamType, type Trigger } from '../inference/schemas';
 import { ALERT_SUMMARY, type Outcome } from '../ui/copy';
 
-export const PAIRING_TTL_MS = 15 * 60 * 1000;
+export const PAIRING_TTL_MS = 5 * 60 * 1000;
 export const PAIRING_CODE_PATTERN = /^\d{6}$/;
 /** The only fields an alert may contain. Mirrored in firestore.rules. */
 export const ALERT_FIELDS = ['createdAt', 'scamType', 'summary', 'action', 'outcome'] as const;

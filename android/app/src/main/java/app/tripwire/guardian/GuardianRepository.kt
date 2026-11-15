@@ -70,11 +70,17 @@ class GuardianRepository {
         val found = db.collection("pairingCodes").document(code).get().await()
         val deviceId = found.getString("deviceId")
         val expiresAt = found.getTimestamp("expiresAt")?.toDate()?.time ?: 0L
-        if (deviceId.isNullOrEmpty() || expiresAt < System.currentTimeMillis()) {
+        if (deviceId.isNullOrEmpty() || expiresAt < System.currentTimeMillis() || found.contains("usedBy")) {
             PairResult.NOT_FOUND
         } else {
-            db.collection("devices").document(deviceId).collection("guardians").document(uid)
-                .set(mapOf("code" to code, "pairedAt" to FieldValue.serverTimestamp())).await()
+            // Claim the code and create the link in one write: the rules let each code be claimed once.
+            db.batch()
+                .update(db.collection("pairingCodes").document(code), "usedBy", uid)
+                .set(
+                    db.collection("devices").document(deviceId).collection("guardians").document(uid),
+                    mapOf("code" to code, "pairedAt" to FieldValue.serverTimestamp()),
+                )
+                .commit().await()
             db.collection("guardians").document(uid).collection("people").document(deviceId)
                 .set(mapOf("nickname" to nickname, "addedAt" to FieldValue.serverTimestamp())).await()
             PairResult.OK

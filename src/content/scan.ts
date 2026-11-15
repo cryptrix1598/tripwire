@@ -3,12 +3,12 @@
  *
  *  - Only text the person can actually see (innerText skips hidden content and
  *    never includes what is typed into form fields, passwords included).
- *  - In Gmail, only emails that have been opened. Never the inbox list.
+ *  - In webmail (Gmail, Outlook, Yahoo Mail), only a message that has been opened. Never the inbox list.
  *  - Size-limited, debounced, and de-duplicated so a page is not re-checked
  *    unless its text really changed.
  */
 
-const MAX_CHARS = 20_000;
+const MAX_CHARS = 40_000;
 const GMAIL_HOST = 'mail.google.com';
 
 /** Gmail's message body and subject containers. Stable for years; verified selectors live here only. */
@@ -17,6 +17,29 @@ const GMAIL_SUBJECT = 'h2.hP';
 
 export function isGmail(hostname: string): boolean {
   return hostname === GMAIL_HOST;
+}
+
+/**
+ * Other webmail: where an opened message's body lives. On these sites nothing
+ * is read unless a message is open, so the inbox list is never checked. Only
+ * Gmail's selectors have been exercised by tests; these are best-effort.
+ */
+const WEBMAIL_BODY: Record<string, string> = {
+  'outlook.live.com': '[aria-label="Message body"], div[role="document"]',
+  'outlook.office.com': '[aria-label="Message body"], div[role="document"]',
+  'outlook.office365.com': '[aria-label="Message body"], div[role="document"]',
+  'mail.yahoo.com': '[data-test-id="message-view-body"]',
+};
+
+export function isWebmail(hostname: string): boolean {
+  return hostname === GMAIL_HOST || hostname in WEBMAIL_BODY;
+}
+
+function webmailOpenedText(doc: Document, selector: string): string {
+  return Array.from(doc.querySelectorAll<HTMLElement>(selector))
+    .filter((el) => el.offsetParent !== null)
+    .map((el) => el.innerText)
+    .join('\n');
 }
 
 function clean(text: string): string {
@@ -34,7 +57,9 @@ function gmailOpenedText(doc: Document): string {
 /** The visible text worth checking, or '' when there is nothing to check yet. */
 export function readVisibleText(doc: Document = document): string {
   try {
-    const raw = isGmail(doc.location.hostname) ? gmailOpenedText(doc) : (doc.body?.innerText ?? '');
+    const host = doc.location.hostname;
+    const webmail = WEBMAIL_BODY[host];
+    const raw = isGmail(host) ? gmailOpenedText(doc) : webmail ? webmailOpenedText(doc, webmail) : (doc.body?.innerText ?? '');
     return clean(raw).slice(0, MAX_CHARS);
   } catch {
     return '';
@@ -54,6 +79,8 @@ export function hashText(text: string): number {
 export interface ScanScheduler {
   /** Ask for a scan soon; calls collapse together. */
   request(): void;
+  /** A new page in the same tab: forget what was seen and start the budget again. */
+  reset(): void;
   stop(): void;
 }
 
@@ -106,6 +133,11 @@ export function createScanScheduler(
         },
         lastAt === 0 ? debounceMs : wait,
       );
+    },
+    reset() {
+      scans = 0;
+      lastHash = 0;
+      lastAt = 0;
     },
     stop() {
       stopped = true;

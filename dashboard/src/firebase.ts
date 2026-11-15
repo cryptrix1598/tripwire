@@ -1,6 +1,8 @@
 /**
- * Firebase for the family dashboard: Auth and Firestore only. The dashboard
- * runs no AI and never receives page or email content.
+ * Firebase for the hosted site. The family dashboard itself uses Auth and
+ * Firestore only and never receives page or email content. The zero-install
+ * demo on the same site (demoRuntime.tsx) does run AI, through Firebase AI
+ * Logic, on the practice pages only.
  *
  * App Check: a hosted dashboard uses reCAPTCHA Enterprise (set WXT_RECAPTCHA_SITE_KEY; the site key is public).
  * The debug token is used only by the local dev server and is never built in.

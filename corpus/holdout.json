@@ -1,5 +1,5 @@
 {
-  "about": "Held-out set. None of this was used to choose keywords, thresholds or prompts. The scam messages are longer and quieter than the tuning corpus; the ordinary pages are real public pages, fetched live when the test runs (only their addresses are stored here). Every name, number and company in the scam messages is invented. Round one exposed a gate that was too narrow, and the gate was redesigned (src/inference/shape.ts). Round two was written after that redesign and nothing was changed afterwards, so it is the cleaner measure.",
+  "about": "Held-out set. None of this was used to choose keywords, thresholds or prompts. The scam messages are longer and quieter than the tuning corpus; the ordinary pages are real public pages, fetched live when the test runs (only their addresses are stored here). Every name, number and company in the scam messages is invented. Round one exposed a gate that was too narrow, and the gate was redesigned (src/inference/shape.ts). Round two was written after that redesign. Its first run caught 6 of 6; a false alarm on a real page in that same run then led to one more change (pages that are about scams), after which round two was still 6 of 6. A third group of real pages (banks, payment, sign-in and account pages) was added on 15 Nov after an outside review asked for genuine transactional pages.",
   "benignPages": [
     "https://consumer.ftc.gov/articles/avoiding-and-reporting-gift-card-scams",
     "https://consumer.ftc.gov/articles/how-spot-avoid-and-report-tech-support-scams",
@@ -20,7 +20,23 @@
     "https://www.bbc.com/news",
     "https://www.nytimes.com/wirecutter/reviews/best-gift-cards/",
     "https://www.mozilla.org/en-US/firefox/new/",
-    "https://www.wikipedia.org/"
+    "https://www.wikipedia.org/",
+    "https://www.irs.gov/payments",
+    "https://www.paypal.com/signin",
+    "https://www.chase.com/",
+    "https://www.wellsfargo.com/",
+    "https://www.bankofamerica.com/",
+    "https://www.ssa.gov/myaccount/",
+    "https://www.medicare.gov/basics/get-started-with-medicare",
+    "https://www.usps.com/manage/informed-delivery.htm",
+    "https://www.ups.com/track",
+    "https://www.apple.com/shop/gift-cards",
+    "https://www.westernunion.com/us/en/home.html",
+    "https://www.coinbase.com/",
+    "https://www.teamviewer.com/en-us/",
+    "https://www.dmv.ca.gov/portal/vehicle-registration/vehicle-registration-renewal/",
+    "https://www.aarp.org/money/scams-fraud/",
+    "https://www.amazon.com/gp/help/customer/display.html?nodeId=G4YFYCCNUSENA23B"
   ],
   "scams": [
     {

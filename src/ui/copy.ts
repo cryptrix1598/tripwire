@@ -217,8 +217,8 @@ export const ONBOARDING = {
     title: 'Would you like a family member to know if Tripwire steps in?',
     body: 'They will see that Tripwire stopped something and what kind of scam it looked like. They never see your emails, the pages you visit, or anything you type.',
     codeLabel: 'Your pairing code',
-    codeHelp: (url: string) => `Ask them to open ${url} and type this code. It works for 15 minutes.`,
-    codeHelpNoUrl: 'Ask them to open the Tripwire family page and type this code. It works for 15 minutes.',
+    codeHelp: (url: string) => `Ask them to open ${url} and type this code. It works once, for 5 minutes.`,
+    codeHelpNoUrl: 'Ask them to open the Tripwire family page and type this code. It works once, for 5 minutes.',
     getCode: 'Show a pairing code',
     newCode: 'Get a new code',
     paired: 'A family member is connected.',
@@ -249,6 +249,7 @@ export const REDACTION_SAMPLE = {
 
 export const DOWNLOAD_PAUSE = {
   file: (name: string) => `The download “${name}” is paused, not installed.`,
+  alwaysAsk: 'Tripwire always asks before a remote-access program is installed, because that is how many phone scams finish.',
   expiredTitle: 'Nothing is waiting here.',
   expiredBody: 'This download was already dealt with. You can close this tab.',
 } as const;
@@ -271,7 +272,7 @@ export const POPUP = {
   privateNotSetUp: 'Built-in rules only',
   privateChecks: 'Private checking',
   privateReady: 'On this computer',
-  privateOff: 'Not available on this computer',
+  privateOff: 'Not on this computer',
   privatePending: 'Needs a one-time download',
   family: 'Family alerts',
   familyOn: 'On',

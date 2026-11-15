@@ -2,7 +2,7 @@
 //   npm run hosted
 // The practice pages load /try.js, which runs the extension's content script,
 // router and UI in the page, with inference through Firebase AI Logic.
-import { existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { chromium } from 'playwright';
 
@@ -17,12 +17,15 @@ const context = await browser.newContext({ viewport: { width: 1280, height: 800 
 const page = await context.newPage();
 const ui = (selector) => page.locator(`tripwire-ui ${selector}`);
 let failed = 0;
+const record = [];
 async function step(name, fn) {
   try {
     const note = await fn();
+    record.push({ state: 'pass', name, note: note ?? '' });
     console.log(`  ok    ${name}${note ? `\n        ${note}` : ''}`);
   } catch (err) {
     failed += 1;
+    record.push({ state: 'FAIL', name, note: String(err.message ?? err).split('\n')[0] });
     console.log(`  FAIL  ${name}\n        ${String(err.message ?? err).split('\n')[0]}`);
   }
 }
@@ -70,4 +73,5 @@ try {
   await browser.close();
 }
 console.log(failed ? `\n${failed} step(s) failed.` : '\nThe hosted demo works without the extension.');
+writeFileSync('eval-results/hosted-demo.json', JSON.stringify({ ranAt: new Date().toISOString(), where: 'hosted site, plain Chromium with no extension', steps: record }, null, 2));
 process.exit(failed ? 1 : 0);

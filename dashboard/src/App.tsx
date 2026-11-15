@@ -8,7 +8,7 @@
  * stated on the page, because that promise is the product.
  */
 import { GoogleAuthProvider, onAuthStateChanged, signInAnonymously, signInWithPopup, signOut, type User } from 'firebase/auth';
-import { collection, doc, getDoc, limit, onSnapshot, orderBy, query, serverTimestamp, setDoc, type Timestamp } from 'firebase/firestore';
+import { collection, doc, getDoc, limit, onSnapshot, orderBy, query, serverTimestamp, setDoc, writeBatch, type Timestamp } from 'firebase/firestore';
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { PAIRING_CODE_PATTERN } from '../../src/guardian/model';
 import type { ScamType, Trigger } from '../../src/inference/schemas';
@@ -120,13 +120,17 @@ export function Pair({ uid, onDone }: { uid: string; onDone: (deviceId: string) 
     setError('');
     try {
       const found = await getDoc(doc(db!, 'pairingCodes', clean));
-      const data = found.data() as { deviceId?: string; expiresAt?: Timestamp } | undefined;
-      if (!data?.deviceId || !data.expiresAt || data.expiresAt.toMillis() < Date.now()) {
+      const data = found.data() as { deviceId?: string; expiresAt?: Timestamp; usedBy?: string } | undefined;
+      if (!data?.deviceId || !data.expiresAt || data.expiresAt.toMillis() < Date.now() || data.usedBy) {
         setError(copy.errorNotFound);
         return;
       }
       // The security rules re-check the code on the server; this client check is only for a clear message.
-      await setDoc(doc(db!, 'devices', data.deviceId, 'guardians', uid), { code: clean, pairedAt: serverTimestamp() });
+      // Claim the code and create the link together: the rules allow each code to be claimed once.
+      const batch = writeBatch(db!);
+      batch.update(doc(db!, 'pairingCodes', clean), { usedBy: uid });
+      batch.set(doc(db!, 'devices', data.deviceId, 'guardians', uid), { code: clean, pairedAt: serverTimestamp() });
+      await batch.commit();
       await setDoc(doc(db!, 'guardians', uid, 'people', data.deviceId), {
         nickname: name.trim().slice(0, 40) || DASHBOARD.feed.someone,
         addedAt: serverTimestamp(),

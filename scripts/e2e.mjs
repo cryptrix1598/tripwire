@@ -3,7 +3,7 @@
 // It drives the practice pages in demo/ and saves screenshots to docs/screenshots.
 // With no .env this exercises the built-in-rules path; with Firebase configured
 // the same steps run through the live cloud path.
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { chromium } from 'playwright';
@@ -150,6 +150,18 @@ try {
     await expectVisible(ui(page, '.tw-overlay'));
   });
 
+  await step('a hostile page that deletes the warning gets it back, then loses the tab to an extension page', async () => {
+    // Still on the investment page, paused. The page tries to remove Tripwire.
+    await page.evaluate(() => document.querySelector('tripwire-ui')?.remove());
+    await expectVisible(ui(page, '.tw-overlay'), 5000);
+    // It keeps trying. Tripwire moves the pause to its own page, which the site cannot touch.
+    const fight = page.evaluate(() => new Promise((done) => { let n = 0; const t = setInterval(() => { document.querySelector('tripwire-ui')?.remove(); if (++n > 40) { clearInterval(t); done(true); } }, 150); })).catch(() => undefined);
+    await page.waitForURL(/pause.html/, { timeout: 15_000 });
+    await fight;
+    await expectVisible(page.getByRole('button', { name: 'Stop and stay safe' }));
+    await shot(page, 'pause-moved-to-extension-page');
+  });
+
   await step('fake tech support: the phone link pauses instead of dialling', async () => {
     await page.goto(`${DEMO}/support.html`);
     await expectVisible(ui(page, '.tw-banner, .tw-overlay'));
@@ -238,4 +250,5 @@ console.log(`Accessibility (axe-core, WCAG 2.2 A/AA): ${a11y.aa.length} problem(
 a11y.aa.forEach((line) => console.log(`  ${line}`));
 console.log(`AAA contrast, for information: ${a11y.aaa.length} note(s)`);
 a11y.aaa.forEach((line) => console.log(`  ${line}`));
+writeFileSync('eval-results/e2e.json', JSON.stringify({ ranAt: new Date().toISOString(), browser: 'Chromium (Playwright), extension loaded', steps: results.map(([state, name]) => ({ state, name })), accessibility: { tool: 'axe-core', wcagAAProblems: a11y.aa, aaaContrastNotes: a11y.aaa } }, null, 2));
 process.exit(failed || a11y.aa.length ? 1 : 0);

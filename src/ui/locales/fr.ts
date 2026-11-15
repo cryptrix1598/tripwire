@@ -123,6 +123,7 @@ export const FR: LocaleBundle = {
   },
   DOWNLOAD_PAUSE: {
     file: (name: string) => `Le téléchargement « ${name} » est en pause, il n’est pas installé.`,
+    alwaysAsk: 'Tripwire demande toujours avant l’installation d’un programme d’accès à distance, car c’est ainsi que finissent beaucoup d’arnaques par téléphone.',
     expiredTitle: 'Rien n’attend ici.',
     expiredBody: 'Ce téléchargement a déjà été traité. Vous pouvez fermer cet onglet.',
   },

@@ -1,0 +1,41 @@
+{
+  "ranAt": "2026-11-15T19:43:46.863Z",
+  "where": "live Firebase project, Chromium with the extension loaded",
+  "steps": [
+    {
+      "state": "pass",
+      "name": "status: Firebase configured, App Check initialised",
+      "note": "on-device model: unavailable, App Check token: valid, offscreen document: {\"promptApiPresent\":true,\"onDevice\":\"unavailable\"}"
+    },
+    {
+      "state": "pass",
+      "name": "one hybrid call through Firebase AI Logic",
+      "note": "{ \"text\": \"ready\", \"source\": \"in_cloud\" }"
+    },
+    {
+      "state": "pass",
+      "name": "explanations in the browser language (Spanish, cloud path)",
+      "note": "cloud_fallback: Intenta meter prisa diciendo que hay un problema urgente."
+    },
+    {
+      "state": "pass",
+      "name": "pairing code is created (anonymous Auth + Firestore)",
+      "note": ""
+    },
+    {
+      "state": "pass",
+      "name": "family page: guest sign-in and pairing with the code",
+      "note": ""
+    },
+    {
+      "state": "pass",
+      "name": "the extension confirms the connection and the code stops working",
+      "note": ""
+    },
+    {
+      "state": "pass",
+      "name": "stopping a scam sends an alert that appears on the family page",
+      "note": "Today 2:43 PM Fake bank message A message posing as a bank asked for account or card details. Opened a suspicious page They stopped No action needed, though they may appreciate hearing from you."
+    }
+  ]
+}

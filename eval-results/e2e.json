@@ -1,0 +1,63 @@
+{
+  "ranAt": "2026-11-15T19:43:02.742Z",
+  "browser": "Chromium (Playwright), extension loaded",
+  "steps": [
+    {
+      "state": "pass",
+      "name": "setup opens on install and walks through three screens"
+    },
+    {
+      "state": "pass",
+      "name": "ordinary checkout: nothing is added to the page, even with a card number typed"
+    },
+    {
+      "state": "pass",
+      "name": "fake bank message: flagged on reading, with reasons and a route badge"
+    },
+    {
+      "state": "pass",
+      "name": "fake bank message: focusing the card field pauses the page"
+    },
+    {
+      "state": "pass",
+      "name": "\"Stop and stay safe\" leaves the page for the \"you stopped\" screen"
+    },
+    {
+      "state": "pass",
+      "name": "gift card demand: code field pauses; \"I'm sure, continue\" lets the person through once"
+    },
+    {
+      "state": "pass",
+      "name": "investment offer: wallet field pauses the page"
+    },
+    {
+      "state": "pass",
+      "name": "a hostile page that deletes the warning gets it back, then loses the tab to an extension page"
+    },
+    {
+      "state": "pass",
+      "name": "fake tech support: the phone link pauses instead of dialling"
+    },
+    {
+      "state": "pass",
+      "name": "fake tech support: a remote-access download is paused in its own tab"
+    },
+    {
+      "state": "pass",
+      "name": "settings: a trusted site is left alone; removing it brings protection back"
+    },
+    {
+      "state": "pass",
+      "name": "popup renders its three facts"
+    },
+    {
+      "state": "pass",
+      "name": "family page: connect screen and alert feed render (sample data)"
+    }
+  ],
+  "accessibility": {
+    "tool": "axe-core",
+    "wcagAAProblems": [],
+    "aaaContrastNotes": []
+  }
+}
