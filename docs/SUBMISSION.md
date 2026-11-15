@@ -2,7 +2,7 @@
 
 Copy for the #BuildHybridAI 2026 submission form, plus a script for the demo video (3 minutes at most).
 
-- **Track:** Web / Chrome
+- **Tracks:** Web / Chrome (primary). An Android companion app is included in the repo; it builds and is unit-tested but had not been run on a device when this was written, so only claim Android if you have run it on a phone.
 - **Repository:** https://github.com/cryptrix1598/tripwire (Apache-2.0)
 - **Hosted family page:** https://tripwire-buildhybridai.web.app
 - **Hosted practice pages:** https://tripwire-buildhybridai.web.app/demo/
@@ -25,6 +25,8 @@ Tripwire is a Chrome extension with three states.
 
 It trips on actions: a card number field (checked locally), a gift-card code field, a crypto wallet field, a phone link on a suspicious page, and the download of a remote-access tool shortly after a suspicious page was open.
 
+**Settings** give a three-step warning level and a list of trusted sites, with a warning aimed at the exact way a scammer would try to abuse that list. **Explanations follow the browser's language**: a verdict that stayed on the device is translated on the device, so "0 bytes sent" stays true.
+
 **Family Guardian** is optional. The person shows a six-digit code, a relative types it on the family page, and from then on sees that Tripwire stepped in: the time, the kind of scam, the action, and whether they stopped. Never the page, the email, or anything typed.
 
 ## How we used Firebase AI Logic
@@ -40,7 +42,7 @@ Every verdict carries its route, and the person sees it in plain words: "Checked
 
 Other Firebase pieces:
 
-- **App Check**, enforced on AI Logic. reCAPTCHA cannot load on a `chrome-extension://` origin under Manifest V3, so the extension uses a custom provider with a debug token. We tested enforcement: the same request without a token gets HTTP 401.
+- **App Check**, enforced on both AI Logic and Firestore. reCAPTCHA cannot load on a `chrome-extension://` origin under Manifest V3, so the extension uses a custom provider with a debug token. The hosted family page attests with reCAPTCHA Enterprise. We tested enforcement from outside: an AI Logic request without a token gets HTTP 401 and a Firestore read without a token is refused.
 - **Remote Config** holds thresholds, the prompt version and keyword lists, with local defaults.
 - **Auth** (anonymous) is the device identity; **Firestore** holds pairing codes and alerts. The security rules reject any alert that is not exactly five fixed fields, so page or email text cannot be stored even by a modified client. The rules have their own test suite.
 - **Hosting** serves the family page.
@@ -58,7 +60,8 @@ TypeScript (strict), Manifest V3 with WXT, React, Shadow DOM for the in-page UI,
 - **The privacy gate, measured:** 310 to 1,351 redacted bytes left the device per run, against 14,162 when the same corpus runs without the on-device model. That is a 90 to 98 percent cut in what is sent, with the same detection.
 - Cloud path only (a device with no on-device AI): 25 of 25 flagged, 0 false alarms; 15 samples never sent, 35 redacted first.
 - With no AI at all (offline, rules only): 23 of 25 flagged, 0 false alarms.
-- 95 unit tests, 12 security-rules tests, an 11-step end-to-end run in Chromium, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems; all text meets AAA contrast).
+- Explanations in the browser's language, run live: Spanish and French written on the device with 0 bytes sent, Spanish through the cloud.
+- 105 unit tests, 12 security-rules tests, a 12-step end-to-end run in Chromium, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems; all text meets AAA contrast).
 
 ## Challenges
 
@@ -73,7 +76,7 @@ Hybrid inference is most interesting when the two halves do different jobs. Here
 
 ## What's next
 
-Explanations in the browser's language, an Android companion for calls and texts, and a production App Check endpoint so the extension can ship in the Chrome Web Store.
+Running the Android companion (Tripwire Guardian, in `android/`) on real phones and adding push alerts, translating the fixed interface text as well as the reasons, and a production App Check endpoint so the extension can ship in the Chrome Web Store.
 
 ---
 

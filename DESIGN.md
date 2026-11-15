@@ -50,6 +50,8 @@ Atkinson Hyperlegible, 400 and 700, bundled (no network font). Body 18 to 20px, 
 | Onboarding | One idea per screen; the privacy promise is shown as a before and after, not only claimed |
 | Popup | Three facts, two actions |
 | Family page | Rows that answer "are they OK?"; what a guardian cannot see is stated on the page |
+| Settings | Three plain choices, saved as they change; the warning level is three named steps, not a score; the trusted-sites list carries a warning written for how a scammer would abuse it |
+| Android app | The same tokens and wording as the web family page; every AI suggestion says where it was written |
 
 ## Accessibility
 
