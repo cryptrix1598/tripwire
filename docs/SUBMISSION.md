@@ -56,8 +56,8 @@ TypeScript (strict), Manifest V3 with WXT, React, Shadow DOM for the in-page UI,
 ## Results
 
 - Test corpus of 25 scam and 25 ordinary messages.
-- **With Gemini Nano on the device first (four runs): 25 of 25 scams flagged, 0 of 25 false alarms, every run.** 33 to 36 of the 50 samples were decided entirely on the device, 13 needed no model, and only 1 to 4 went to the cloud.
-- **The privacy gate, measured:** 310 to 1,351 redacted bytes left the device per run, against 14,162 when the same corpus runs without the on-device model. That is a 90 to 98 percent cut in what is sent, with the same detection.
+- **With Gemini Nano on the device first (five runs): 25 of 25 scams flagged, 0 of 25 false alarms, every run.** 29 to 36 of the 50 samples were decided entirely on the device, 13 needed no model, and 1 to 8 went to the cloud.
+- **The privacy gate, measured:** 310 to 3,013 redacted bytes left the device per run, against 14,162 when the same corpus runs without the on-device model. That is a 79 to 98 percent cut in what is sent, with the same detection.
 - Cloud path only (a device with no on-device AI): 25 of 25 flagged, 0 false alarms; 15 samples never sent, 35 redacted first.
 - With no AI at all (offline, rules only): 23 of 25 flagged, 0 false alarms.
 - Explanations in the browser's language, run live: Spanish and French written on the device with 0 bytes sent, Spanish through the cloud.
@@ -95,5 +95,5 @@ Record in desktop Chrome with the extension loaded and the on-device model downl
 | 1:45 | Onboarding screen 2, the before-and-after redaction example | "That's the promise: your emails never leave your device unless personal info is removed first." |
 | 2:00 | Click the download button on the tech-support page; the paused-download tab | "It also pauses the download of a remote-access tool, the way these scams usually end." |
 | 2:15 | "Stop and stay safe", then the family page updating live | "If I've paired a family member, they see that it happened and what kind of scam it was. Never my email, never what I typed." |
-| 2:35 | The Developer checks page: corpus result | "Twenty-five of twenty-five scams caught, zero false alarms, and over ninety percent less data sent than a cloud-only check." |
+| 2:35 | The Developer checks page: corpus result | "Twenty-five of twenty-five scams caught, zero false alarms, and far less data sent than a cloud-only check." |
 | 2:45 | Title card with the repo address | "Tripwire. A calm second look before you act." |
