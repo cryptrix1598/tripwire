@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Every word the Android app shows, in one file. The wording mirrors the web
+  family page (src/ui/copy.ts in the extension project): short, plain, kind.
+-->
+<resources>
+    <string name="app_name">Tripwire Guardian</string>
+
+    <!-- Pairing -->
+    <string name="pair_title">Connect to their Tripwire</string>
+    <string name="pair_body">Ask them to open Tripwire and choose “Show a pairing code”. Type the six digits here.</string>
+    <string name="pair_code_label">Six-digit pairing code</string>
+    <string name="pair_name_label">What should we call them?</string>
+    <string name="pair_name_placeholder">For example: Mum</string>
+    <string name="pair_submit">Connect</string>
+    <string name="pair_working">Connecting…</string>
+    <string name="pair_cancel">Back to alerts</string>
+    <string name="pair_error_format">The code is six digits.</string>
+    <string name="pair_error_not_found">That code was not found or has run out. Ask them for a new one.</string>
+    <string name="pair_error_generic">Could not connect just now. Check your internet and try again.</string>
+
+    <string name="see_title">What you can and cannot see</string>
+    <string name="see_yes">You will see</string>
+    <string name="see_yes_1">When Tripwire stepped in</string>
+    <string name="see_yes_2">What kind of scam it looked like</string>
+    <string name="see_yes_3">What they were about to do, and whether they stopped</string>
+    <string name="see_no">You will never see</string>
+    <string name="see_no_1">Their emails or messages</string>
+    <string name="see_no_2">The pages they visit</string>
+    <string name="see_no_3">Anything they type</string>
+
+    <!-- Alert feed -->
+    <string name="feed_subtitle">Recent alerts from their Tripwire</string>
+    <string name="feed_live">Updating live</string>
+    <string name="feed_loading">Loading…</string>
+    <string name="feed_empty_title">All quiet.</string>
+    <string name="feed_empty_body">When Tripwire steps in, it will appear here within a few seconds.</string>
+    <string name="feed_stopped">They stopped</string>
+    <string name="feed_stopped_advice">No action needed, though they may appreciate hearing from you.</string>
+    <string name="feed_continued">They continued anyway</string>
+    <string name="feed_continued_advice">It may be worth a friendly call today.</string>
+    <string name="feed_privacy">Alerts contain the time, the kind of scam, what they were about to do, and whether they stopped. Tripwire never stores the page, the email, or anything they typed.</string>
+    <string name="feed_load_error">Alerts could not be loaded. Check your internet connection.</string>
+    <string name="feed_add_another">Connect another person</string>
+    <string name="feed_someone">Someone you look out for</string>
+    <string name="day_today">Today</string>
+    <string name="day_yesterday">Yesterday</string>
+    <string name="start_error">Tripwire Guardian could not start. Check your internet connection and open the app again.</string>
+
+    <!-- "What should I say?" (Firebase AI Logic, on-device first) -->
+    <string name="advice_button">What should I say to them?</string>
+    <string name="advice_working">Writing a suggestion…</string>
+    <string name="advice_title">A way to start the conversation</string>
+    <string name="advice_error">A suggestion could not be written just now.</string>
+    <string name="advice_route_device">Written on this phone · nothing was sent</string>
+    <string name="advice_route_cloud">Written online · only the kind of scam was sent</string>
+    <string name="advice_route_fixed">Standard advice · nothing was sent</string>
+    <string name="advice_fixed_stopped">Tell them you heard Tripwire stepped in and that stopping was exactly the right thing to do. Remind them a real company will always let them take their time. Ask if they would like to look at it together.</string>
+    <string name="advice_fixed_continued">Tell them you are not worried about blame, you just want to help. Suggest calling the real bank or company together, using a number from a card or a statement. Ask them not to send money or install anything until you have spoken.</string>
+    <string name="retry">Try again</string>
+    <string name="model_ready">Suggestions can be written on this phone.</string>
+    <string name="model_downloadable">This phone can write suggestions privately after a one-time download.</string>
+    <string name="model_downloading">Getting private writing ready…</string>
+    <string name="model_unavailable">This phone cannot write suggestions on-device, so they are written online. Only the kind of scam is sent.</string>
+    <string name="model_download">Get private writing ready</string>
+
+    <!-- Notifications -->
+    <string name="notif_channel">Tripwire alerts</string>
+    <string name="notif_channel_description">Tells you when Tripwire steps in for someone you look out for.</string>
+    <string name="notif_stopped">%1$s stopped a likely scam</string>
+    <string name="notif_continued">%1$s continued past a warning</string>
+
+    <!-- Kinds of scam (same wording as the web family page) -->
+    <string name="scam_none">Suspicious page</string>
+    <string name="scam_tech_support">Fake tech support</string>
+    <string name="scam_gift_card">Gift card demand</string>
+    <string name="scam_bank_impersonation">Fake bank message</string>
+    <string name="scam_government_impersonation">Fake government message</string>
+    <string name="scam_delivery">Fake delivery notice</string>
+    <string name="scam_shopping_impersonation">Fake store message</string>
+    <string name="scam_investment_crypto">Investment or crypto offer</string>
+    <string name="scam_prize_lottery">Fake prize</string>
+    <string name="scam_romance">Request for money</string>
+    <string name="scam_payment_request">Unexpected payment request</string>
+    <string name="scam_phishing_login">Fake sign-in page</string>
+    <string name="scam_other">Suspicious page</string>
+
+    <!-- What they were about to do -->
+    <string name="action_passive">Opened a suspicious page</string>
+    <string name="action_card_entry">Started typing a card number</string>
+    <string name="action_remote_download">Started downloading a remote-access program</string>
+    <string name="action_phone_call">Was urged to call a number</string>
+    <string name="action_gift_card">Was asked to pay with gift cards</string>
+    <string name="action_crypto_wire">Was asked to send crypto or a wire</string>
+</resources>

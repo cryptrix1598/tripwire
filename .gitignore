@@ -23,3 +23,11 @@ Thumbs.db
 
 # Chrome profile used only for on-device model tests (holds the multi-GB model)
 .nano-profile/
+
+# Android companion
+android/local.properties
+android/app/google-services.json
+android/.gradle/
+android/.kotlin/
+android/build/
+android/app/build/
