@@ -1,5 +1,5 @@
 /** Small shared pieces used by every Tripwire surface. */
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { Route, Verdict } from '../inference/schemas';
 import { BRAND, ROUTE_BADGE, WHY } from './copy';
 
@@ -55,6 +55,31 @@ export function routeExplanation(verdict: Verdict): string {
   if (verdict.bytesSentToCloud > 0 && verdict.redactionCount > 0) parts.push(WHY.redactions(verdict.redactionCount));
   if (verdict.cloudUnreachable) parts.push(WHY.cloudUnreachable);
   return parts.join(' ');
+}
+
+/**
+ * The privacy receipt: the exact text that left the device, shown on request.
+ * The claim "personal info removed" is something the person can check, not
+ * something they have to take on trust.
+ */
+export function SentReceipt({ verdict }: { verdict: Verdict }) {
+  const [open, setOpen] = useState(false);
+  if (!verdict.sentPreview) return null;
+  return (
+    <div className="tw-stack tw-stack--tight">
+      <button type="button" className="tw-link tw-link--strong" aria-expanded={open} onClick={() => setOpen(!open)} style={{ alignSelf: 'flex-start' }}>
+        {open ? WHY.sentHide : WHY.sentShow}
+      </button>
+      {open && (
+        <>
+          <p className="tw-small">{WHY.sentNote}</p>
+          <div className="tw-sent" role="region" aria-label={WHY.sentLabel} tabIndex={0}>
+            {verdict.sentPreview}
+          </div>
+        </>
+      )}
+    </div>
+  );
 }
 
 export function flagsFor(verdict: Verdict): string[] {

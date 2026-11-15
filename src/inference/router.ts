@@ -72,6 +72,8 @@ export interface RouterDeps {
 }
 
 const DEFAULT_TIMEOUTS = { onDeviceMs: 25_000, cloudMs: 20_000 };
+/** How much of the sent text is kept on the verdict for the "what was sent" receipt. */
+const SENT_PREVIEW_MAX = 1500;
 const utf8Bytes = (s: string) => new TextEncoder().encode(s).length;
 
 /** Pull the JSON object out of a model reply, tolerating code fences and stray prose. */
@@ -158,6 +160,8 @@ interface Draft {
   allowTrip?: boolean;
   /** Set when redFlags and explanation are written in a language other than English. */
   language?: string;
+  /** The request text that went to the cloud, if any. */
+  sent?: string;
 }
 
 export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verdict> {
@@ -218,6 +222,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
       promptVersion: config.promptVersion,
       elapsedMs: now() - started,
       ...(d.language && finalState !== 'safe' ? { explanationLanguage: d.language } : {}),
+      ...(d.sent ? { sentPreview: d.sent.length > SENT_PREVIEW_MAX ? `${d.sent.slice(0, SENT_PREVIEW_MAX)}…` : d.sent } : {}),
     };
   };
 
@@ -265,7 +270,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
     redactor: ModelRedactor | null,
     deviceTriage: Triage | null,
   ): Promise<
-    | { kind: 'ok'; analysis: CloudAnalysis; bytes: number; redactionCount: number }
+    | { kind: 'ok'; analysis: CloudAnalysis; bytes: number; redactionCount: number; sent: string }
     | { kind: 'unreachable' | 'invalid' | 'gate_closed' }
   > => {
     const redaction = await redactForCloud(text, redactor);
@@ -276,7 +281,9 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
       CloudAnalysisSchema,
     );
     if (!result.ok) return { kind: result.reason };
-    return { kind: 'ok', analysis: result.value, bytes: utf8Bytes(redaction.text), redactionCount: redaction.redactionCount };
+    // Everything Tripwire wrote into the request about this page: the redacted text plus the
+    // site name and the lines around it. (The fixed instructions are the same for every page.)
+    return { kind: 'ok', analysis: result.value, bytes: utf8Bytes(prompt), redactionCount: redaction.redactionCount, sent: prompt };
   };
 
   // ── Fallback path: no on-device model ───────────────────────────────────
@@ -298,6 +305,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
         route: 'cloud_fallback',
         bytesSentToCloud: cloud.bytes,
         redactionCount: cloud.redactionCount,
+        sent: cloud.sent,
         allowTrip: a.confidence >= config.thresholds.minTripConfidence,
         language: language?.code,
       });
@@ -331,6 +339,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
         route: 'cloud_fallback',
         bytesSentToCloud: cloud.bytes,
         redactionCount: cloud.redactionCount,
+        sent: cloud.sent,
         allowTrip: a.confidence >= config.thresholds.minTripConfidence,
         language: language?.code,
       });
@@ -402,6 +411,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
       route: 'device_then_cloud',
       bytesSentToCloud: cloud.bytes,
       redactionCount: cloud.redactionCount,
+        sent: cloud.sent,
       allowTrip: a.riskScore >= high && a.confidence >= minTripConfidence,
     });
   }

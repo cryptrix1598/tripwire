@@ -5,9 +5,10 @@ rules_version = '2';
 // Principles
 //   1. A protected person's device is identified by its (anonymous) auth uid.
 //   2. A guardian can only link to a device by presenting a live pairing code.
-//   3. Alerts have a fixed, tiny shape. Raw page or email content cannot be
-//      stored, even by a modified client: unknown fields and long strings are
-//      rejected here, on the server.
+//   3. Alerts have a fixed, tiny shape with no free text at all: four enums, a
+//      server timestamp, and a summary that must be the one fixed sentence for
+//      that kind of scam. Page or email content cannot be stored, even by a
+//      modified client.
 //   4. Everything not listed is denied.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -34,6 +35,27 @@ service cloud.firestore {
         && d.expiresAt is timestamp
         && d.expiresAt > request.time
         && d.expiresAt <= request.time + duration.value(20, 'm');
+    }
+
+    // The one sentence an alert may carry for each kind of scam. Mirrors ALERT_SUMMARY
+    // in src/ui/copy (a unit test keeps the two in step). Because the summary must be
+    // exactly this sentence, an alert cannot carry free text of any kind.
+    function summaryFor(scamType) {
+      return {
+        'none': 'A page showed several warning signs of a scam.',
+        'tech_support': 'A page claimed the computer had a problem and pushed for a call or remote access.',
+        'gift_card': 'A message asked for payment in gift cards.',
+        'bank_impersonation': 'A message posing as a bank asked for account or card details.',
+        'government_impersonation': 'A message posing as a government office demanded money or personal details.',
+        'delivery': 'A delivery notice asked for a fee or card details to release a package.',
+        'shopping_impersonation': 'A message posing as a store asked for account or payment details.',
+        'investment_crypto': 'An offer promised returns and asked for money by crypto or wire.',
+        'prize_lottery': 'A prize notice asked for a fee or personal details to collect winnings.',
+        'romance': 'Someone asked for money to be sent in a way that cannot be undone.',
+        'payment_request': 'A page asked for an unexpected payment or card number.',
+        'phishing_login': 'A page that looked like a sign-in screen asked for a password.',
+        'other': 'A page showed several warning signs of a scam.'
+      }[scamType];
     }
 
     // ── Pairing codes ────────────────────────────────────────────────────
@@ -88,9 +110,7 @@ service cloud.firestore {
                'delivery', 'shopping_impersonation', 'investment_crypto', 'prize_lottery', 'romance',
                'payment_request', 'phishing_login', 'other'
              ]
-          && request.resource.data.summary is string
-          && request.resource.data.summary.size() > 0
-          && request.resource.data.summary.size() <= 200
+          && request.resource.data.summary == summaryFor(request.resource.data.scamType)
           && request.resource.data.action in [
                'passive', 'card_entry', 'remote_download', 'phone_call', 'gift_card', 'crypto_wire'
              ]

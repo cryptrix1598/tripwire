@@ -238,11 +238,17 @@ describe('redactForCloud: the privacy gate', () => {
   });
 
   it('falls back to the regex text when the model puts a removed value back', async () => {
-    // "Margaret Ellison" was removed by the greeting rule; the model re-inserts it in prose.
-    const out = await redactForCloud(text, async (pre) => pre.replace('[NAME]', 'our client Margaret Ellison'));
+    // "Margaret Ellison" was removed by the greeting rule; the model re-inserts it in a form no pattern catches.
+    const out = await redactForCloud(text, async (pre) => pre.replace('[NAME]', 'our client margaret ellison'));
     expect(out.text).not.toContain('Margaret Ellison');
     expect(out.safeToSend).toBe(true);
     expect(out.usedModel).toBe(false);
+  });
+
+  it('lets a model rewrite through when the second regex pass cleans up what it re-inserted', async () => {
+    const out = await redactForCloud(text, async (pre) => pre.replace('[NAME]', 'our client Margaret Ellison'));
+    expect(out.text).not.toContain('Margaret Ellison');
+    expect(out.safeToSend).toBe(true);
   });
 
   it('produces sendable, leak-free text for every corpus sample', async () => {
@@ -251,5 +257,30 @@ describe('redactForCloud: the privacy gate', () => {
       expect(out.safeToSend, s.id).toBe(true);
       expect(regexRedact(out.text).total, s.id).toBe(0);
     }
+  });
+});
+
+describe('names in ordinary prose, with no on-device model', () => {
+  it('removes a common given name and the surname after it', () => {
+    const out = regexRedact('I spoke to Margaret Ellison yesterday and she said Robert would call back.');
+    expect(out.text).toBe('I spoke to [NAME] yesterday and she said [NAME] would call back.');
+    expect(out.counts.NAME).toBe(2);
+  });
+
+  it('leaves companies, places and everyday words alone', () => {
+    for (const keep of [
+      'Your Charles Schwab account statement is ready.',
+      'Call Microsoft Support or visit Wells Fargo today.',
+      'Will you be home in May? Mark the date.',
+      'Pay with Google Play gift cards at Walmart.',
+    ]) {
+      expect(regexRedact(keep).text, keep).toBe(keep);
+    }
+  });
+
+  it('is stable when run twice', () => {
+    const once = regexRedact("Tell Susan that Dr. Patel and James O'Neill agree.").text;
+    expect(regexRedact(once).text).toBe(once);
+    expect(once).not.toMatch(/Susan|Patel|James/);
   });
 });

@@ -30,13 +30,13 @@ export const ROUTE_BADGE: Record<Route, { tone: RouteTone; label: string; detail
     tone: 'redacted',
     label: 'Personal info removed',
     detail: 'sent for a deeper check',
-    long: 'Your computer checked this first, then removed names, numbers, and addresses before asking for a second opinion.',
+    long: 'Your computer checked this first, then removed the names, numbers and addresses it found before asking for a second opinion.',
   },
   cloud_fallback: {
     tone: 'fallback',
     label: "Your device doesn't support on-device AI",
     detail: 'personal info removed before checking',
-    long: 'This computer cannot run the private on-device check, so Tripwire removed names, numbers, and addresses before checking online.',
+    long: 'This computer cannot run the private on-device check, so Tripwire removed the names, numbers and addresses it could recognise before checking online.',
   },
   rules_only: {
     tone: 'rules',
@@ -122,6 +122,10 @@ export const WHY = {
   redactions: (n: number) =>
     n === 1 ? '1 piece of personal info was removed first.' : `${n} pieces of personal info were removed first.`,
   cloudUnreachable: 'A deeper check was not possible because this computer is offline.',
+  sentShow: 'See exactly what was sent',
+  sentHide: 'Hide what was sent',
+  sentNote: 'This is everything Tripwire sent about this page. Personal details were replaced with tags like [NAME] first.',
+  sentLabel: 'What was sent',
 } as const;
 
 /** One plain sentence per built-in warning sign. Used when no AI model could be reached. */

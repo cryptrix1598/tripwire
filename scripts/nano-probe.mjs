@@ -26,7 +26,7 @@ const context = await chromium.launchPersistentContext(resolve('.nano-profile'),
   ignoreDefaultArgs: ['--disable-background-networking', '--disable-component-update', `--disable-features=${playwrightDisabled.join(',')}`],
   args: [
     `--disable-features=${playwrightDisabled.filter((f) => f !== 'OptimizationHints').join(',')}`,
-    '--enable-features=AIPromptAPI,AIPromptAPIMultimodalInput,OptimizationGuideOnDeviceModel:BypassPerfRequirement/true',
+    '--enable-features=AIPromptAPI,AIPromptAPIMultimodalInput,OptimizationGuideOnDeviceModel',
   ],
 });
 try {
@@ -99,8 +99,11 @@ try {
       await page.getByRole('button', { name: 'Run all 50' }).click();
       await page.getByText('Scams flagged').waitFor({ timeout: 40 * 60_000 });
       const [file] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Save results as JSON' }).click()]);
-      await file.saveAs('eval-results/live-on-device.json');
-      const s = JSON.parse(readFileSync('eval-results/live-on-device.json', 'utf8'));
+      // Every run is kept, not just the best one.
+      const out = `eval-results/on-device/${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+      await file.saveAs(out);
+      const s = JSON.parse(readFileSync(out, 'utf8'));
+      console.log('saved', out, '| mode:', s.mode);
       const wrong = s.rows.filter((r) => !r.correct).map((r) => `${r.id} (${r.state}, ${r.riskScore}, ${r.route})`);
       console.log(`corpus: scams flagged ${s.detected}/${s.scams} (${s.tripped} paused), false alarms ${s.falsePositives}/${s.benign}`);
       console.log(`routes ${JSON.stringify(s.routes)}, bytes to cloud ${s.totalBytesSentToCloud}`);

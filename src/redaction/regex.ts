@@ -7,6 +7,7 @@
  * costs the cloud model nothing, leaking an account number costs the user.
  */
 import { looksLikeCardNumber } from '../tripwires/luhn';
+import { GIVEN_NAMES, NAME_LIKE_BRANDS } from './names';
 
 export const PII_KINDS = [
   'LINK',
@@ -92,6 +93,12 @@ const GREETING_RE = new RegExp(
 const TITLED_NAME_RE = new RegExp(String.raw`\b${TITLE}\s+${NAME_WORD}(?:\s+${NAME_WORD})?`, 'g');
 const LABELED_NAME_RE = new RegExp(
   String.raw`\b(Name|Full name|Account holder|Account name|Cardholder name|Cardholder|Customer name|Recipient|Beneficiary name|Signed|Sincerely|Regards|Best regards|Kind regards|Thank you|Thanks|Love|Yours truly|From)(\s*[:,]?\s+)(${NAME_WORD}(?:\s+${NAME_WORD}){1,2})(?=[\s,.;!]|$)`,
+  'g',
+);
+/** A common given name (capitalised), with up to two surname words after it. */
+const SURNAME_WORD = String.raw`(?:O'[A-Z][a-z]+|Mc[A-Z][a-z]+|${NAME_WORD})`;
+const GIVEN_NAME_RE = new RegExp(
+  String.raw`\b(?:${[...GIVEN_NAMES].map((n) => n[0]!.toUpperCase() + n.slice(1)).join('|')})\b(?: ${SURNAME_WORD}){0,2}`,
   'g',
 );
 
@@ -238,6 +245,14 @@ export function regexRedact(input: string): RegexRedaction {
   });
 
   text = text.replace(TITLED_NAME_RE, (m) => {
+    hit('NAME', m);
+    return TAG('NAME');
+  });
+
+  // A common given name in ordinary prose, with any surname that follows it.
+  text = text.replace(GIVEN_NAME_RE, (m) => {
+    const lower = m.toLowerCase();
+    if ([...NAME_LIKE_BRANDS].some((brand) => lower.startsWith(brand))) return m;
     hit('NAME', m);
     return TAG('NAME');
   });

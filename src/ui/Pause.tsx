@@ -9,7 +9,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Trigger, Verdict } from '../inference/schemas';
 import { INTERSTITIAL, TRIP_LEAD } from './copy';
-import { Brand, RouteLine, flagsFor, routeExplanation } from './kit';
+import { Brand, RouteLine, SentReceipt, flagsFor, routeExplanation } from './kit';
 
 /** A passive trip still deserves the most specific opening line we can honestly give. */
 export function leadFor(verdict: Verdict): string {
@@ -79,6 +79,7 @@ export function Pause({
                   ))}
                 </ul>
                 <p className="tw-muted">{routeExplanation(verdict)}</p>
+                <SentReceipt verdict={verdict} />
               </>
             )}
           </div>

@@ -10,6 +10,7 @@ import { assertFails, assertSucceeds, initializeTestEnvironment, type RulesTestE
 import { Timestamp, collection, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest';
 import { buildAlert } from '../../src/guardian/model';
+import { SCAM_TYPES } from '../../src/inference/schemas';
 
 const DEVICE = 'device-mum';
 const GUARDIAN = 'guardian-sam';
@@ -87,6 +88,19 @@ describe('alerts', () => {
     await assertFails(setDoc(alertRef(DEVICE), { ...validAlert(), pageText: 'Dear Margaret, your card 4111 1111 1111 1111' }));
     await assertFails(setDoc(alertRef(DEVICE), { ...validAlert(), url: 'https://example.com/inbox/123' }));
   });
+  it('rejects any summary that is not the fixed sentence for that kind of scam', async () => {
+    await assertFails(setDoc(alertRef(DEVICE), { ...validAlert(), summary: 'Dear Margaret, your card 4111 1111 1111 1111 was charged.' }));
+    await assertFails(setDoc(alertRef(DEVICE), { ...validAlert(), summary: 'ok' }));
+    // A real sentence, but for a different kind of scam.
+    await assertFails(setDoc(alertRef(DEVICE), { ...validAlert(), summary: buildAlert('gift_card', 'card_entry', 'stopped').summary }));
+  });
+
+  it('accepts the fixed sentence for every kind of scam', async () => {
+    for (const type of SCAM_TYPES) {
+      await assertSucceeds(setDoc(alertRef(DEVICE, `ok-${type}`), { ...buildAlert(type, 'passive', 'stopped'), createdAt: serverTimestamp() }));
+    }
+  });
+
   it('rejects long summaries, unknown enums, a backdated time and missing fields', async () => {
     await assertFails(setDoc(alertRef(DEVICE), { ...validAlert(), summary: 'x'.repeat(201) }));
     await assertFails(setDoc(alertRef(DEVICE), { ...validAlert(), scamType: 'whatever' }));

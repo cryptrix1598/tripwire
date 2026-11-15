@@ -35,6 +35,13 @@ function paced(engine: AiEngine, gapMs: number): AiEngine {
   };
 }
 
+/** Where this run happened, recorded in the results so they cannot be mistaken for something else. */
+function runContext(): string {
+  const inExtension = typeof chrome !== 'undefined' && Boolean(chrome.runtime?.id);
+  const browser = /Chrome\/([\d.]+)/.exec(navigator.userAgent)?.[1] ?? 'unknown';
+  return `${inExtension ? 'live-extension-page' : 'live-web-harness'} (Chrome ${browser})`;
+}
+
 const show = (value: unknown) => (typeof value === 'string' ? value : JSON.stringify(value, null, 2));
 const pct = (n: number) => `${Math.round(n * 1000) / 10}%`;
 
@@ -86,7 +93,7 @@ function Checks() {
   });
   const corpus = run('corpus', async () => {
     setSummary(null);
-    const result = await runEval(ALL_SAMPLES, paced(firebaseEngine, 4200), await loadConfig(), 'live-extension', (done, total, row) =>
+    const result = await runEval(ALL_SAMPLES, paced(firebaseEngine, 4200), await loadConfig(), runContext(), (done, total, row) =>
       setProgress(`${done} / ${total} · ${row.id}: ${row.state} via ${row.route}`),
     );
     setSummary(result);

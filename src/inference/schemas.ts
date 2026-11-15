@@ -150,7 +150,7 @@ export interface Verdict {
   confidence: number;
   route: Route;
   trigger: Trigger;
-  /** UTF-8 bytes of page text sent to the cloud model. 0 for local routes. */
+  /** UTF-8 bytes of everything sent to the cloud model about this page (redacted text, site name, context). 0 for local routes. */
   bytesSentToCloud: number;
   /** How many pieces of personal info were removed before anything was sent. */
   redactionCount: number;
@@ -160,6 +160,12 @@ export interface Verdict {
   cloudUnreachable: boolean;
   promptVersion: string;
   elapsedMs: number;
+  /**
+   * Exactly what was sent to the cloud about this page (redacted text, site name,
+   * context), shortened if long. Present only when something was sent, so the
+   * person can read it for themselves.
+   */
+  sentPreview?: string;
   /** Language code of `redFlags` and `explanation` when they are not in English. */
   explanationLanguage?: string;
 }
