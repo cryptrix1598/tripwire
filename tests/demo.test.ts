@@ -33,8 +33,9 @@ const pages = readdirSync('demo')
   });
 
 describe('practice pages, rules only', () => {
-  it('covers four scams and one ordinary page', () => {
+  it('covers four loud scams, one quiet one and one ordinary page', () => {
     expect(pages.filter((p) => p.scenario === 'scam')).toHaveLength(4);
+    expect(pages.filter((p) => p.scenario === 'subtle')).toHaveLength(1);
     expect(pages.filter((p) => p.scenario === 'benign')).toHaveLength(1);
   });
 
@@ -46,6 +47,13 @@ describe('practice pages, rules only', () => {
         expect(passive.bytesSentToCloud).toBe(0);
         const action = await assess({ text: page.text, hostname: 'localhost', trigger: page.trigger }, deps);
         expect(action.state).toBe('tripped');
+      });
+    } else if (page.scenario === 'subtle') {
+      it(`${page.file}: too quiet for rules alone, but it does reach a model`, async () => {
+        const passive = await assess({ text: page.text, hostname: 'localhost', trigger: 'passive' }, deps);
+        // Not waved through by the gate: with a model available it gets a real check.
+        expect(passive.route).not.toBe('not_checked');
+        expect(passive.bytesSentToCloud).toBe(0);
       });
     } else {
       it(`${page.file}: stays silent, even when a card number is typed`, async () => {

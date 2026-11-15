@@ -21,6 +21,8 @@ export type ToBackground =
   | { target: 'background'; type: 'get-tab-state'; tabId: number }
   | { target: 'background'; type: 'get-status' }
   | { target: 'background'; type: 'pairing-code' }
+  | { target: 'background'; type: 'pairing-finish' }
+  | { target: 'background'; type: 'family-disconnect' }
   | { target: 'background'; type: 'get-pending-download'; downloadId: number };
 
 /* ---------- service worker → offscreen document ---------- */
@@ -29,6 +31,8 @@ export type ToOffscreen =
   | { target: 'offscreen'; type: 'assess'; input: AssessInput }
   | { target: 'offscreen'; type: 'status' }
   | { target: 'offscreen'; type: 'pairing-code' }
+  | { target: 'offscreen'; type: 'pairing-finish' }
+  | { target: 'offscreen'; type: 'family-disconnect' }
   | { target: 'offscreen'; type: 'alert'; scamType: ScamType; trigger: Trigger; outcome: Outcome }
   | { target: 'offscreen'; type: 'refresh-config' };
 

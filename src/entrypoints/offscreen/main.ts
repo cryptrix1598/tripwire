@@ -10,7 +10,7 @@ import { applySensitivity, loadSettings } from '../../config/settings';
 import { loadConfig } from '../../config/store';
 import { refreshRemoteConfig } from '../../config/remoteConfig';
 import { isFirebaseConfigured } from '../../firebase/config';
-import { createPairingCode, guardianCount, sendAlert } from '../../guardian/device';
+import { createPairingCode, disconnectGuardians, guardianCount, retirePairingCode, sendAlert } from '../../guardian/device';
 import type { AiEngine } from '../../inference/engine';
 import { firebaseEngine, onDeviceStatus } from '../../inference/firebaseEngine';
 import { assess } from '../../inference/router';
@@ -78,6 +78,17 @@ async function handle(msg: ToOffscreen): Promise<unknown> {
       return status();
     case 'pairing-code':
       return pairing();
+    case 'pairing-finish':
+      if (isFirebaseConfigured()) await retirePairingCode();
+      return { ok: true };
+    case 'family-disconnect':
+      if (!isFirebaseConfigured()) return { ok: false };
+      try {
+        await disconnectGuardians();
+        return { ok: true };
+      } catch {
+        return { ok: false };
+      }
     case 'alert':
       if (!isFirebaseConfigured()) return { ok: false };
       try {

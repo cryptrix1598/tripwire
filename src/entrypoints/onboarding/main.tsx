@@ -4,7 +4,7 @@
  *  2. The privacy promise: shown as a before-and-after, not just claimed.
  *  3. Family pairing: optional, one big code.
  */
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { dashboardUrl, demoUrl } from '../../firebase/config';
 import { prepareOnDeviceModel } from '../../inference/firebaseEngine';
 import { send, type PairingReply, type StatusReply } from '../../messaging';
@@ -99,18 +99,47 @@ function ModelStatus({ status, refresh }: { status: StatusReply | null; refresh:
   );
 }
 
-function Pairing({ paired }: { paired: boolean }) {
+function Pairing({ paired, onConnected }: { paired: number; onConnected: () => void }) {
   const [reply, setReply] = useState<PairingReply | null>(null);
   const [busy, setBusy] = useState(false);
+  const [connected, setConnected] = useState(false);
+  const [baseline, setBaseline] = useState(paired);
   const copy = ONBOARDING.family;
 
   const getCode = () => {
     setBusy(true);
+    setBaseline(paired);
     void send<PairingReply>({ target: 'background', type: 'pairing-code' }).then((r) => {
       setReply(r ?? { ok: false, reason: 'offline' });
       setBusy(false);
     });
   };
+
+  // While a code is on screen, watch for someone using it. A code works once:
+  // the moment a family member connects, it is deleted.
+  const code = reply?.ok ? reply.code : null;
+  useEffect(() => {
+    if (!code || connected) return;
+    const timer = setInterval(() => {
+      void send<StatusReply>({ target: 'background', type: 'get-status' }).then((status) => {
+        if (status && status.guardianCount > baseline) {
+          void send({ target: 'background', type: 'pairing-finish' });
+          setConnected(true);
+          onConnected();
+        }
+      });
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [code, connected, baseline, onConnected]);
+
+  if (connected) {
+    return (
+      <div className="tw-card" role="status">
+        <h2 className="tw-h3 tw-ok">{copy.connectedTitle}</h2>
+        <p>{copy.connectedBody}</p>
+      </div>
+    );
+  }
 
   if (reply?.ok) {
     const spaced = `${reply.code.slice(0, 3)} ${reply.code.slice(3)}`;
@@ -121,6 +150,9 @@ function Pairing({ paired }: { paired: boolean }) {
           {spaced}
         </p>
         <p>{dashboardUrl ? copy.codeHelp(dashboardUrl.replace(/^https?:\/\//, '')) : copy.codeHelpNoUrl}</p>
+        <p className="tw-muted" role="status">
+          {copy.waiting}
+        </p>
         <button type="button" className="tw-link" style={{ alignSelf: 'flex-start' }} onClick={getCode} disabled={busy}>
           {copy.newCode}
         </button>
@@ -129,7 +161,7 @@ function Pairing({ paired }: { paired: boolean }) {
   }
   return (
     <>
-      {paired && <p className="tw-ok">{copy.paired}</p>}
+      {paired > 0 && <p className="tw-ok">{copy.paired}</p>}
       {reply && !reply.ok && (
         <p className="tw-muted" role="status">
           {copy.unavailable}
@@ -227,7 +259,7 @@ function Onboarding() {
   return (
     <Split side={<Side step={3} title={ONBOARDING.family.title} extra={ONBOARDING.family.optional} />}>
       <p className="tw-body">{ONBOARDING.family.body}</p>
-      <Pairing paired={(status?.guardianCount ?? 0) > 0} />
+      <Pairing paired={status?.guardianCount ?? 0} onConnected={refresh} />
       {nav(
         <button type="button" className="tw-btn" onClick={() => setDone(true)}>
           {ONBOARDING.finish}

@@ -10,8 +10,10 @@ import { getAuth, onAuthStateChanged, signInAnonymously, type User } from 'fireb
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getCount,
+  getDocs,
   getFirestore,
   serverTimestamp,
   setDoc,
@@ -53,9 +55,35 @@ export function ensureSignedIn(): Promise<User> {
   return userPromise;
 }
 
+/** The code currently on screen, if any. A code is single-use: it is deleted as soon as someone pairs with it. */
+let liveCode: string | null = null;
+
+/** Delete the pairing code that is on screen (after a successful pairing, or when a new one is requested). */
+export async function retirePairingCode(): Promise<void> {
+  const code = liveCode;
+  liveCode = null;
+  if (!code) return;
+  try {
+    await deleteDoc(doc(getFirestore(getFirebaseApp()), 'pairingCodes', code));
+  } catch {
+    // It expires on its own within 15 minutes.
+  }
+}
+
+/** Remove every family member's link. They stop seeing alerts immediately. */
+export async function disconnectGuardians(): Promise<number> {
+  const user = await ensureSignedIn();
+  const db = getFirestore(getFirebaseApp());
+  const links = await getDocs(collection(db, 'devices', user.uid, 'guardians'));
+  await Promise.all(links.docs.map((link) => deleteDoc(link.ref)));
+  await retirePairingCode();
+  return links.size;
+}
+
 export async function createPairingCode(): Promise<{ code: string; expiresAt: number }> {
   const user = await ensureSignedIn();
   const db = getFirestore(getFirebaseApp());
+  await retirePairingCode();
   await setDoc(doc(db, 'devices', user.uid), { createdAt: serverTimestamp() }, { merge: true });
 
   // Rules reject a code that is still live for someone else, so retry on collision.
@@ -69,6 +97,7 @@ export async function createPairingCode(): Promise<{ code: string; expiresAt: nu
         createdAt: serverTimestamp(),
         expiresAt: Timestamp.fromMillis(expiresAt),
       });
+      liveCode = code;
       return { code, expiresAt };
     } catch (err) {
       lastError = err;

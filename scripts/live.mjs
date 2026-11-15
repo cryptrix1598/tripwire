@@ -93,8 +93,9 @@ try {
   }
 
   let code = '';
+  let setup;
   await step('pairing code is created (anonymous Auth + Firestore)', async () => {
-    const setup = await context.newPage();
+    setup = await context.newPage();
     await setup.goto(ext('onboarding.html'));
     await setup.getByRole('button', { name: 'Continue' }).click();
     await setup.getByRole('button', { name: 'Continue' }).click();
@@ -102,7 +103,6 @@ try {
     await setup.locator('.tw-code').waitFor({ timeout: 30_000 });
     code = (await setup.locator('.tw-code').innerText()).replace(/\D/g, '');
     if (!/^\d{6}$/.test(code)) throw new Error('no six-digit code shown');
-    await setup.close();
   });
 
   const family = await context.newPage();
@@ -113,6 +113,21 @@ try {
     await family.getByLabel('What should we call them?').fill('Mum');
     await family.getByRole('button', { name: 'Connect' }).click();
     await family.getByRole('heading', { name: 'All quiet.' }).waitFor({ timeout: 30_000 });
+  });
+
+  await step('the extension confirms the connection and the code stops working', async () => {
+    await setup.bringToFront();
+    await setup.getByText('A family member is connected.').waitFor({ timeout: 30_000 });
+    await setup.close();
+    const stranger = await context.browser()?.newContext?.() ?? null;
+    const again = await context.newPage();
+    await again.goto(DASHBOARD);
+    await again.getByRole('button', { name: 'Connect another person' }).click();
+    await again.getByLabel('Six-digit pairing code').fill(code);
+    await again.getByRole('button', { name: 'Connect' }).click();
+    await again.getByText('That code was not found or has run out.').waitFor({ timeout: 30_000 });
+    await again.close();
+    void stranger;
   });
 
   await step('stopping a scam sends an alert that appears on the family page', async () => {

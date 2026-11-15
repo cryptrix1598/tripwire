@@ -295,6 +295,9 @@ function startTopFrame(ctx: ContentScriptContext): void {
     return false;
   });
 
+  // The hosted practice pages ask whether the extension is here before running their own copy.
+  ctx.addEventListener(window, 'tripwire-ping', () => window.dispatchEvent(new CustomEvent('tripwire-pong')));
+
   const observer = new MutationObserver(() => {
     if (location.href !== href) {
       // Same tab, new page (Gmail, single-page sites): start from a clean slate.

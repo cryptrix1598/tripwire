@@ -9,7 +9,8 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { DEFAULT_SETTINGS, SENSITIVITY, loadSettings, normalizeSite, saveSettings, type Settings } from '../../config/settings';
 import { explainLanguage } from '../../inference/prompts';
 import { SETTINGS } from '../../ui/copy';
-import { closeThisTab, mount } from '../../ui/ext';
+import { send } from '../../messaging';
+import { closeThisTab, mount, useStatus } from '../../ui/ext';
 import { Brand, NoticeIcon, Split } from '../../ui/kit';
 
 function SettingsPage() {
@@ -17,12 +18,23 @@ function SettingsPage() {
   const [status, setStatus] = useState('');
   const [site, setSite] = useState('');
   const [error, setError] = useState('');
+  const [confirming, setConfirming] = useState(false);
+  const [family, refreshFamily] = useStatus();
   const language = explainLanguage(typeof chrome !== 'undefined' && chrome.i18n ? chrome.i18n.getUILanguage() : navigator.language);
 
   useEffect(() => {
     void loadSettings().then(setSettings);
   }, []);
   if (!settings) return null;
+
+  const familyCount = family?.guardianCount ?? 0;
+  const disconnect = () => {
+    setConfirming(false);
+    void send<{ ok: boolean }>({ target: 'background', type: 'family-disconnect' }).then((r) => {
+      setStatus(r?.ok ? SETTINGS.family.done : SETTINGS.family.failed);
+      refreshFamily();
+    });
+  };
 
   const update = (next: Settings, message: string = SETTINGS.saved) => {
     setSettings(next);
@@ -153,6 +165,38 @@ function SettingsPage() {
         ) : (
           <p className="tw-muted">{SETTINGS.language.english}</p>
         )}
+      </section>
+
+      <section className="tw-rule" aria-labelledby="family-title">
+        <h2 id="family-title" className="tw-h3" style={{ fontSize: 26 }}>
+          {SETTINGS.family.title}
+        </h2>
+        <p className={familyCount > 0 ? 'tw-ok' : 'tw-muted'} style={{ fontWeight: 700 }}>
+          {familyCount > 0 ? SETTINGS.family.count(familyCount) : SETTINGS.family.none}
+        </p>
+        <p className="tw-muted">{SETTINGS.family.body}</p>
+        <div className="tw-row">
+          {familyCount > 0 && !confirming && (
+            <button type="button" className="tw-btn tw-btn--outline" onClick={() => setConfirming(true)}>
+              {SETTINGS.family.disconnect}
+            </button>
+          )}
+          {confirming && (
+            <>
+              <button type="button" className="tw-btn" onClick={disconnect}>
+                {SETTINGS.family.confirm}
+              </button>
+              <button type="button" className="tw-link" onClick={() => setConfirming(false)}>
+                {SETTINGS.family.cancel}
+              </button>
+            </>
+          )}
+          {!confirming && (
+            <button type="button" className="tw-link tw-link--strong" onClick={() => void chrome.tabs.create({ url: chrome.runtime.getURL('/onboarding.html') })}>
+              {SETTINGS.family.add}
+            </button>
+          )}
+        </div>
       </section>
 
       <div className="tw-row">

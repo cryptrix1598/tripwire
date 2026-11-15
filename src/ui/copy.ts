@@ -223,6 +223,9 @@ export const ONBOARDING = {
     paired: 'A family member is connected.',
     unavailable: 'Family alerts need an internet connection and a finished Tripwire setup. You can turn them on later from the Tripwire menu.',
     optional: 'You can skip this',
+    connectedTitle: 'A family member is connected.',
+    connectedBody: 'They will be told when Tripwire steps in. The code has been switched off and cannot be used again.',
+    waiting: 'Waiting for them to type the code…',
     working: 'Getting a code…',
   },
   done: {
@@ -314,6 +317,18 @@ export const SETTINGS = {
     toggle: (name: string) => `Explain warnings in ${name}`,
     body: 'When Tripwire steps in, the reasons are written in your browser’s language. On-device checks are translated on this computer; nothing extra is sent.',
     english: 'Your browser is set to English, so explanations are already in your language.',
+  },
+  family: {
+    title: 'Family alerts',
+    none: 'No family member is connected.',
+    count: (n: number) => (n === 1 ? '1 family member is connected.' : `${n} family members are connected.`),
+    body: 'They see that Tripwire stepped in and what kind of scam it looked like. Never your emails, the pages you visit, or anything you type.',
+    disconnect: 'Disconnect everyone',
+    confirm: 'Yes, disconnect everyone',
+    cancel: 'Keep them connected',
+    done: 'Disconnected. Nobody is being sent alerts now.',
+    failed: 'That did not work. Check your internet connection and try again.',
+    add: 'Connect a family member',
   },
   back: 'Close this tab',
 } as const;

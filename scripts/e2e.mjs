@@ -25,6 +25,7 @@ const context = await chromium.launchPersistentContext(profile, {
   channel: 'chromium',
   headless: !process.argv.includes('--headed'),
   viewport: { width: 1280, height: 800 },
+  reducedMotion: 'reduce', // screenshots must never catch a fade half way
   args: [`--disable-extensions-except=${EXT}`, `--load-extension=${EXT}`],
 });
 

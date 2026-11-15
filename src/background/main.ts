@@ -206,6 +206,11 @@ async function handle(msg: ToBackground, sender: chrome.runtime.MessageSender): 
         (await toOffscreen<PairingReply>({ target: 'offscreen', type: 'pairing-code' })) ??
         ({ ok: false, reason: 'offline' } satisfies PairingReply)
       );
+    case 'pairing-finish':
+      await toOffscreen({ target: 'offscreen', type: 'pairing-finish' });
+      return { ok: true };
+    case 'family-disconnect':
+      return (await toOffscreen<{ ok: boolean }>({ target: 'offscreen', type: 'family-disconnect' })) ?? { ok: false };
     case 'get-pending-download': {
       const key = DOWNLOAD_KEY(msg.downloadId);
       const stored = (await chrome.storage.session.get(key))[key] as PendingDownloadReply | undefined;

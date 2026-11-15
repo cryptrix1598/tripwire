@@ -68,6 +68,32 @@ try {
     console.log('availability now:', state);
   }
 
+  // --shots: real screenshots with the on-device model answering, taken on the hosted
+  // practice pages (the zero-install demo runs the extension's own content script and UI).
+  if (process.argv.includes('--shots') && state === 'available') {
+    const site = (/^WXT_DASHBOARD_URL=(.+)$/m.exec(readFileSync('.env', 'utf8'))?.[1] ?? '').trim().replace(/\/+$/, '');
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    const ui = (selector) => page.locator(`tripwire-ui ${selector}`);
+    const routeText = async () => (await ui('.tw-route').first().innerText()).replace(/\s+/g, ' ');
+    for (const [name, file, field] of [['on-device-pause', 'bank', '#cc'], ['on-device-support', 'support', null], ['receipt-what-was-sent', 'refund', null]]) {
+      await page.goto(`${site}/demo/${file}.html`);
+      await ui('.tw-banner, .tw-overlay').first().waitFor({ timeout: 90_000 });
+      if (field && (await ui('.tw-overlay').count()) === 0) await page.locator(field).focus();
+      const paused = (await ui('.tw-overlay').count()) > 0;
+      await page.locator('tripwire-ui').getByRole('button', { name: paused ? 'Why did Tripwire stop me?' : 'Why?' }).click();
+      const receipt = page.locator('tripwire-ui').getByRole('button', { name: 'See exactly what was sent' });
+      let sent = '';
+      if (await receipt.count()) {
+        await receipt.click();
+        sent = (await ui('.tw-sent').innerText()).replace(/\s+/g, ' ');
+      }
+      await page.waitForTimeout(400);
+      await page.screenshot({ path: `docs/screenshots/${name}.png` });
+      console.log(`${file}: ${paused ? 'paused' : 'banner'} | ${await routeText()}${sent ? ` | sent has [NAME]: ${sent.includes('[NAME]')}, has the name: ${/Margaret|Ellison/.test(sent)}, has the phone: ${sent.includes('0164')}` : ''}`);
+    }
+  }
+
   // --checks: run the Developer checks page (as a web page) with the on-device model.
   if (process.argv.includes('--checks') && state === 'available') {
     await page.goto('http://localhost:5174/preview.html?page=checks');
