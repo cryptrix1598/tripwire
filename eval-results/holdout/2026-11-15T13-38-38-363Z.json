@@ -1,0 +1,392 @@
+{
+  "ranAt": "2026-11-15T13:38:38.363Z",
+  "mode": "held-out, live-web-harness (Chrome 157.0.8103.78), on-device model available",
+  "scams": 16,
+  "detected": 16,
+  "roundTwo": {
+    "scams": 6,
+    "detected": 6
+  },
+  "paused": 16,
+  "benignPages": 16,
+  "falseAlarms": 1,
+  "pagesSkipped": [
+    "https://consumer.ftc.gov/articles/avoiding-and-reporting-gift-card-scams (blocked or empty)",
+    "https://consumer.ftc.gov/articles/how-spot-avoid-and-report-tech-support-scams (blocked or empty)",
+    "https://consumer.ftc.gov/articles/how-recognize-and-avoid-phishing-scams (blocked or empty)",
+    "https://anydesk.com/en/downloads/windows (blocked or empty)"
+  ],
+  "routes": {
+    "device_then_cloud": 14,
+    "on_device": 15,
+    "not_checked": 3
+  },
+  "totalBytesSentToCloud": 15468,
+  "averageChars": 3975,
+  "latencyMs": {
+    "whenAModelRan": {
+      "median": 3695,
+      "p90": 11919
+    },
+    "onDeviceOnly": {
+      "median": 3257
+    },
+    "deviceThenCloud": {
+      "median": 10674
+    }
+  },
+  "rows": [
+    {
+      "id": "holdout-scam-01-grandchild",
+      "label": "scam",
+      "chars": 919,
+      "state": "tripped",
+      "riskScore": 98,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 1179,
+      "elapsedMs": 17820,
+      "correct": true
+    },
+    {
+      "id": "holdout-scam-02-utility-shutoff",
+      "label": "scam",
+      "chars": 997,
+      "state": "tripped",
+      "riskScore": 97,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 1266,
+      "elapsedMs": 12846,
+      "correct": true
+    },
+    {
+      "id": "holdout-scam-03-boss-gift-cards",
+      "label": "scam",
+      "chars": 868,
+      "state": "tripped",
+      "riskScore": 95,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 1143,
+      "elapsedMs": 10674,
+      "correct": true
+    },
+    {
+      "id": "holdout-scam-04-investment-coach",
+      "label": "scam",
+      "chars": 1032,
+      "state": "tripped",
+      "riskScore": 97,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 1324,
+      "elapsedMs": 11919,
+      "correct": true
+    },
+    {
+      "id": "holdout-scam-05-medicare-card",
+      "label": "scam",
+      "chars": 891,
+      "state": "tripped",
+      "riskScore": 95,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 3154,
+      "correct": true
+    },
+    {
+      "id": "holdout-scam-06-antivirus-renewal",
+      "label": "scam",
+      "chars": 847,
+      "state": "tripped",
+      "riskScore": 87,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 1145,
+      "elapsedMs": 11342,
+      "correct": true
+    },
+    {
+      "id": "holdout-scam-07-customs-parcel",
+      "label": "scam",
+      "chars": 686,
+      "state": "tripped",
+      "riskScore": 92,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 959,
+      "elapsedMs": 9132,
+      "correct": true
+    },
+    {
+      "id": "holdout-scam-08-romance-emergency",
+      "label": "scam",
+      "chars": 911,
+      "state": "tripped",
+      "riskScore": 98,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 1194,
+      "elapsedMs": 11461,
+      "correct": true
+    },
+    {
+      "id": "holdout-scam-09-bank-safe-account",
+      "label": "scam",
+      "chars": 858,
+      "state": "tripped",
+      "riskScore": 97,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 1164,
+      "elapsedMs": 9959,
+      "correct": true
+    },
+    {
+      "id": "holdout-scam-10-prize-fee",
+      "label": "scam",
+      "chars": 830,
+      "state": "tripped",
+      "riskScore": 97,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 1120,
+      "elapsedMs": 10382,
+      "correct": true
+    },
+    {
+      "id": "round2-01-jury-duty",
+      "label": "scam",
+      "chars": 598,
+      "state": "tripped",
+      "riskScore": 98,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 902,
+      "elapsedMs": 8657,
+      "correct": true
+    },
+    {
+      "id": "round2-02-job-check",
+      "label": "scam",
+      "chars": 619,
+      "state": "tripped",
+      "riskScore": 98,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 893,
+      "elapsedMs": 8554,
+      "correct": true
+    },
+    {
+      "id": "round2-03-toll-text",
+      "label": "scam",
+      "chars": 471,
+      "state": "tripped",
+      "riskScore": 95,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 751,
+      "elapsedMs": 8577,
+      "correct": true
+    },
+    {
+      "id": "round2-04-puppy",
+      "label": "scam",
+      "chars": 589,
+      "state": "tripped",
+      "riskScore": 92,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 3522,
+      "correct": true
+    },
+    {
+      "id": "round2-05-paypal-invoice",
+      "label": "scam",
+      "chars": 478,
+      "state": "tripped",
+      "riskScore": 92,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 3047,
+      "correct": true
+    },
+    {
+      "id": "round2-06-charity",
+      "label": "scam",
+      "chars": 586,
+      "state": "tripped",
+      "riskScore": 92,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 3139,
+      "correct": true
+    },
+    {
+      "id": "https://www.irs.gov/newsroom/tax-scams-consumer-alerts",
+      "label": "benign",
+      "chars": 2712,
+      "state": "safe",
+      "riskScore": 15,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 3365,
+      "correct": true
+    },
+    {
+      "id": "https://www.ssa.gov/scam/",
+      "label": "benign",
+      "chars": 9127,
+      "state": "safe",
+      "riskScore": 25,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 3257,
+      "correct": true
+    },
+    {
+      "id": "https://www.consumerfinance.gov/consumer-tools/fraud/",
+      "label": "benign",
+      "chars": 3464,
+      "state": "safe",
+      "riskScore": 10,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 3662,
+      "correct": true
+    },
+    {
+      "id": "https://support.apple.com/gift-card-scams",
+      "label": "benign",
+      "chars": 2558,
+      "state": "safe",
+      "riskScore": 20,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 3695,
+      "correct": true
+    },
+    {
+      "id": "https://www.teamviewer.com/en-us/download/windows/",
+      "label": "benign",
+      "chars": 4846,
+      "state": "safe",
+      "riskScore": 5,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 1189,
+      "elapsedMs": 9531,
+      "correct": true
+    },
+    {
+      "id": "https://en.wikipedia.org/wiki/Technical_support_scam",
+      "label": "benign",
+      "chars": 20000,
+      "state": "tripped",
+      "riskScore": 85,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 3207,
+      "correct": false
+    },
+    {
+      "id": "https://en.wikipedia.org/wiki/Gift_card",
+      "label": "benign",
+      "chars": 20000,
+      "state": "safe",
+      "riskScore": 5,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 3272,
+      "correct": true
+    },
+    {
+      "id": "https://en.wikipedia.org/wiki/Wire_transfer",
+      "label": "benign",
+      "chars": 17370,
+      "state": "safe",
+      "riskScore": 10,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 3641,
+      "correct": true
+    },
+    {
+      "id": "https://www.usa.gov/where-report-scams",
+      "label": "benign",
+      "chars": 1886,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 1,
+      "correct": true
+    },
+    {
+      "id": "https://www.uspis.gov/news/scam-article/smishing-package-tracking-text-scams",
+      "label": "benign",
+      "chars": 6927,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 1239,
+      "elapsedMs": 10915,
+      "correct": true
+    },
+    {
+      "id": "https://bitcoin.org/en/how-it-works",
+      "label": "benign",
+      "chars": 3456,
+      "state": "safe",
+      "riskScore": 10,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 2592,
+      "correct": true
+    },
+    {
+      "id": "https://www.gov.uk/report-suspicious-emails-websites-phishing",
+      "label": "benign",
+      "chars": 4045,
+      "state": "safe",
+      "riskScore": 25,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 3355,
+      "correct": true
+    },
+    {
+      "id": "https://www.bbc.com/news",
+      "label": "benign",
+      "chars": 7982,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 2,
+      "correct": true
+    },
+    {
+      "id": "https://www.nytimes.com/wirecutter/reviews/best-gift-cards/",
+      "label": "benign",
+      "chars": 3559,
+      "state": "safe",
+      "riskScore": 20,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 2869,
+      "correct": true
+    },
+    {
+      "id": "https://www.mozilla.org/en-US/firefox/new/",
+      "label": "benign",
+      "chars": 3000,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 1,
+      "correct": true
+    },
+    {
+      "id": "https://www.wikipedia.org/",
+      "label": "benign",
+      "chars": 4099,
+      "state": "safe",
+      "riskScore": 10,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 2588,
+      "correct": true
+    }
+  ]
+}

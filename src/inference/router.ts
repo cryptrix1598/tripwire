@@ -51,6 +51,7 @@ import {
   type Verdict,
   type VerdictState,
 } from './schemas';
+import { ABOUT_SCAMS_AT, detectShape, salientExcerpt, scamTalk, worthACloudLook, worthALocalLook } from './shape';
 import { describeSignals, detectSignals, worthChecking, type Signals } from './signals';
 
 export interface AssessInput {
@@ -71,7 +72,7 @@ export interface RouterDeps {
   timeouts?: { onDeviceMs: number; cloudMs: number };
 }
 
-const DEFAULT_TIMEOUTS = { onDeviceMs: 25_000, cloudMs: 20_000 };
+const DEFAULT_TIMEOUTS = { onDeviceMs: 15_000, cloudMs: 20_000 };
 /** How much of the sent text is kept on the verdict for the "what was sent" receipt. */
 const SENT_PREVIEW_MAX = 1500;
 const utf8Bytes = (s: string) => new TextEncoder().encode(s).length;
@@ -105,7 +106,9 @@ async function callValidated<S extends z.ZodType>(
     let raw: string;
     try {
       raw = await call();
-    } catch {
+    } catch (err) {
+      // A timeout is not worth a second wait of the same length.
+      if (err instanceof Error && err.message.includes('timed out')) break;
       continue;
     }
     sawAnswer = true;
@@ -170,13 +173,21 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
   const { engine, config } = deps;
   const timeouts = deps.timeouts ?? DEFAULT_TIMEOUTS;
   const prompts = promptSet(config.promptVersion);
-  const text = input.text.slice(0, config.maxScanChars);
-  const signals = detectSignals(text, config);
+  const page = input.text.slice(0, config.maxScanChars);
+  const shape = detectShape(page);
+  // What the models read: a focused excerpt, never the whole of a long page.
+  const text = salientExcerpt(page, config.maxModelChars);
+  const signals = detectSignals(page, config);
+  // Advice pages, news and encyclopaedia articles ABOUT scams contain every scam phrase there is.
+  const mentions = scamTalk(page);
+  const aboutScams = mentions >= ABOUT_SCAMS_AT;
   const language = explainLanguage(input.language);
   const ctx: PromptContext = {
     hostname: input.hostname,
     trigger: input.trigger,
-    signalSummary: describeSignals(signals),
+    signalSummary:
+      describeSignals(signals) +
+      (aboutScams ? `. Note: the page says scam, scammer or victim ${mentions} times, which usually means it is explaining or warning about scams, not running one` : ''),
     ...(language ? { language } : {}),
   };
 
@@ -231,7 +242,8 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
     const { low, rulesOnlyCaution } = config.thresholds;
     // After a model failure the bar for caution drops to LOW: never silently pass.
     const cautionAt = failSafe ? low : rulesOnlyCaution;
-    const flagged = signals.ruleScore >= cautionAt;
+    // With no model to tell the difference, a page that is plainly about scams is left alone.
+    const flagged = signals.ruleScore >= cautionAt && !(aboutScams && input.trigger === 'passive');
     return finish({
       // Rules alone never trip a passive scan: map into the caution band.
       score: flagged ? Math.max(low, Math.min(signals.ruleScore, config.thresholds.high - 1)) : Math.min(signals.ruleScore, low - 1),
@@ -247,7 +259,14 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
 
   // ── Gate ────────────────────────────────────────────────────────────────
   // A passive scan with no warning signs never reaches a model.
-  if (input.trigger === 'passive' && !worthChecking(signals)) {
+  // Keyword lists alone were too narrow (see shape.ts), so the shape of the request counts too.
+  const localLook = worthChecking(signals) || worthALocalLook(shape);
+  // An ordinary checkout always has a price and a card number box, so when the person is
+  // typing a card (or similar) those two prove nothing: only secrecy plus pressure does.
+  const cloudLook =
+    worthChecking(signals) ||
+    (input.trigger === 'passive' ? worthACloudLook(shape) : shape.secrecy && (shape.pressure || shape.hasPhone));
+  if (input.trigger === 'passive' && !localLook) {
     return finish({
       score: 0,
       scamType: 'none',
@@ -290,7 +309,8 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
   if (status !== 'available') {
     // Without a private on-device check, a card field alone is not enough
     // reason to send a (redacted) checkout page anywhere.
-    if (input.trigger !== 'passive' && !worthChecking(signals)) {
+    // With no on-device model something would have to leave the device, so the bar is higher.
+    if (!cloudLook) {
       return finish({ score: 0, scamType: 'none', redFlags: [], explanation: '', confidence: 1, route: 'not_checked' });
     }
     const cloud = await runCloud(null, null);
@@ -362,7 +382,8 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
   }
 
   const corroborated = t.confidence >= minTripConfidence && signals.ruleScore >= minCorroboration;
-  if (t.riskScore >= high && corroborated) {
+  // A page about scams never trips on the device model alone: the stronger model has to agree.
+  if (t.riskScore >= high && corroborated && !aboutScams) {
     // Local verdict. Nothing leaves the device.
     return finish(
       await localise({
@@ -388,7 +409,16 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
         ),
       RedactionSchema,
     );
-    return r.ok ? r.value.redactedText : null;
+    if (!r.ok) return null;
+    // The model only points; the replacing happens here, so nothing can be paraphrased or dropped.
+    let out = preRedacted;
+    for (const item of r.value.items) {
+      const found = item.text.trim();
+      // Ignore anything too short to be a personal detail, existing tags, and runaway answers.
+      if (found.length < 3 || found.length > 80 || /^\[[A-Z]+\]$/.test(found) || !out.includes(found)) continue;
+      out = out.split(found).join(`[${item.kind}]`);
+    }
+    return out;
   };
 
   const cloud = await runCloud(modelRedactor, t);
@@ -417,7 +447,11 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
   }
 
   // Cloud not reachable (offline), invalid, or the privacy gate closed.
-  // The on-device verdict stands on its own, and nothing was sent.
+  // For a page about scams the small model's word alone is not enough to interrupt someone reading.
+  if (aboutScams && input.trigger === 'passive') {
+    return finish({ score: Math.min(t.riskScore, low - 1), scamType: 'none', redFlags: [], explanation: '', confidence: t.confidence, route: 'on_device' });
+  }
+  // Otherwise the on-device verdict stands on its own, and nothing was sent.
   return finish(
     await localise({
       score: t.riskScore,

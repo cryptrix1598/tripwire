@@ -6,6 +6,27 @@ A Chrome extension for older adults and the family who look out for them. Built 
 
 Scams do not take your money when you read them. They take it when you act: when you type a card number, buy gift cards, install a "support" program, or call the number on the screen. Tripwire stays invisible until that moment, then pauses you with one calm question: *did someone call, text, or email you and ask you to do this?*
 
+**Try it now, with nothing to install:** https://tripwire-buildhybridai.web.app/demo/ runs Tripwire's real checks and screens in your browser, through Firebase AI Logic. If your Chrome has its on-device model the check runs on your device; otherwise personal details are removed first and the cloud model is asked.
+
+## Why this matters
+
+Figures from the US Federal Trade Commission, read in November 2026:
+
+- Fraud losses reported by older adults rose from about $600 million in 2020 to about $3 billion in 2025 ([FTC consumer alert, 4 Nov 2026](https://consumer.ftc.gov/consumer-alerts/2026/11/new-report-ftcs-work-protect-older-adults)).
+- Reports from older adults who lost $10,000 or more to business or government imposters rose more than fourfold from 2020 to 2024 (1,790 to 8,269 reports). In 2024 older adults were more than twice as likely as younger adults to report a loss that size ([FTC Data Spotlight, Aug 2025](https://www.ftc.gov/news-events/data-visualizations/data-spotlight/2025/08/false-alarm-real-scam-how-scammers-are-stealing-older-adults-life-savings)).
+- The pattern the FTC describes is the one Tripwire is built around: a false alarm ("someone is using your accounts"), then pressure to move money "to protect it". Its advice: "Only scammers will tell you to buy a gift card ... and give them the numbers off the back of the card" ([FTC](https://consumer.ftc.gov/articles/avoiding-and-reporting-gift-card-scams)).
+
+These are published figures, not our own research. Tripwire has not been tested with older users yet; `PRODUCT.md` says so.
+
+## How this differs from the protection already in a browser
+
+Browsers block known bad sites and warn about dangerous pages. Tripwire does four different things:
+
+1. **It acts at the moment of action**, not on page load: a card field, a gift-card code box, a wallet address, a phone link, a remote-access download.
+2. **It reads the message, not the address.** A brand-new scam email on an ordinary mail site has no bad URL to block.
+3. **It shows its work.** Every verdict says what left the computer, and "See exactly what was sent" shows the redacted text itself.
+4. **It brings in family** without showing them anything private.
+
 ## What it does
 
 | State | What the person sees |
@@ -24,7 +45,11 @@ Action tripwires: typing or focusing a card number field (Luhn checked, locally)
 
 ## Screenshots
 
-Captured by `npm run e2e` from the built extension running in Chromium, on the practice pages.
+The first row was captured in desktop Chrome 157 with Gemini Nano answering, on the hosted practice pages (`node scripts/nano-probe.mjs --shots`). The rest come from `npm run e2e` in a Chromium that has no on-device model, so their badges show the fallback route.
+
+| On the device, nothing sent | The receipt: exactly what was sent |
+| --- | --- |
+| ![Pause with "Checked on your device, 0 bytes sent"](docs/screenshots/on-device-pause.png) | ![The redacted text that left the device](docs/screenshots/receipt-what-was-sent.png) |
 
 | Caution | Tripped |
 | --- | --- |
@@ -75,6 +100,13 @@ Every verdict carries a `route`, shown to the person in plain words:
 - **Your device doesn't support on-device AI · personal info removed before checking**
 - **Checked with built-in safety rules · 0 bytes sent** (offline, or no model reachable)
 
+What decides each step (all of this was changed after a held-out test, see "Test results"):
+
+- **The gate is the shape of the request, not just keywords.** A page is worth a look when it asks for money or credentials and adds pressure, secrecy or a number to call ([src/inference/shape.ts](src/inference/shape.ts)). The on-device look is generous, because it sends nothing. With no on-device model the bar is higher, because something would leave the device.
+- **Models read an excerpt, not the page.** A long page is cut to its opening plus the sentences that carry the ask (at most 1,800 characters). This keeps the on-device model to a few seconds and means less can ever be sent.
+- **On-device redaction lists, code replaces.** The on-device model returns the personal details it finds; the replacing is done in code, so nothing can be paraphrased or dropped, and it is several times faster than asking a small model to rewrite the text.
+- **A page that is about scams never trips on the small model alone.** Advice pages and encyclopaedia articles contain every scam phrase there is; the cloud model has to agree.
+
 Details worth knowing:
 
 - The router ([src/inference/router.ts](src/inference/router.ts)) pins the inference mode for each call instead of using `PREFER_ON_DEVICE`, and checks `response.inferenceSource`. If a call that must stay on the device was answered by the cloud, it throws a `PrivacyInvariantError` and the result is discarded.
@@ -90,9 +122,13 @@ Details worth knowing:
 | --- | --- |
 | Raw page or email text never reaches the cloud model | `redactForCloud` fails closed; router tests assert the cloud prompt contains no raw PII ([tests/router.test.ts](tests/router.test.ts)) |
 | Password fields are never read | [src/tripwires/cardField.ts](src/tripwires/cardField.ts); only visible text is scanned |
-| A Guardian alert holds five fixed fields and nothing else | `buildAlert` takes enums only; [firestore.rules](firestore.rules) reject extra fields and long strings ([tests/rules](tests/rules/guardian.rules.test.ts)) |
+| A Guardian alert holds five fixed fields and no free text | `buildAlert` takes enums only; [firestore.rules](firestore.rules) require the summary to be the one fixed sentence for that kind of scam and reject anything else ([tests/rules](tests/rules/guardian.rules.test.ts), 14 tests) |
+| The person can see what was sent | "See exactly what was sent" in the reasons panel shows the redacted request text ([src/ui/kit.tsx](src/ui/kit.tsx)) |
+| A pairing code works once | The extension deletes the code when a family member connects and says so; settings can disconnect everyone |
 | A guardian can only link with a live code | Security rules check the code server-side; codes cannot be listed |
 | Nothing is stored about pages | Verdicts live in `chrome.storage.session` and are cleared when the tab closes |
+
+**What is not guaranteed.** On a computer with no on-device model, redaction is pattern-matching: numbers, emails, addresses, greetings, titles and about 300 common given names. An unusual name in ordinary prose can get through, which is why that route is worded "the names, numbers and addresses it could recognise". "Bytes sent" counts the whole request Tripwire writes about a page (redacted text, site name, context lines); the fixed instructions are the same for every page and are not counted.
 
 ## Run it
 
@@ -170,45 +206,65 @@ Status: the app compiles against firebase-ai 18.2.0 and firebase-ai-ondevice 16.
 | `npm run eval` | Corpus run with rules only; exits non-zero on any false alarm |
 | `npm run live` | With `.env` filled in: live App Check, hybrid call, the corpus through the live router, pairing and a family alert |
 | `cd android && ./gradlew testDebugUnitTest assembleDebug` | Android companion: unit tests and debug APK |
+| `npm run hosted` | Tests the zero-install demo on the hosted site in a plain browser |
+| `node scripts/holdout.mjs` | Held-out scams and real public pages, with the on-device model and latency |
 | `npm run e2e` | Loads the built extension in Chromium, drives the practice pages, saves screenshots (first run: `npx playwright install chromium`) |
 
 ## Test results
 
-Corpus: 25 scam and 25 ordinary messages in [corpus/](corpus).
+### Main corpus
 
-| Run | Scams flagged | False alarms | Bytes sent |
+25 scam and 25 ordinary messages in [corpus/](corpus). Keyword lists and thresholds were tuned on this set, so treat it as a regression test, not as proof.
+
+| Run | Scams flagged | False alarms | Bytes sent (whole request) |
 | --- | --- | --- | --- |
-| Built-in rules only (`npm run eval`) | 23 / 25 (3 paused) | **0 / 25** | 0 |
-| Live through Firebase AI Logic, cloud path (`npm run live`) | **25 / 25** (25 paused) | **0 / 25** | 14,162, all redacted first |
-| Live, Gemini Nano on the device first (`node scripts/nano-probe.mjs --checks --corpus`) | **25 / 25** (25 paused), five runs | **0 / 25**, five runs | 310 to 3,013 per run, all redacted first |
+| Built-in rules only (`npm run eval`) | 23 / 25 | **0 / 25** | 0 |
+| Cloud path, no on-device model (`npm run live`) | **25 / 25** | **0 / 25** | 21,613, all redacted first |
+| Gemini Nano on the device first (`node scripts/nano-probe.mjs --checks --corpus`) | **25 / 25** | **0 / 25** | 2,554, all redacted first |
 
-The two misses on rules alone are refund-style messages with few warning words; the model catches both. In the cloud-path run 15 of the 50 samples were never sent anywhere (no warning signs), and the other 35 went to the cloud only after redaction. Raw results: [eval-results/live.json](eval-results/live.json).
+With the on-device model, 38 of the 50 samples were decided on the device, 8 needed no model and 4 went to the cloud: about 88 percent less sent than the cloud-only path, with the same detection. Four on-device runs are committed in [eval-results/on-device/](eval-results/on-device): three from 14 Nov, which counted only the page text as "bytes sent" (so their byte figures are lower and not comparable), and the one above. All four are 25/25 with zero false alarms. Three more were run on 14 Nov and not kept: two matched, and the first one produced a borderline false alarm on a gift-card shop page, which led to a router fix and a regression test. Results files record where they were run; the on-device runs use the Developer checks page served as a web page, because Chrome will not load an unpacked extension under automation.
 
-**With the on-device model, 29 to 36 of the 50 samples were decided entirely on the device, 13 needed no model at all, and 1 to 8 went to the cloud: 310 to 3,013 redacted bytes per run, against 14,162 without the on-device gate.** Raw results of the last run: [eval-results/live-on-device.json](eval-results/live-on-device.json). These runs used desktop Chrome 157 with Gemini Nano, through the Developer checks page served as a web page (Chrome will not load an unpacked extension under automation). The on-device model's answers vary a little from run to run, so the corpus was run five times after the last router change; all five had zero false alarms. A run before that produced one borderline false alarm on a gift-card shop page, which led to a router fix and a regression test (a confident "this is fine" from the cloud model now overrules an unsure device model).
+### Held-out test, and what it found
 
-The same live run (`npm run live`) also checks, against the real project: an App Check token is issued for the extension, one hybrid Firebase AI Logic call answers, a pairing code is created, a guardian pairs on the hosted family page, and stopping a scam makes an alert appear there within seconds.
+[corpus/holdout.json](corpus/holdout.json): scam messages that were never used for tuning (longer and quieter than the main corpus), and 20 real public pages fetched live: official advice about scams (IRS, SSA, CFPB, Apple, USPS, GOV.UK), remote-access vendors, Wikipedia articles on tech support scams, gift cards and wire transfers, a gift-card buying guide, Bitcoin's own explainer, and news. Run with `node scripts/holdout.mjs`.
 
-![A live alert on the hosted family page](docs/screenshots/family-live.png)
+| Run | Scams flagged | False alarms on real pages | Check time when a model ran |
+| --- | --- | --- | --- |
+| First run, original design | 6 / 10 | 0 / 16 | median 51 s |
+| After the fixes below | **16 / 16** | **0 / 16** | **median 4.3 s, 90th percentile 8.4 s** |
 
-Unit tests: 105 passing (extension) and 6 passing (Android). Security-rules tests: 12 passing. End-to-end in Chromium: 12 of 12 steps passing (setup, silent on an ordinary checkout, banner, pause on card / gift card / wallet / phone link, paused download, stop, continue, trusted sites in settings, popup, family page gallery).
+The first run was a bad result and it was right:
 
-Explanations in the browser's language were run live: Spanish and French on the device (route "Checked on your device", 0 bytes sent) and Spanish through the cloud path.
+- **Four of ten scams never reached a model.** The keyword gate was tuned to the main corpus and missed a "grandchild needs bail" message, a utility shut-off notice, a refund call and a customs fee. The gate now looks at the shape of the request.
+- **Long real pages took about 50 seconds**, because the on-device model was handed whole pages and timed out. Models now read a focused excerpt, a timeout is not retried, and on-device redaction lists details instead of rewriting text.
+- A middle run then **paused the Wikipedia article on tech support scams**. Pages that are about scams now need the cloud model to agree.
 
-Accessibility: the same run audits every screen with axe-core. WCAG 2.2 A/AA: 0 problems. All text also meets AAA contrast (7:1).
+Because those fixes were made after seeing round one, a second round of six new scam messages was written afterwards and nothing was changed after running it: 6 of 6 were caught. The real pages are no longer strictly held-out either (one false alarm on them was found and fixed), so the "0 of 16" is a result on pages the design has now seen. Four pages (three on consumer.ftc.gov and anydesk.com) refused the automated browser and were skipped. All runs are in [eval-results/holdout/](eval-results/holdout).
+
+### Everything else
+
+- Unit tests: 123 passing (extension), 6 (Android). Security-rules tests against the emulator: 14 passing.
+- End-to-end in Chromium (`npm run e2e`): 12 of 12 steps, including settings and the paused download.
+- Live against the real project (`npm run live`): App Check token, hybrid call, Spanish explanations, pairing, single-use code, family alert.
+- Hosted demo with no extension (`npm run hosted`): the practice pages are flagged in a plain browser, the phone number on the page is absent from what was sent, and the ordinary checkout stays silent.
+- Accessibility: axe-core on every screen in the end-to-end run. WCAG 2.2 A/AA: 0 problems. All text meets AAA contrast.
+- Languages: the banner, pause, reasons and "you stopped" page are in English, Spanish and French, following the browser. Model-written reasons were run live in Spanish and French on the device (0 bytes sent) and Spanish through the cloud.
 
 ## Not verified yet
 
 Stated plainly so nobody is surprised:
 
-- The automated on-device runs go through a web page, because Chrome will not load an unpacked extension under automation. The loaded extension itself was checked by hand in desktop Chrome 157 on 2026-11-14: the offscreen document reported the model as ready, and the fake bank practice page was paused with the badge "Checked on your device · 0 bytes sent". The same check was repeated with Wi-Fi switched off, and the page was still caught on the device.
-- Scanning inside Gmail has not been tested against a real mailbox.
-- The Android app has not been run. It builds and its unit tests pass, but the machine it was built on has no hypervisor, so the Android emulator cannot start, and no phone was attached. Pairing, the feed, notifications and the hybrid AI call on Android are therefore untested on a device.
-- App Check enforcement was tested from outside: an AI Logic request without a token is refused with HTTP 401, and a Firestore read without a token is refused (`node scripts/appcheck-probe.mjs`), while the extension and the hosted family page keep working.
+- **Gmail.** Reading an opened email relies on Gmail's page structure and has not been tested against a real mailbox.
+- **On-device inside the loaded extension, by automation.** The automated on-device runs go through a web page or the hosted demo. The loaded extension itself was checked by hand in desktop Chrome 157 on 14 Nov 2026: the offscreen document reported the model as ready, the fake bank practice page was paused with "Checked on your device · 0 bytes sent", and the same check passed with Wi-Fi off.
+- **The Android app has not been run.** It builds and its unit tests pass, but the machine it was built on cannot start the Android emulator and no phone was attached.
+- **Real users.** Nobody in the target age group has used it yet.
+- **Scale.** The corpora are small (50 tuning samples, 16 held-out scams, 16 real pages). They are enough to catch design mistakes, as above, not to state an accuracy figure.
+- **Speed.** A check takes about 3 to 4 seconds on the device and 6 to 9 seconds when the cloud is also asked, on a desktop with an RTX 4060. Reading a page is never blocked by this, but a pause can appear a few seconds after the page does.
 
 ## Project layout
 
 ```
-src/inference     router, prompts, schemas, the single Firebase AI Logic file
+src/inference     router, request shape and excerpt, prompts, schemas, the single Firebase AI Logic file
 src/redaction     regex redactor and the fail-closed redaction pipeline
 src/tripwires     card-field detection and Luhn
 src/content       page text scanning (visible text only)
@@ -218,7 +274,7 @@ src/ui            every word of copy (copy.ts), design tokens (tripwire.css), sh
 src/guardian      pairing and alerts
 android           Tripwire Guardian, the Android companion (Kotlin, Compose)
 dashboard         family page (Vite + React), shares src/ui
-demo              practice scam pages
+demo              practice scam pages (also served as the zero-install demo)
 corpus, tests     test corpus, unit tests, security-rules tests
 ```
 

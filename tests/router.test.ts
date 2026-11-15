@@ -33,7 +33,7 @@ function fakeEngine(opts: FakeOptions = {}) {
     onDeviceStatus: vi.fn(async () => opts.status ?? 'available'),
     triageOnDevice: vi.fn(async (_sys: string, _user: string) => (opts.triage ?? (async () => triageJson(50)))()),
     redactOnDevice: vi.fn(async (_sys: string, user: string) =>
-      (opts.redact ?? (async (p: string) => JSON.stringify({ redactedText: p.split('"""')[1]!.trim() })))(user),
+      (opts.redact ?? (async () => JSON.stringify({ items: [] })))(user),
     ),
     analyzeInCloud: vi.fn(async (_sys: string, user: string, _model: string) =>
       (opts.cloud ?? (async () => cloudJson(70)))(user),

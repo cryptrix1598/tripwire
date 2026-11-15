@@ -1,0 +1,109 @@
+{
+  "about": "Held-out set. None of this was used to choose keywords, thresholds or prompts. The scam messages are longer and quieter than the tuning corpus; the ordinary pages are real public pages, fetched live when the test runs (only their addresses are stored here). Every name, number and company in the scam messages is invented. Round one exposed a gate that was too narrow, and the gate was redesigned (src/inference/shape.ts). Round two was written after that redesign and nothing was changed afterwards, so it is the cleaner measure.",
+  "benignPages": [
+    "https://consumer.ftc.gov/articles/avoiding-and-reporting-gift-card-scams",
+    "https://consumer.ftc.gov/articles/how-spot-avoid-and-report-tech-support-scams",
+    "https://consumer.ftc.gov/articles/how-recognize-and-avoid-phishing-scams",
+    "https://www.irs.gov/newsroom/tax-scams-consumer-alerts",
+    "https://www.ssa.gov/scam/",
+    "https://www.consumerfinance.gov/consumer-tools/fraud/",
+    "https://support.apple.com/gift-card-scams",
+    "https://www.teamviewer.com/en-us/download/windows/",
+    "https://anydesk.com/en/downloads/windows",
+    "https://en.wikipedia.org/wiki/Technical_support_scam",
+    "https://en.wikipedia.org/wiki/Gift_card",
+    "https://en.wikipedia.org/wiki/Wire_transfer",
+    "https://www.usa.gov/where-report-scams",
+    "https://www.uspis.gov/news/scam-article/smishing-package-tracking-text-scams",
+    "https://bitcoin.org/en/how-it-works",
+    "https://www.gov.uk/report-suspicious-emails-websites-phishing",
+    "https://www.bbc.com/news",
+    "https://www.nytimes.com/wirecutter/reviews/best-gift-cards/",
+    "https://www.mozilla.org/en-US/firefox/new/",
+    "https://www.wikipedia.org/"
+  ],
+  "scams": [
+    {
+      "id": "holdout-scam-01-grandchild",
+      "hostname": "mail.example.test",
+      "text": "Grandma it's me. Please don't be mad and please don't tell Mom or Dad yet. I was in a car accident last night on the way back from a friend's place. Nobody is badly hurt but the other driver is pressing charges and I spent the night at the county holding facility. My public defender, Mr. Alan Brooks, says the judge will release me this afternoon if bail is posted before 3 o'clock, otherwise I stay here over the weekend. It is $4,800. He said the fastest way is for you to withdraw cash and a courier from the bond office will collect it from your house in a sealed envelope, or you can pay it with prepaid cards and read him the numbers over the phone. Please call him directly on 1-855-555-0133, he is expecting you. If the bank teller asks, just say it is for home repairs, they sometimes hold large withdrawals and I can't wait. I'm so sorry. I love you and I'll pay you back every cent, I promise. Please hurry."
+    },
+    {
+      "id": "holdout-scam-02-utility-shutoff",
+      "hostname": "notices.example.test",
+      "text": "Riverside Power & Light: Disconnection Notice. Service address on file. Our records show two missed payments on your residential electric account and a past-due balance of $612.47. A field technician has been scheduled to disconnect service at this address today between 2:00 PM and 4:00 PM. Once the meter is removed a reconnection fee of $350 and a new security deposit will apply, and reconnection can take up to five business days. To stop the disconnection you must speak with our billing department before the technician arrives. Call 1-855-555-0171 now and have your payment ready. Because your account is flagged, we can no longer accept personal checks or card payments from this address. Payment must be made by MoneyPak, Green Dot or another prepaid voucher available at most pharmacies and grocery stores; the agent will give you the amount and take the numbers from the back of the voucher while you remain on the line. Do not send payment by mail. This is your final courtesy notice."
+    },
+    {
+      "id": "holdout-scam-03-boss-gift-cards",
+      "hostname": "mail.example.test",
+      "text": "Hi, are you at your desk? I'm heading into back-to-back meetings with the board and can't take calls, so email only for the next couple of hours please. I need a quick favour and I need it handled quietly. We are surprising the regional team with a thank-you for the quarter and I promised the gifts would go out today. Can you pick up 8 Apple gift cards at $100 each from the shop near the office? Pay with your own card for now and I'll approve the expense claim tonight, with a little extra for the trouble. Once you have them, scratch the silver panel on the back of each card and send me clear photos of the codes by reply so I can forward them straight to the team. Please don't mention it to anyone in finance or to the others, I want it to stay a surprise until Friday. Let me know the moment it's done. Thanks, I knew I could count on you. Sent from my phone."
+    },
+    {
+      "id": "holdout-scam-04-investment-coach",
+      "hostname": "members.example.test",
+      "text": "Welcome back to your Meridian Wealth Circle dashboard. Your account manager has posted a new message. Good news: the pool you joined last week closed up 31% and your balance now stands at $18,420. As promised, withdrawals are open to members in good standing. Before the release desk can send your funds, compliance requires a one-time liquidity verification equal to 12% of the balance. This is not a fee, it is returned to you with the withdrawal inside 24 hours. Please send $2,210 in USDT to the wallet address your manager gave you in the chat, then upload a screenshot of the transfer here. Members who verify today keep their place in next month's pool, which is limited to forty people and has a guaranteed minimum return of 18%. Please keep the details of the pool inside the circle; banks and family members often misunderstand private placements and can cause delays. If your bank questions the transfer, say it is for a personal purchase. Your manager is online now and can stay on a call with you while you complete it."
+    },
+    {
+      "id": "holdout-scam-05-medicare-card",
+      "hostname": "benefits.example.test",
+      "text": "Medicare Benefits Update Center. Important: your red, white and blue Medicare card is being replaced with a new chip card and your current card will stop working at the end of this month. To avoid any interruption in your coverage, you must confirm your details so the new card can be mailed. Our records need the following from you today: your Medicare number, your Social Security number, your date of birth and the bank account your premium is paid from, so the processing charge of $9.95 can be collected. A benefits specialist can complete this with you by phone in under five minutes at 1-855-555-0158. Please have your current card and a voided check in front of you. If we do not hear from you within 48 hours your file will be marked inactive and claims from your doctor and pharmacy may be denied. Do not wait for a letter; the replacement programme is being handled by phone only."
+    },
+    {
+      "id": "holdout-scam-06-antivirus-renewal",
+      "hostname": "billing.example.test",
+      "text": "Thank you for your order. Invoice INV-88213. Your ShieldGuard Total Protection plan has been renewed for 3 years and $439.99 has been charged to the card on file. The charge will appear on your statement within 24 hours. Order summary: ShieldGuard Total Protection, 5 devices, 36 months, auto-renewal enabled. If you did not authorise this renewal or would like a refund, you must contact our cancellation team within 24 hours of this notice. Refunds cannot be processed by email. Call 1-855-555-0126 and a refund specialist will help you. To issue the refund the specialist will ask you to open a support session so they can fill in the refund form on your computer; please be at your computer and logged in to your online banking so the amount can be returned to the correct account while you are on the call. Thank you for choosing ShieldGuard."
+    },
+    {
+      "id": "holdout-scam-07-customs-parcel",
+      "hostname": "tracking.example.test",
+      "text": "Parcel on hold. We attempted to deliver your package today but it is being held at our customs depot because the import duty has not been paid. Item: 1 parcel, 1.2 kg. Status: awaiting payment. To release your parcel for delivery tomorrow, pay the outstanding customs charge of $2.99 using the secure form below. Parcels not released within 3 days are returned to the sender and a storage charge is applied. Enter the name on your card, your card number, the expiry date and the 3-digit security code. You will then receive a text message with a verification code from your bank; enter that code on the next screen to confirm that you are the cardholder. Thank you for your cooperation."
+    },
+    {
+      "id": "holdout-scam-08-romance-emergency",
+      "hostname": "chat.example.test",
+      "text": "My darling, I hardly slept. I keep thinking about our plans for when this contract ends and I can finally come home to you. I hate to bring you bad news after such a lovely talk last night. The company has frozen all of our pay until the rig inspection is signed off, and the port agent will not release my equipment or my return ticket until the transit fee is settled. It is $3,600. I would never ask if I had any other way, you know my accounts cannot be reached from here. My friend David at the shipping office says the only thing that clears the same day is a wire, or Bitcoin from one of those machines at the petrol station, he can send you the details. Please don't mention it to your daughter, she already thinks badly of me and I couldn't bear it. I will pay back every penny the week I land, with the ring I promised. Can you go this morning, my love? Tell me when it is done so I can stop worrying."
+    },
+    {
+      "id": "holdout-scam-09-bank-safe-account",
+      "hostname": "secure.example.test",
+      "text": "Fraud Prevention Team. We have stopped three payments leaving your current account in the last hour and we believe a member of staff at your local branch may be involved. For that reason please do not visit or telephone the branch, and do not discuss this with anyone, as it could compromise the investigation. To protect your money we have opened a temporary safe account in your name. You need to move your balance into it today. Our investigator will stay on the line and guide you through the transfer in your online banking; when the app asks for the reason, choose 'paying a friend' so the transfer is not delayed by the security checks. Your funds will be returned to a new account within 48 hours. Call the investigation line now on 1-855-555-0190 and quote the case reference you were given. Acting quickly is the only way to keep your savings safe."
+    },
+    {
+      "id": "holdout-scam-10-prize-fee",
+      "hostname": "winners.example.test",
+      "text": "Congratulations! Your email address was drawn in the International Shoppers Reward Programme and you have been awarded a cash prize of $850,000 and a new car. No ticket purchase was necessary. Your winning reference has been passed to our claims agent, who will arrange delivery of your cheque by insured courier. To begin your claim, reply with your full name, home address, telephone number, date of birth and occupation. Winners are required to cover the courier insurance and government clearance charge of $1,450 before the prize is released; this can be paid by wire transfer or gift cards and is refunded with your winnings. For security reasons you are advised to keep this award confidential until your claim has been processed, to avoid double claiming. Claims not started within 7 days are forfeited to the next winner."
+    }
+  ],
+  "scamsRound2": [
+    {
+      "id": "round2-01-jury-duty",
+      "hostname": "notices.example.test",
+      "text": "County Sheriff's Office, Civil Process Division. This message is to inform you that you failed to appear for federal jury duty on the date in your summons, and a bench warrant has been signed. To avoid being taken into custody you may resolve the citation by posting a refundable bond of $1,900. Deputies cannot accept payment in person. Purchase a prepaid debit voucher at any pharmacy and call Sergeant Mills on 1-855-555-0145 with the voucher numbers. You must remain on the phone until the bond is confirmed. Do not hang up and do not discuss the matter with others, as it is under a gag order."
+    },
+    {
+      "id": "round2-02-job-check",
+      "hostname": "mail.example.test",
+      "text": "Congratulations, you have been selected for the Remote Administrative Assistant position. Your starting pay is $780 weekly. To get you set up, our accounts department has mailed you a cashier's check for $3,950 to cover your home office equipment. Deposit the check using your bank's mobile app as soon as it arrives. Keep $450 as your first week's pay and send the remaining $3,500 to our approved equipment vendor the same day by Zelle or by buying gift cards, so your laptop can ship. Please confirm by text once the deposit is made and do not mention the arrangement to the bank teller, as it slows down processing."
+    },
+    {
+      "id": "round2-03-toll-text",
+      "hostname": "pay.example.test",
+      "text": "State Turnpike Authority: Our records show an unpaid toll of $6.85 on your vehicle. A late charge of $57.00 will be added if the balance is not settled today, and unpaid tolls may be reported to the DMV and result in suspension of your registration. Settle your balance now using the secure form. Enter your full name, home address, card number, expiry date and security code. A verification code will be sent to your phone by your bank; enter it to complete the payment."
+    },
+    {
+      "id": "round2-04-puppy",
+      "hostname": "shop.example.test",
+      "text": "Thank you for choosing Willow Creek Puppies. Bella is ready to travel to her new home! Before the carrier can release her we need one more step. The airline requires a temperature-controlled crate and pet travel insurance, a refundable charge of $680 that is returned to you on delivery. Payment must reach us within 3 hours or Bella will miss her flight and a rebooking charge of $250 applies. We can only accept Walmart gift cards, a wire or Cash App for this payment, as our card machine is down. Send the codes by text to 1-855-555-0102 and we will send the tracking number right away."
+    },
+    {
+      "id": "round2-05-paypal-invoice",
+      "hostname": "billing.example.test",
+      "text": "You sent a payment of $799.99 to Crypto Exchange LLC. Transaction ID 7HK29441. This charge will appear on your statement within 12 hours. If you did not make this purchase, our fraud team can cancel it, but only by telephone and only within the next 6 hours. Call our Resolution Center on 1-855-555-0117. To reverse the payment the agent will connect to your computer with a remote support tool and ask you to sign in to your online banking so the refund can be issued directly."
+    },
+    {
+      "id": "round2-06-charity",
+      "hostname": "relief.example.test",
+      "text": "URGENT APPEAL: Families who lost everything in last week's floods are sleeping in their cars tonight. Our volunteers are on the ground now, but our bank has placed a hold on our account and we cannot access donations for 10 days. That is why we are asking supporters to give today by gift card or cryptocurrency, which reach the families immediately. Buy any amount of Amazon or Visa gift cards and reply to this message with the card numbers and PINs, or send Bitcoin to the wallet in the next message. Please do not use our website donation form, it is not working. Every hour counts."
+    }
+  ]
+}

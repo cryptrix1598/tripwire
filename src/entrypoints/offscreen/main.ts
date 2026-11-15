@@ -15,6 +15,7 @@ import type { AiEngine } from '../../inference/engine';
 import { firebaseEngine, onDeviceStatus } from '../../inference/firebaseEngine';
 import { assess } from '../../inference/router';
 import type { PairingReply, StatusReply, ToOffscreen } from '../../messaging';
+import { applyLocale } from '../../ui/locale';
 
 /** With no Firebase project configured the extension still protects, on built-in rules only. */
 const unconfiguredEngine: AiEngine = {
@@ -25,6 +26,11 @@ const unconfiguredEngine: AiEngine = {
 };
 
 const engine: AiEngine = isFirebaseConfigured() ? firebaseEngine : unconfiguredEngine;
+try {
+  applyLocale(chrome.i18n.getUILanguage());
+} catch {
+  // English.
+}
 let configSource: 'remote' | 'default' = 'default';
 
 async function refreshConfig(): Promise<void> {

@@ -61,7 +61,7 @@ describe('explanations in the browser language', () => {
     ({
       onDeviceStatus: vi.fn(async () => 'available' as const),
       triageOnDevice: vi.fn(async () => triage(95)),
-      redactOnDevice: vi.fn(async (_s: string, user: string) => JSON.stringify({ redactedText: user.split('"""')[1]!.trim() })),
+      redactOnDevice: vi.fn(async () => JSON.stringify({ items: [] })),
       analyzeInCloud: vi.fn(async () => cloud),
       ...over,
     }) satisfies AiEngine;
@@ -110,5 +110,72 @@ describe('explanations in the browser language', () => {
     const v = await run(engine({ translateOnDevice }), 'en-US');
     expect(translateOnDevice).not.toHaveBeenCalled();
     expect(v.explanationLanguage).toBeUndefined();
+  });
+});
+
+describe('the shape of a request (not a keyword list)', () => {
+  it('lets quiet scams through to the on-device model', async () => {
+    const { detectShape, worthALocalLook } = await import('../src/inference/shape');
+    const holdout = JSON.parse((await import('node:fs')).readFileSync('corpus/holdout.json', 'utf8')) as { scams: Array<{ id: string; text: string }> };
+    for (const sample of holdout.scams) expect(worthALocalLook(detectShape(sample.text)), sample.id).toBe(true);
+  });
+
+  it('does not wake a model for ordinary text', async () => {
+    const { detectShape, worthALocalLook, worthACloudLook } = await import('../src/inference/shape');
+    for (const quiet of [
+      'Welcome to the village gardening club. We meet on the first Saturday of each month at the library.',
+      'The council has approved plans for a new footbridge over the river. Work is expected to start in spring.',
+    ]) {
+      expect(worthALocalLook(detectShape(quiet))).toBe(false);
+      expect(worthACloudLook(detectShape(quiet))).toBe(false);
+    }
+  });
+
+  it('cuts a long page down to the sentences that carry the ask', async () => {
+    const { salientExcerpt } = await import('../src/inference/shape');
+    const filler = 'This paragraph is about the history of the town and has nothing to do with money. '.repeat(60);
+    const ask = 'You must pay $450 today with gift cards and do not tell your family.';
+    const excerpt = salientExcerpt(`Notice from the billing office. ${filler}${ask} ${filler}`, 1800);
+    expect(excerpt.length).toBeLessThanOrEqual(1800);
+    expect(excerpt).toContain(ask);
+    expect(excerpt.startsWith('Notice from the billing office.')).toBe(true);
+    expect(salientExcerpt('short text', 1800)).toBe('short text');
+  });
+});
+
+describe('interface language', () => {
+  it('switches the in-page copy to Spanish or French and back, leaving nothing half-translated', async () => {
+    const { applyLocale } = await import('../src/ui/locale');
+    const copy = await import('../src/ui/copy');
+    const english = JSON.stringify([copy.BANNER, copy.INTERSTITIAL, copy.SAFE_PAGE, copy.ROUTE_BADGE]);
+
+    expect(applyLocale('es-MX')).toBe('es');
+    expect(copy.INTERSTITIAL.primary).toBe('Parar y estar a salvo');
+    expect(copy.ROUTE_BADGE.on_device.label).toBe('Revisado en su computadora');
+    expect(copy.ROUTE_BADGE.on_device.tone).toBe('local'); // structure untouched
+    expect(copy.WHY.redactions(2)).toContain('2 datos');
+    expect(copy.SAFE_PAGE.steps).toHaveLength(3);
+
+    expect(applyLocale('fr')).toBe('fr');
+    expect(copy.BANNER.why).toBe('Pourquoi ?');
+
+    expect(applyLocale('de')).toBe('en'); // no German yet: plain English, not a mix
+    expect(JSON.stringify([copy.BANNER, copy.INTERSTITIAL, copy.SAFE_PAGE, copy.ROUTE_BADGE])).toBe(english);
+  });
+
+  it('has every string in every language', async () => {
+    const { ES } = await import('../src/ui/locales/es');
+    const { FR } = await import('../src/ui/locales/fr');
+    const copy = (await import('../src/ui/copy')) as unknown as Record<string, unknown>;
+    const keys = (value: unknown, path = ''): string[] =>
+      value && typeof value === 'object' && !Array.isArray(value)
+        ? Object.entries(value).flatMap(([k, v]) => keys(v, `${path}.${k}`))
+        : [path];
+    for (const [name, bundle] of [['es', ES], ['fr', FR]] as const) {
+      for (const [group, strings] of Object.entries(bundle)) {
+        const want = keys(copy[group]).filter((k) => !k.endsWith('.tone'));
+        expect(keys(strings).sort(), `${name} ${group}`).toEqual(want.sort());
+      }
+    }
   });
 });

@@ -19,6 +19,7 @@ import type { Trigger, Verdict } from '../../inference/schemas';
 import { send, type AssessReply, type ToContent } from '../../messaging';
 import { describeField, isCardField, mayInspectValue, valueIsCardNumber } from '../../tripwires/cardField';
 import { Banner } from '../../ui/Banner';
+import { applyLocale } from '../../ui/locale';
 import { Pause } from '../../ui/Pause';
 
 const MAX_TEXT = 20_000;
@@ -74,6 +75,8 @@ function startTopFrame(ctx: ContentScriptContext): void {
   } catch {
     uiLanguage = undefined;
   }
+  // Banner, pause and reasons in the browser's language when Tripwire has it (English otherwise).
+  const locale = applyLocale(uiLanguage);
 
   let view: View = { kind: 'none' };
   const listeners = new Set<() => void>();
@@ -130,6 +133,7 @@ function startTopFrame(ctx: ContentScriptContext): void {
         },
       });
       ui.mount();
+      ui.shadowHost.lang = locale;
       return ui;
     })();
     return uiReady;

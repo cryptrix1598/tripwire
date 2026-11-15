@@ -4,8 +4,14 @@ import './tripwire.css';
 import { useEffect, useState, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { send, type StatusReply } from '../messaging';
+import { applyLocale } from './locale';
 
 export function mount(node: ReactNode): void {
+  try {
+    document.documentElement.lang = applyLocale(chrome.i18n.getUILanguage());
+  } catch {
+    // Not in an extension context (the development gallery): stay in English.
+  }
   const el = document.getElementById('root');
   if (el) createRoot(el).render(node);
 }

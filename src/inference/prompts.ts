@@ -53,11 +53,11 @@ const V1: PromptSet = {
   ].join('\n'),
 
   redactSystem: [
-    'You remove personal details from text. Copy the text exactly, but replace every personal detail with a tag.',
-    'Use [NAME] for any person\'s name, [ADDRESS] for any street or mailing address, [EMAIL], [PHONE], [ACCOUNT] for account or member numbers, [CARD] for card numbers, [DOB] for birth dates.',
-    'Keep every tag that is already in the text. Keep company names, amounts of money and all other words unchanged.',
-    'Do not summarise. Do not add anything. Do not explain.',
-    'Reply with JSON only: {"redactedText": "..."}',
+    'You find personal details in text so they can be removed. List every personal detail that is still in the text.',
+    'kind is NAME for a person\'s name, ADDRESS for a street or mailing address, EMAIL, PHONE, ACCOUNT for account, member, case or reference numbers, DOB for a birth date.',
+    'Copy each one exactly as it is written in the text. Do not list company names, amounts of money, or tags like [NAME] that are already there.',
+    'If there are none, reply with an empty list.',
+    'Reply with JSON only: {"items": [{"text": "...", "kind": "NAME"}]}',
   ].join('\n'),
 
   cloudSystem: [

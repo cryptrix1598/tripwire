@@ -53,6 +53,10 @@ Atkinson Hyperlegible, 400 and 700, bundled (no network font). Body 18 to 20px, 
 | Settings | Three plain choices, saved as they change; the warning level is three named steps, not a score; the trusted-sites list carries a warning written for how a scammer would abuse it |
 | Android app | The same tokens and wording as the web family page; every AI suggestion says where it was written |
 
+## Showing the work
+
+Every verdict carries a route line. When anything was sent, "See exactly what was sent" opens the redacted request text in a plain monospace block, so the privacy claim can be checked by reading it. The in-page interface follows the browser language (English, Spanish, French).
+
 ## Accessibility
 
 Focus ring 4px amber (deep blue on the amber banner). Targets 44px or larger. The pause is an `alertdialog`; the banner is a polite live region. Motion is a 200 to 280ms fade or drop on arrival only, removed under `prefers-reduced-motion`.

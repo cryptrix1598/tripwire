@@ -5,7 +5,7 @@ Copy for the #BuildHybridAI 2026 submission form, plus a script for the demo vid
 - **Tracks:** Web / Chrome (primary). An Android companion app is included in the repo; it builds and is unit-tested but had not been run on a device when this was written, so only claim Android if you have run it on a phone.
 - **Repository:** https://github.com/cryptrix1598/tripwire (Apache-2.0)
 - **Hosted family page:** https://tripwire-buildhybridai.web.app
-- **Hosted practice pages:** https://tripwire-buildhybridai.web.app/demo/
+- **Try it with nothing to install:** https://tripwire-buildhybridai.web.app/demo/ (the practice pages run Tripwire in the page, through Firebase AI Logic)
 
 ## Tagline
 
@@ -14,6 +14,10 @@ Tripwire steps in at the exact moment you're about to fall for a scam, and prote
 ## Inspiration
 
 Scams aimed at older adults do not work by being read. They work when someone acts: types a card number, buys gift cards, installs a "support" tool, or calls the number on the screen, usually with a stranger rushing them. Existing protection either blocks known bad sites (and misses the email that arrived this morning) or reads everything you do in the cloud. We wanted something that waits for the moment that matters, and that an older person could trust with their inbox.
+
+## The problem, in the FTC's numbers
+
+Fraud losses reported by older adults in the US rose from about $600 million in 2020 to about $3 billion in 2025. Reports from older adults who lost $10,000 or more to business or government imposters rose more than fourfold between 2020 and 2024, and older adults were more than twice as likely as younger adults to report a loss that size. The pattern the FTC describes is a false alarm followed by pressure to move money "to protect it". (Sources: FTC consumer alert of 4 November 2026 and FTC Data Spotlight of August 2025; links in the README.)
 
 ## What it does
 
@@ -38,7 +42,7 @@ The on-device model is not a cheaper copy of the cloud model. It is a **privacy 
 3. Only when the device is unsure does anything leave: the text is redacted by regular expressions, then by the on-device model, then by regular expressions again, and checked for leaks. If the check fails, nothing is sent.
 4. **Gemini in the cloud**, called through Firebase AI Logic with `InferenceMode.ONLY_IN_CLOUD`, sees redacted text only and returns a structured verdict.
 
-Every verdict carries its route, and the person sees it in plain words: "Checked on your device · 0 bytes sent", or "Personal info removed · sent for a deeper check". We pin the inference mode for each call instead of using `PREFER_ON_DEVICE`, and check `response.inferenceSource`: if a call that must stay local was answered by the cloud, the result is thrown away.
+The person can open "See exactly what was sent" and read the redacted text for themselves. Every verdict carries its route, and the person sees it in plain words: "Checked on your device · 0 bytes sent", or "Personal info removed · sent for a deeper check". We pin the inference mode for each call instead of using `PREFER_ON_DEVICE`, and check `response.inferenceSource`: if a call that must stay local was answered by the cloud, the result is thrown away.
 
 Other Firebase pieces:
 
@@ -55,16 +59,17 @@ TypeScript (strict), Manifest V3 with WXT, React, Shadow DOM for the in-page UI,
 
 ## Results
 
-- Test corpus of 25 scam and 25 ordinary messages.
-- **With Gemini Nano on the device first (five runs): 25 of 25 scams flagged, 0 of 25 false alarms, every run.** 29 to 36 of the 50 samples were decided entirely on the device, 13 needed no model, and 1 to 8 went to the cloud.
-- **The privacy gate, measured:** 310 to 3,013 redacted bytes left the device per run, against 14,162 when the same corpus runs without the on-device model. That is a 79 to 98 percent cut in what is sent, with the same detection.
-- Cloud path only (a device with no on-device AI): 25 of 25 flagged, 0 false alarms; 15 samples never sent, 35 redacted first.
-- With no AI at all (offline, rules only): 23 of 25 flagged, 0 false alarms.
-- Explanations in the browser's language, run live: Spanish and French written on the device with 0 bytes sent, Spanish through the cloud.
-- 105 unit tests, 12 security-rules tests, a 12-step end-to-end run in Chromium, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems; all text meets AAA contrast).
+- **Main corpus (25 scams, 25 ordinary messages), with Gemini Nano first:** 25 of 25 flagged, 0 false alarms. 38 of the 50 were decided on the device and only 4 reached the cloud.
+- **The privacy gate, measured:** 2,554 redacted bytes left the device, against 21,613 when the same corpus runs with no on-device model. About 88 percent less, with the same detection.
+- **Held-out test:** scam messages never used for tuning plus 20 real public pages fetched live (IRS, SSA and Apple pages about scams, Wikipedia, a remote-access vendor, news). Final result: 16 of 16 scams flagged, 0 false alarms on 16 real pages, median check 4.3 seconds.
+- **We publish the bad first run too.** Before the fixes it caught 6 of 10 and took 51 seconds on long pages. See "Challenges".
+- Explanations in the browser's language, run live in Spanish and French with 0 bytes sent.
+- 123 unit tests, 14 security-rules tests, a 12-step end-to-end run, a live run against the real project, a test of the hosted demo with no extension, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems).
 
 ## Challenges
 
+- **Our own test set flattered us.** A held-out run caught only 6 of 10 new scams: the keyword gate, tuned on our corpus, never showed four of them to a model. Long real pages took 51 seconds because the on-device model was given whole pages. We rebuilt the gate around the shape of a request (an ask for money or credentials, plus pressure, secrecy or a number to call), gave the models a short excerpt, and changed on-device redaction so the model lists personal details and code does the replacing. A second, fresh round of scams was then caught 6 of 6.
+- **An article about a scam is not a scam.** One run paused the Wikipedia page on tech support scams. Pages that keep saying "scam" and "victim" now need the cloud model to agree before anything is shown.
 - **False alarms.** A tool that cries wolf gets uninstalled by exactly the people who need it. A local-only trip needs the model's confidence and the rule score to agree, and the corpus run fails on a single false alarm.
 - **App Check in an extension.** No reCAPTCHA on `chrome-extension://`; we documented the debug-token path and what a production token endpoint would look like.
 - **Where the model can live.** Not in the service worker; the offscreen document is the answer.
@@ -72,7 +77,7 @@ TypeScript (strict), Manifest V3 with WXT, React, Shadow DOM for the in-page UI,
 
 ## What we learned
 
-Hybrid inference is most interesting when the two halves do different jobs. Here the small model protects privacy and handles the easy cases; the large model handles the hard ones and never sees a name or a card number.
+Test on data you did not write for. And hybrid inference is most interesting when the two halves do different jobs. Here the small model protects privacy and handles the easy cases; the large model handles the hard ones and never sees a name or a card number.
 
 ## What's next
 
@@ -86,14 +91,14 @@ Record in desktop Chrome with the extension loaded and the on-device model downl
 
 | Time | On screen | Say |
 | --- | --- | --- |
-| 0:00 | Title card, then the fake bank email | "Scams don't take your money when you read them. They take it when you act. Tripwire waits for that moment." |
+| 0:00 | Title card, then the "message from your bank" practice page | "Scams don't take your money when you read them. They take it when you act. Tripwire waits for that moment." |
 | 0:15 | An ordinary shop checkout; type a card number; nothing happens | "On a normal page, Tripwire shows nothing at all. No badge, no nagging." |
 | 0:30 | The fake bank page; click the card number box; the pause appears | "Here, the moment I go to type my card number, it stops me and asks one question." |
 | 0:50 | Click "Why did Tripwire stop me?"; point at the route badge | "It tells me why in plain words, and exactly what left my computer: checked on your device, zero bytes sent." |
 | 1:05 | **Turn Wi-Fi off.** Open the fake tech-support page; it is still caught | "This is the on-device model through Firebase AI Logic. With no internet at all, it still catches it." |
-| 1:25 | Wi-Fi back on. A subtler page that goes to the cloud; show the orange badge | "When the device isn't sure, it removes names, numbers and addresses first, and only then asks the cloud model." |
+| 1:25 | Wi-Fi back on. The "polite email about a refund" practice page; show the orange badge, then click "See exactly what was sent" | "When the device isn't sure, it removes names, numbers and addresses first, and only then asks the cloud model. And you can read exactly what was sent." |
 | 1:45 | Onboarding screen 2, the before-and-after redaction example | "That's the promise: your emails never leave your device unless personal info is removed first." |
 | 2:00 | Click the download button on the tech-support page; the paused-download tab | "It also pauses the download of a remote-access tool, the way these scams usually end." |
 | 2:15 | "Stop and stay safe", then the family page updating live | "If I've paired a family member, they see that it happened and what kind of scam it was. Never my email, never what I typed." |
-| 2:35 | The Developer checks page: corpus result | "Twenty-five of twenty-five scams caught, zero false alarms, and far less data sent than a cloud-only check." |
+| 2:35 | The Developer checks page: corpus result, then the README held-out table | "Twenty-five of twenty-five, zero false alarms, and about eighty-eight percent less data sent than a cloud-only check. On pages we did not write: sixteen of sixteen." |
 | 2:45 | Title card with the repo address | "Tripwire. A calm second look before you act." |

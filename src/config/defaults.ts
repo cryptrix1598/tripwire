@@ -43,6 +43,8 @@ export const TripwireConfigSchema = z.object({
   cloudModel: z.string().min(1),
   /** Hard cap on characters of page text handed to any model. */
   maxScanChars: z.number().int().min(500).max(12000),
+  /** Cap on the excerpt any model actually reads. Long pages are cut down to the sentences that carry the ask. */
+  maxModelChars: z.number().int().min(400).max(6000),
   /** How long a flagged page keeps risky downloads "armed", in minutes. */
   flaggedPageMemoryMinutes: z.number().min(1).max(120),
   keywords: KeywordListsSchema,
@@ -66,6 +68,8 @@ export const DEFAULT_CONFIG: TripwireConfig = {
   cloudModel: 'gemini-3.5-flash-lite',
   // On-device inference tops out at 9216 tokens; 6000 chars leaves room for the prompt.
   maxScanChars: 6000,
+  // The on-device model slows sharply on long input; a focused excerpt keeps a check to a few seconds.
+  maxModelChars: 1800,
   flaggedPageMemoryMinutes: 15,
   keywords: {
     giftCard: [

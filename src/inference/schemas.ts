@@ -54,8 +54,15 @@ export const CloudAnalysisSchema = TriageSchema.extend({
 });
 export type CloudAnalysis = z.infer<typeof CloudAnalysisSchema>;
 
+/**
+ * On-device redaction: the model LISTS the personal details still in the text
+ * and the replacing is done in code. Listing a few short strings is several
+ * times faster for a small on-device model than rewriting the whole text, and
+ * it cannot paraphrase or drop anything.
+ */
+export const PII_ITEM_KINDS = ['NAME', 'ADDRESS', 'EMAIL', 'PHONE', 'ACCOUNT', 'DOB'] as const;
 export const RedactionSchema = z.object({
-  redactedText: z.string().min(1),
+  items: z.array(z.object({ text: z.string(), kind: z.enum(PII_ITEM_KINDS) })).max(40),
 });
 export type RedactionOutput = z.infer<typeof RedactionSchema>;
 
@@ -89,10 +96,19 @@ export const CLOUD_JSON_SCHEMA = {
 export const REDACTION_JSON_SCHEMA = {
   type: 'object',
   properties: {
-    redactedText: { type: 'string', nullable: false },
+    items: {
+      type: 'array',
+      nullable: false,
+      items: {
+        type: 'object',
+        nullable: false,
+        properties: { text: { type: 'string', nullable: false }, kind: { type: 'string', enum: [...PII_ITEM_KINDS], nullable: false } },
+        required: ['text', 'kind'],
+      },
+    },
   },
   nullable: false,
-  required: ['redactedText'],
+  required: ['items'],
 } as const;
 
 /** On-device translation of the reasons into the browser's language. */

@@ -32,7 +32,8 @@ export interface GuardianAlertData {
 }
 
 /**
- * Build the alert payload. Everything here comes from enums and fixed copy;
+ * Build the alert payload. Everything here comes from enums and fixed copy
+ * (always the English sentence, which the security rules pin exactly);
  * there is deliberately no parameter through which page text could arrive.
  */
 export function buildAlert(scamType: ScamType, trigger: Trigger, outcome: Outcome): GuardianAlertData {
