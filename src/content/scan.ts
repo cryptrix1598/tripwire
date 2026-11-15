@@ -101,10 +101,21 @@ export function createScanScheduler(
   let lastHash = 0;
   let lastAt = 0;
   let scans = 0;
+  let refilledAt = Date.now();
   let stopped = false;
 
   const run = () => {
-    if (stopped || scans >= maxScans) return;
+    if (stopped) return;
+    // The budget refills (one scan every 20 seconds), so a page cannot burn through it
+    // with harmless changes and then show its real content unchecked.
+    const now = Date.now();
+    scans = Math.max(0, scans - Math.floor((now - refilledAt) / 20_000));
+    if (now - refilledAt >= 20_000) refilledAt = now;
+    if (scans >= maxScans) {
+      // Out of budget for the moment: look again when the next scan is earned.
+      if (!timer) timer = setTimeout(() => { timer = undefined; run(); }, 20_000);
+      return;
+    }
     const text = readVisibleText();
     if (text.length < minChars) return;
     // Digits are ignored so a ticking countdown does not look like new content.

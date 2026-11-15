@@ -36,6 +36,19 @@ export function Brand({ name = BRAND.name, size = 32 }: { name?: string; size?: 
   );
 }
 
+/**
+ * Wrap a button handler so that only a real click or key press counts. A page
+ * script can reach into the page's DOM and call .click() on a button; the
+ * browser marks such events as untrusted, and Tripwire ignores them. Without
+ * this, a scam page could press "I'm sure, continue" for the person.
+ */
+export function byPerson(handler: () => void) {
+  return (event: { isTrusted?: boolean; nativeEvent?: { isTrusted?: boolean } }) => {
+    if ((event.nativeEvent?.isTrusted ?? event.isTrusted) === false) return;
+    handler();
+  };
+}
+
 /** What left this device, said the same way everywhere. */
 export function RouteLine({ route }: { route: Route }) {
   const badge = ROUTE_BADGE[route];

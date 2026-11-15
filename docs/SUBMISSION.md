@@ -65,7 +65,7 @@ TypeScript (strict), Manifest V3 with WXT, React, Shadow DOM for the in-page UI,
 - **We publish the bad first run too.** Before the fixes it caught 6 of 10 and took 51 seconds on long pages. See "Challenges".
 - Explanations in the browser's language, run live in Spanish and French with 0 bytes sent.
 - Twelve adversarial tests: a page that tells the model what to answer, repeats "scam" to look like advice, hides the ask under filler, or deletes the warning. None gets through quietly.
-- 135 unit tests, 19 security-rules tests, a 13-step end-to-end run, a live run against the real project, a test of the hosted demo with no extension, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems).
+- 136 unit tests, 19 security-rules tests, a 13-step end-to-end run, a live run against the real project, a test of the hosted demo with no extension, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems).
 
 ## Challenges
 

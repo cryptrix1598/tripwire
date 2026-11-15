@@ -117,7 +117,7 @@ export function buildTriagePrompt(text: string, ctx: PromptContext): string {
   return [
     `Site: ${ctx.hostname || 'unknown'}`,
     `Situation: ${TRIGGER_CONTEXT[ctx.trigger]}`,
-    `Warning signs matched by simple rules: ${ctx.signalSummary}`,
+    `Warning signs found by simple rules: ${ctx.signalSummary}`,
     'Text:',
     '"""',
     text,
@@ -133,7 +133,7 @@ export function buildCloudPrompt(redactedText: string, ctx: PromptContext, devic
   const lines = [
     `Site: ${ctx.hostname || 'unknown'}`,
     `Situation: ${TRIGGER_CONTEXT[ctx.trigger]}`,
-    `Warning signs matched by simple rules: ${ctx.signalSummary}`,
+    `Warning signs found by simple rules: ${ctx.signalSummary}`,
   ];
   // The on-device score is deliberately NOT passed on: the second opinion has to be independent.
   void deviceTriage;

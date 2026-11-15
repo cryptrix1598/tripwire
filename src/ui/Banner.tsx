@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import type { Verdict } from '../inference/schemas';
 import { BANNER, CAUTION_HEADLINE, WHY } from './copy';
-import { Mark, RouteLine, SentReceipt, flagsFor, routeExplanation } from './kit';
+import { Mark, RouteLine, SentReceipt, byPerson, flagsFor, routeExplanation } from './kit';
 
 export function Banner({ verdict, onDismiss }: { verdict: Verdict; onDismiss: () => void }) {
   const [open, setOpen] = useState(false);
@@ -27,7 +27,7 @@ export function Banner({ verdict, onDismiss }: { verdict: Verdict; onDismiss: ()
           <button type="button" className="tw-btn" aria-expanded={open} onClick={() => setOpen(!open)}>
             {open ? BANNER.hide : BANNER.why}
           </button>
-          <button type="button" className="tw-link" aria-label={BANNER.dismissLabel} onClick={onDismiss}>
+          <button type="button" className="tw-link" aria-label={BANNER.dismissLabel} onClick={byPerson(onDismiss)}>
             {BANNER.dismiss}
           </button>
         </div>

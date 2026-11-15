@@ -3,6 +3,7 @@
 * { box-sizing: border-box; }
 body { margin: 0; font: 16px/1.6 Arial, Helvetica, sans-serif; color: #23282e; background: #f4f5f7; }
 .practice { margin: 0; padding: 8px 16px; background: #23282e; color: #fff; font-size: 14px; text-align: center; }
+.practice::before { content: "Practice page. Everything on it is invented. "; }
 .practice a { color: #fff; }
 .site { padding: 16px 24px; color: #fff; font-size: 20px; font-weight: bold; }
 main { max-width: 720px; margin: 32px auto; padding: 32px; background: #fff; border: 1px solid #d9dde3; border-radius: 6px; }

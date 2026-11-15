@@ -9,7 +9,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Trigger, Verdict } from '../inference/schemas';
 import { INTERSTITIAL, TRIP_LEAD } from './copy';
-import { Brand, RouteLine, SentReceipt, flagsFor, routeExplanation } from './kit';
+import { Brand, RouteLine, SentReceipt, byPerson, flagsFor, routeExplanation } from './kit';
 
 /** A passive trip still deserves the most specific opening line we can honestly give. */
 export function leadFor(verdict: Verdict): string {
@@ -57,10 +57,10 @@ export function Pause({
           <p className="tw-body">{INTERSTITIAL.reassurance}</p>
           {note}
           <div className="tw-col-start">
-            <button ref={stopRef} type="button" className="tw-btn tw-btn--xl" onClick={onStop}>
+            <button ref={stopRef} type="button" className="tw-btn tw-btn--xl" onClick={byPerson(onStop)}>
               {INTERSTITIAL.primary}
             </button>
-            <button type="button" className="tw-link" onClick={onContinue}>
+            <button type="button" className="tw-link" onClick={byPerson(onContinue)}>
               {INTERSTITIAL.secondary}
             </button>
           </div>

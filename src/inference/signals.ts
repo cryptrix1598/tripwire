@@ -149,7 +149,21 @@ export function worthChecking(signals: Signals): boolean {
 }
 
 /** A compact, PII-free description of what the rules found, for prompts. */
+/** Plain words for the rule categories. They appear in the "what was sent" receipt, so no internal names. */
+const SIGNAL_WORDS: Record<string, string> = {
+  giftCard: 'gift cards',
+  remoteAccess: 'remote access to the computer',
+  urgentCall: 'an urgent phone call',
+  cryptoWire: 'crypto or a wire transfer',
+  credentialPressure: 'account or identity details',
+  paymentPressure: 'an unexpected payment',
+  urgency: 'a deadline',
+  secrecy: 'secrecy',
+  impersonation: 'a well-known name',
+  threat: 'a threat',
+};
+
 export function describeSignals(signals: Signals): string {
   if (signals.categories.length === 0) return 'none';
-  return signals.categories.join(', ') + (signals.hasPhone ? ', phone number present' : '');
+  return signals.categories.map((c) => SIGNAL_WORDS[c] ?? c).join(', ') + (signals.hasPhone ? ', a phone number' : '');
 }

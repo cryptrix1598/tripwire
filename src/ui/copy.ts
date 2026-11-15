@@ -75,7 +75,7 @@ export const CAUTION_HEADLINE: Record<ScamType, string> = {
 export const BANNER = {
   regionLabel: 'Tripwire notice',
   why: 'Why?',
-  hide: 'Hide',
+  hide: 'Hide reasons',
   dismiss: 'Dismiss',
   dismissLabel: 'Dismiss this notice',
   sub: 'You do not have to do anything this page asks.',

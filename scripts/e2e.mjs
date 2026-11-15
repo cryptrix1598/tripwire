@@ -151,7 +151,14 @@ try {
   });
 
   await step('a hostile page that deletes the warning gets it back, then loses the tab to an extension page', async () => {
-    // Still on the investment page, paused. The page tries to remove Tripwire.
+    // Still on the investment page, paused. First the page tries to press "continue" for the person.
+    await page.evaluate(() => {
+      const root = document.querySelector('tripwire-ui')?.shadowRoot;
+      [...(root?.querySelectorAll('button') ?? [])].find((button) => button.textContent?.includes('continue'))?.click();
+    });
+    await page.waitForTimeout(700);
+    if ((await ui(page, '.tw-overlay').count()) === 0) throw new Error('a scripted click dismissed the pause');
+    // Then it tries to remove Tripwire.
     await page.evaluate(() => document.querySelector('tripwire-ui')?.remove());
     await expectVisible(ui(page, '.tw-overlay'), 5000);
     // It keeps trying. Tripwire moves the pause to its own page, which the site cannot touch.

@@ -118,3 +118,15 @@ describe('a scam hidden below a screenful of filler', () => {
     expect(v.state).not.toBe('safe');
   });
 });
+
+describe('a page that presses the buttons itself', () => {
+  it('is ignored: only a real click or key press counts', async () => {
+    const { byPerson } = await import('../src/ui/kit');
+    const handler = vi.fn();
+    byPerson(handler)({ nativeEvent: { isTrusted: false } }); // element.click() from page script
+    byPerson(handler)({ isTrusted: false });
+    expect(handler).not.toHaveBeenCalled();
+    byPerson(handler)({ nativeEvent: { isTrusted: true } }); // a person
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+});

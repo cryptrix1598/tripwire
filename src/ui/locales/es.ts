@@ -47,7 +47,7 @@ export const ES: LocaleBundle = {
   BANNER: {
     regionLabel: 'Aviso de Tripwire',
     why: '¿Por qué?',
-    hide: 'Ocultar',
+    hide: 'Ocultar motivos',
     dismiss: 'Cerrar',
     dismissLabel: 'Cerrar este aviso',
     sub: 'No tiene que hacer nada de lo que pide esta página.',

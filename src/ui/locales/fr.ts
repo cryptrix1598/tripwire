@@ -47,7 +47,7 @@ export const FR: LocaleBundle = {
   BANNER: {
     regionLabel: 'Avis de Tripwire',
     why: 'Pourquoi ?',
-    hide: 'Masquer',
+    hide: 'Masquer les raisons',
     dismiss: 'Fermer',
     dismissLabel: 'Fermer cet avis',
     sub: 'Vous n’êtes pas obligé de faire ce que cette page demande.',

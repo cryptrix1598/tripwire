@@ -317,8 +317,10 @@ function startTopFrame(ctx: ContentScriptContext): void {
         const target = event.target;
         const link = target instanceof Element ? target.closest<HTMLAnchorElement>('a[href^="tel:" i]') : null;
         if (!link) return;
-        if (last || acknowledged || view.kind === 'pause') return void onAction('phone_call', event);
-        // The page has not been checked yet: hold the call until it has, so the dialer cannot open first.
+        if (acknowledged || view.kind === 'pause') return;
+        if (last && last.state !== 'safe') return void onAction('phone_call', event);
+        // Hold the call until the page AS IT IS NOW has been checked, so the dialer cannot open first
+        // (a page may have changed since it was last read).
         event.preventDefault();
         const href = link.href;
         void assess('phone_call').then((reply) => {
