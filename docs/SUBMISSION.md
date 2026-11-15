@@ -59,12 +59,13 @@ TypeScript (strict), Manifest V3 with WXT, React, Shadow DOM for the in-page UI,
 
 ## Results
 
-- **Main corpus (25 scams, 25 ordinary messages), with Gemini Nano first:** 25 of 25 flagged, 0 false alarms. 38 of the 50 were decided on the device and only 4 reached the cloud.
-- **The privacy gate, measured:** 2,554 redacted bytes left the device, against 21,613 when the same corpus runs with no on-device model. About 88 percent less, with the same detection.
-- **Held-out test:** scam messages never used for tuning plus 20 real public pages fetched live (IRS, SSA and Apple pages about scams, Wikipedia, a remote-access vendor, news). Final result: 16 of 16 scams flagged, 0 false alarms on 16 real pages, median check 4.3 seconds.
+- **Main corpus (25 scams, 25 ordinary messages), with Gemini Nano first:** 25 of 25 flagged, 0 false alarms. 35 of the 50 were decided on the device and only 7 reached the cloud.
+- **The privacy gate, measured:** 3,619 redacted bytes left the device, against 21,482 when the same corpus runs with no on-device model. About 83 percent less, with the same detection.
+- **Held-out test:** scam messages never used for tuning plus 36 real public pages fetched live (IRS, SSA and Apple pages about scams, Wikipedia, bank and payment sign-in pages, a remote-access vendor, news). Final result: 16 of 16 scams flagged, 0 false alarms on the 27 pages that loaded, median check 3.9 seconds.
 - **We publish the bad first run too.** Before the fixes it caught 6 of 10 and took 51 seconds on long pages. See "Challenges".
 - Explanations in the browser's language, run live in Spanish and French with 0 bytes sent.
-- 123 unit tests, 14 security-rules tests, a 12-step end-to-end run, a live run against the real project, a test of the hosted demo with no extension, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems).
+- Twelve adversarial tests: a page that tells the model what to answer, repeats "scam" to look like advice, hides the ask under filler, or deletes the warning. None gets through quietly.
+- 135 unit tests, 19 security-rules tests, a 13-step end-to-end run, a live run against the real project, a test of the hosted demo with no extension, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems).
 
 ## Challenges
 
@@ -100,5 +101,5 @@ Record in desktop Chrome with the extension loaded and the on-device model downl
 | 1:45 | Onboarding screen 2, the before-and-after redaction example | "That's the promise: your emails never leave your device unless personal info is removed first." |
 | 2:00 | Click the download button on the tech-support page; the paused-download tab | "It also pauses the download of a remote-access tool, the way these scams usually end." |
 | 2:15 | "Stop and stay safe", then the family page updating live | "If I've paired a family member, they see that it happened and what kind of scam it was. Never my email, never what I typed." |
-| 2:35 | The Developer checks page: corpus result, then the README held-out table | "Twenty-five of twenty-five, zero false alarms, and about eighty-eight percent less data sent than a cloud-only check. On pages we did not write: sixteen of sixteen." |
+| 2:35 | The Developer checks page: corpus result, then the README held-out table | "Twenty-five of twenty-five, zero false alarms, and about eighty-three percent less data sent than a cloud-only check. On pages we did not write: sixteen of sixteen." |
 | 2:45 | Title card with the repo address | "Tripwire. A calm second look before you act." |

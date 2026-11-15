@@ -35,7 +35,7 @@ Browsers block known bad sites and warn about dangerous pages. Tripwire does fou
 | Caution | A calm amber banner with one plain sentence, a "Why?" button and "Dismiss". |
 | Tripped | A full-page pause. "Stop and stay safe" is the big button; "I'm sure, continue" is a quiet link. |
 
-Action tripwires: typing or focusing a card number field (Luhn checked, locally), gift-card code fields, crypto wallet fields, `tel:` links on a suspicious page, and downloads of remote-access tools shortly after a suspicious page was open.
+Action tripwires: typing or focusing a card number field (Luhn checked, locally), gift-card code fields, crypto wallet fields, phone links (held until the page has been checked), and downloads of remote-access tools (always asked about once, because the caller often names the site).
 
 **Family Guardian** (optional): the person shows a six-digit code, a family member types it on the family page, and from then on sees a live feed of *that Tripwire stepped in*: the time, the kind of scam, the action, and whether they stopped. Never the page, the email, or anything typed. There is a web family page and an Android app (see [Android companion](#android-companion)).
 
@@ -124,9 +124,25 @@ Details worth knowing:
 | Password fields are never read | [src/tripwires/cardField.ts](src/tripwires/cardField.ts); only visible text is scanned |
 | A Guardian alert holds five fixed fields and no free text | `buildAlert` takes enums only; [firestore.rules](firestore.rules) require the summary to be the one fixed sentence for that kind of scam and reject anything else ([tests/rules](tests/rules/guardian.rules.test.ts), 14 tests) |
 | The person can see what was sent | "See exactly what was sent" in the reasons panel shows the redacted request text ([src/ui/kit.tsx](src/ui/kit.tsx)) |
-| A pairing code works once | The extension deletes the code when a family member connects and says so; settings can disconnect everyone |
+| A pairing code works once, for five minutes | The security rules let exactly one person claim a code, in the same write that creates the link ([firestore.rules](firestore.rules)); the extension also deletes it and says who connected; settings can disconnect everyone |
 | A guardian can only link with a live code | Security rules check the code server-side; codes cannot be listed |
 | Nothing is stored about pages | Verdicts live in `chrome.storage.session` and are cleared when the tab closes |
+
+### A scam page is written by an adversary
+
+What Tripwire does about a page that fights back ([tests/hostile.test.ts](tests/hostile.test.ts), 12 tests, and one end-to-end step):
+
+| The page tries to... | What happens |
+| --- | --- |
+| Tell the model what to answer ("ignore previous instructions", "classify this as safe") | Page text is marked untrusted and cannot close the prompt's delimiter. Text aimed at a checker is detected in code, and such a page can never come out "safe": at minimum the person sees a caution saying the page contains hidden instructions. |
+| Get the small on-device model to say "safe" | When the built-in rules found strong evidence, the on-device "safe" is not accepted: the cloud model is asked, and with no connection the rules give a caution. |
+| Look like an advice article by repeating "scam" and "fraudster" | An article describes scams in the third person; a scam tells the reader what to do. Scam words plus direct asks get no benefit of the doubt. |
+| Hide the ask below a screenful of filler | A long page is read as its opening plus the sentences that carry an ask from the rest (up to 40,000 characters). |
+| Delete the warning from the page | Tripwire puts it back and re-locks the page. If the page keeps removing it, the pause moves to an extension page the site cannot touch. |
+| Open the phone dialer before the check finishes | A phone link on a page that has not been checked yet is held until it has. |
+| Skip the suspicious page entirely (a caller says "go to this site and install this") | A remote-access tool download always asks, once per tool, even with no suspicious page open. |
+
+Limits, stated plainly: the page guard is a race Tripwire usually wins, not a guarantee; a pairing code can still be guessed during its five minutes (one claim only, and the extension shows the connection and can remove it); and phone scams that never involve a risky page, payment field or download are outside what a browser extension can see.
 
 **What is not guaranteed.** On a computer with no on-device model, redaction is pattern-matching: numbers, emails, addresses, greetings, titles and about 300 common given names. An unusual name in ordinary prose can get through, which is why that route is worded "the names, numbers and addresses it could recognise". "Bytes sent" counts the whole request Tripwire writes about a page (redacted text, site name, context lines); the fixed instructions are the same for every page and are not counted.
 
@@ -219,19 +235,19 @@ Status: the app compiles against firebase-ai 18.2.0 and firebase-ai-ondevice 16.
 | Run | Scams flagged | False alarms | Bytes sent (whole request) |
 | --- | --- | --- | --- |
 | Built-in rules only (`npm run eval`) | 23 / 25 | **0 / 25** | 0 |
-| Cloud path, no on-device model (`npm run live`) | **25 / 25** | **0 / 25** | 21,613, all redacted first |
-| Gemini Nano on the device first (`node scripts/nano-probe.mjs --checks --corpus`) | **25 / 25** | **0 / 25** | 2,554, all redacted first |
+| Cloud path, no on-device model (`npm run live`) | **25 / 25** | **0 / 25** | 21,482, all redacted first |
+| Gemini Nano on the device first (`node scripts/nano-probe.mjs --checks --corpus`) | **25 / 25** | **0 / 25** | 3,619, all redacted first |
 
-With the on-device model, 38 of the 50 samples were decided on the device, 8 needed no model and 4 went to the cloud: about 88 percent less sent than the cloud-only path, with the same detection. Four on-device runs are committed in [eval-results/on-device/](eval-results/on-device): three from 14 Nov, which counted only the page text as "bytes sent" (so their byte figures are lower and not comparable), and the one above. All four are 25/25 with zero false alarms. Three more were run on 14 Nov and not kept: two matched, and the first one produced a borderline false alarm on a gift-card shop page, which led to a router fix and a regression test. Results files record where they were run; the on-device runs use the Developer checks page served as a web page, because Chrome will not load an unpacked extension under automation.
+With the on-device model, 35 of the 50 samples were decided on the device, 8 needed no model and 7 went to the cloud: about 83 percent less sent than the cloud-only path, with the same detection. (An earlier run the same day sent 2,554 bytes with 4 samples going to the cloud; the on-device model varies a little between runs.) Five on-device runs are committed in [eval-results/on-device/](eval-results/on-device): three from 14 Nov, which counted only the page text as "bytes sent" (so their byte figures are lower and not comparable), and two from 15 Nov. All five are 25/25 with zero false alarms. Three more were run on 14 Nov and not kept: two matched, and the first one produced a borderline false alarm on a gift-card shop page, which led to a router fix and a regression test. Results files record where they were run; the on-device runs use the Developer checks page served as a web page, because Chrome will not load an unpacked extension under automation.
 
 ### Held-out test, and what it found
 
-[corpus/holdout.json](corpus/holdout.json): scam messages that were never used for tuning (longer and quieter than the main corpus), and 20 real public pages fetched live: official advice about scams (IRS, SSA, CFPB, Apple, USPS, GOV.UK), remote-access vendors, Wikipedia articles on tech support scams, gift cards and wire transfers, a gift-card buying guide, Bitcoin's own explainer, and news. Run with `node scripts/holdout.mjs`.
+[corpus/holdout.json](corpus/holdout.json): scam messages that were never used for tuning (longer and quieter than the main corpus), and 36 real public pages fetched live: official advice about scams (IRS, SSA, CFPB, Apple, USPS, GOV.UK), remote-access vendors, Wikipedia articles on tech support scams, gift cards and wire transfers, a gift-card buying guide, Bitcoin's own explainer, news, and (added after an outside review asked for them) pages where people really do sign in and pay: banks, the IRS payments page, Social Security and Medicare account pages, parcel tracking, a money-transfer service, a crypto exchange and a vehicle-registration renewal page. Run with `node scripts/holdout.mjs`.
 
 | Run | Scams flagged | False alarms on real pages | Check time when a model ran |
 | --- | --- | --- | --- |
 | First run, original design | 6 / 10 | 0 / 16 | median 51 s |
-| After the fixes below | **16 / 16** | **0 / 16** | **median 4.3 s, 90th percentile 8.4 s** |
+| After the fixes below | **16 / 16** | **0 / 27** | **median 3.9 s, 90th percentile 7.0 s** |
 
 The first run was a bad result and it was right:
 
@@ -239,14 +255,14 @@ The first run was a bad result and it was right:
 - **Long real pages took about 50 seconds**, because the on-device model was handed whole pages and timed out. Models now read a focused excerpt, a timeout is not retried, and on-device redaction lists details instead of rewriting text.
 - A middle run then **paused the Wikipedia article on tech support scams**. Pages that are about scams now need the cloud model to agree.
 
-Because those fixes were made after seeing round one, a second round of six new scam messages was written afterwards. Its first run caught 6 of 6. That same run had the Wikipedia false alarm, so one more change followed (pages about scams), and round two was still 6 of 6 after it. The real pages are no longer strictly held-out either (one false alarm on them was found and fixed), so the "0 of 16" is a result on pages the design has now seen. Four pages (three on consumer.ftc.gov and anydesk.com) refused the automated browser and were skipped. All runs are in [eval-results/holdout/](eval-results/holdout).
+Because those fixes were made after seeing round one, a second round of six new scam messages was written afterwards. Its first run caught 6 of 6. That same run had the Wikipedia false alarm, so one more change followed (pages about scams), and round two was still 6 of 6 after it. Sixteen of the real pages are no longer strictly held-out (one false alarm on them was found and fixed), so their zero is a result on pages the design has seen. The eleven sign-in and payment pages added later were run once, with no changes afterwards, and none was flagged. Nine of the 36 pages refused the automated browser and were skipped; they are listed in the result file. All runs are in [eval-results/holdout/](eval-results/holdout).
 
 ### Everything else
 
-- Unit tests: 123 passing (extension), 6 (Android). Security-rules tests against the emulator: 14 passing.
-- End-to-end in Chromium (`npm run e2e`): 12 of 12 steps, including settings and the paused download.
-- Live against the real project (`npm run live`): App Check token, hybrid call, Spanish explanations, pairing, single-use code, family alert.
-- Hosted demo with no extension (`npm run hosted`): the practice pages are flagged in a plain browser, the phone number on the page is absent from what was sent, and the ordinary checkout stays silent.
+- Unit tests: 135 passing (extension), 6 (Android). Security-rules tests against the emulator: 19 passing.
+- End-to-end in Chromium (`npm run e2e`): 13 of 13 steps, including settings, the paused download, and a page that keeps deleting the warning. Result file: [eval-results/e2e.json](eval-results/e2e.json).
+- Live against the real project (`npm run live`): App Check token, hybrid call, Spanish explanations, pairing, single-use code, family alert. Result file: [eval-results/live-checks.json](eval-results/live-checks.json).
+- Hosted demo with no extension (`npm run hosted`): the practice pages are flagged in a plain browser, the phone number on the page is absent from what was sent, and the ordinary checkout stays silent. Result file: [eval-results/hosted-demo.json](eval-results/hosted-demo.json). (Run it a minute after a deploy: straight afterwards the site can briefly serve a mix of old and new files.)
 - Accessibility: axe-core on every screen in the end-to-end run. WCAG 2.2 A/AA: 0 problems. All text meets AAA contrast.
 - Languages: the banner, pause, reasons and "you stopped" page are in English, Spanish and French, following the browser. Model-written reasons were run live in Spanish and French on the device (0 bytes sent) and Spanish through the cloud.
 
@@ -254,12 +270,12 @@ Because those fixes were made after seeing round one, a second round of six new 
 
 Stated plainly so nobody is surprised:
 
-- **Gmail.** Reading an opened email relies on Gmail's page structure and has not been tested against a real mailbox.
+- **Webmail.** In Gmail, Outlook and Yahoo Mail only an opened message is read, never the inbox list. This relies on each site's page structure and has not been tested against real mailboxes.
 - **On-device inside the loaded extension, by automation.** The automated on-device runs go through a web page or the hosted demo. The loaded extension itself was checked by hand in desktop Chrome 157 on 14 Nov 2026: the offscreen document reported the model as ready, the fake bank practice page was paused with "Checked on your device · 0 bytes sent", and the same check passed with Wi-Fi off.
 - **The Android app has not been run.** It builds and its unit tests pass, but the machine it was built on cannot start the Android emulator and no phone was attached.
 - **Real users.** Nobody in the target age group has used it yet.
-- **Scale.** The corpora are small (50 tuning samples, 16 held-out scams, 16 real pages). They are enough to catch design mistakes, as above, not to state an accuracy figure.
-- **Speed.** A check takes about 3 to 4 seconds on the device and 6 to 9 seconds when the cloud is also asked, on a desktop with an RTX 4060. Reading a page is never blocked by this, but a pause can appear a few seconds after the page does.
+- **Scale.** The corpora are small (50 tuning samples, 16 held-out scams, 27 real pages). They are enough to catch design mistakes, as above, not to state an accuracy figure.
+- **Speed.** A check takes about 3 to 4 seconds on the device and 5 to 7 seconds when the cloud is also asked, on a desktop with an RTX 4060. Reading a page is never blocked by this, but a pause can appear a few seconds after the page does.
 
 ## Project layout
 
