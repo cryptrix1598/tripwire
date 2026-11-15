@@ -200,7 +200,7 @@ Accessibility: the same run audits every screen with axe-core. WCAG 2.2 A/AA: 0 
 
 Stated plainly so nobody is surprised:
 
-- The automated on-device runs go through a web page, because Chrome will not load an unpacked extension under automation. The loaded extension itself was checked by hand in desktop Chrome 157 on 2026-11-14: the offscreen document reported the model as ready, and the fake bank practice page was paused with the badge "Checked on your device · 0 bytes sent". The Wi-Fi-off run has not been done yet.
+- The automated on-device runs go through a web page, because Chrome will not load an unpacked extension under automation. The loaded extension itself was checked by hand in desktop Chrome 157 on 2026-11-14: the offscreen document reported the model as ready, and the fake bank practice page was paused with the badge "Checked on your device · 0 bytes sent". The same check was repeated with Wi-Fi switched off, and the page was still caught on the device.
 - Scanning inside Gmail has not been tested against a real mailbox.
 - The Android app has not been run. It builds and its unit tests pass, but the machine it was built on has no hypervisor, so the Android emulator cannot start, and no phone was attached. Pairing, the feed, notifications and the hybrid AI call on Android are therefore untested on a device.
 - App Check enforcement was tested from outside: an AI Logic request without a token is refused with HTTP 401, and a Firestore read without a token is refused (`node scripts/appcheck-probe.mjs`), while the extension and the hosted family page keep working.
