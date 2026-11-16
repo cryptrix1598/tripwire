@@ -15,7 +15,7 @@
     "icons": "node scripts/make-icons.mjs",
     "typecheck": "wxt prepare && tsc --noEmit",
     "test": "vitest run --exclude tests/rules/**",
-    "test:rules": "firebase emulators:exec --only firestore --project demo-tripwire \"vitest run tests/rules\"",
+    "test:rules": "npx -y firebase-tools@14.11.0 emulators:exec --only firestore --project demo-tripwire \"npx vitest run tests/rules\"",
     "eval": "tsx scripts/eval.ts",
     "e2e": "node scripts/e2e.mjs",
     "live": "node scripts/live.mjs",

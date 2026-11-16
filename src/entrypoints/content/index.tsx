@@ -15,6 +15,7 @@ import { useSyncExternalStore } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { createShadowRootUi, defineContentScript, type ContentScriptContext } from '#imports';
 import { createScanScheduler, isGmail, isWebmail, readVisibleText } from '../../content/scan';
+import { demoUrl } from '../../firebase/config';
 import type { Trigger, Verdict } from '../../inference/schemas';
 import { send, type AssessReply, type ToContent } from '../../messaging';
 import { describeField, isCardField, mayInspectValue, valueIsCardNumber } from '../../tripwires/cardField';
@@ -23,6 +24,15 @@ import { applyLocale } from '../../ui/locale';
 import { Pause } from '../../ui/Pause';
 
 const MAX_TEXT = 40_000;
+/** Where the practice pages live: the hosted demo, and a developer's own machine. */
+const PRACTICE_HOSTS = new Set(['localhost', '127.0.0.1', safeHost(demoUrl)]);
+function safeHost(url: string): string {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return 'localhost';
+  }
+}
 const ACTION_COOLDOWN_MS = 8_000;
 const GIFT_FIELD = /gift\s*-?\s*card|card\s*(?:pin|code)|claim\s*code|redemption\s*code|voucher\s*code|itunes|google\s*play\s*code|steam\s*(?:wallet|code)/i;
 const WALLET_FIELD = /wallet|bitcoin|\bbtc\b|\beth(?:ereum)?\b|\busdt\b|crypto|recipient\s*address/i;
@@ -282,7 +292,20 @@ function startTopFrame(ctx: ContentScriptContext): void {
         if (!(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return;
         const info = describeField(el);
         if (info.type.toLowerCase() === 'password') return;
-        if (isCardField(info)) return void onAction('card_entry');
+        if (isCardField(info)) {
+          // If this page has not been judged yet, the field is held (read-only) for the few
+          // seconds the check takes, so a card number cannot be typed before the answer.
+          const hold = !last && !acknowledged && !el.readOnly;
+          if (hold) el.readOnly = true;
+          const release = () => {
+            if (hold) el.readOnly = false;
+          };
+          const limit = setTimeout(release, 8000);
+          return void onAction('card_entry').finally(() => {
+            clearTimeout(limit);
+            release();
+          });
+        }
         const hay = [info.name, info.id, info.placeholder, info.ariaLabel, info.labelText].join(' ');
         if (GIFT_FIELD.test(hay)) return void onAction('gift_card');
         if (WALLET_FIELD.test(hay)) return void onAction('crypto_wire');
@@ -340,7 +363,10 @@ function startTopFrame(ctx: ContentScriptContext): void {
   });
 
   // The hosted practice pages ask whether the extension is here before running their own copy.
-  ctx.addEventListener(window, 'tripwire-ping', () => window.dispatchEvent(new CustomEvent('tripwire-pong')));
+  // Answered ONLY there: on any other site a page must not be able to find out that Tripwire is installed.
+  if (PRACTICE_HOSTS.has(hostname)) {
+    ctx.addEventListener(window, 'tripwire-ping', () => window.dispatchEvent(new CustomEvent('tripwire-pong')));
+  }
 
   const observer = new MutationObserver(() => {
     if (location.href !== href) {
