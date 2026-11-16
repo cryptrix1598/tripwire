@@ -36,5 +36,7 @@ jobs:
           distribution: temurin
           java-version: 21
       - run: npm ci
+      # The TypeScript config extends a file that WXT generates; the tests cannot load without it.
+      - run: npx wxt prepare
       - name: Firestore security rules against the emulator
         run: npm run test:rules
