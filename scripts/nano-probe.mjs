@@ -76,7 +76,7 @@ try {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     const ui = (selector) => page.locator(`tripwire-ui ${selector}`);
     const routeText = async () => (await ui('.tw-route').first().innerText()).replace(/\s+/g, ' ');
-    for (const [name, file, field] of [['on-device-pause', 'bank', '#cc'], ['on-device-support', 'support', null], ['receipt-what-was-sent', 'refund', null]]) {
+    for (const [name, file, field] of [['on-device-pause', 'bank', '#cc'], ['on-device-support', 'support', null], ['on-device-refund', 'refund', null]]) {
       await page.goto(`${site}/demo/${file}.html`);
       await ui('.tw-banner, .tw-overlay').first().waitFor({ timeout: 90_000 });
       if (field && (await ui('.tw-overlay').count()) === 0) await page.locator(field).focus();

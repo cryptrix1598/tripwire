@@ -409,9 +409,11 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
 
   // A local pause needs a second, independent signal besides the small model's own score:
   // either the keyword rules, or the full shape of a scam (an ask for money, plus secrecy or
-  // credentials, plus pressure or a number to call). The second lets quiet scams that use
+  // an ask no shop makes, plus pressure or a number to call). The second lets quiet scams that use
   // none of the listed phrases be decided on the device instead of going to the cloud.
-  const fullShape = shape.moneyAsk && (shape.secrecy || shape.credentialAsk) && (shape.pressure || shape.hasPhone);
+  // A price and a card number box are what every honest checkout has, so they do not count here:
+  // it takes secrecy, or an ask no real shop makes.
+  const fullShape = shape.moneyAsk && (shape.secrecy || shape.sensitiveAsk) && (shape.pressure || shape.hasPhone);
   const corroborated = t.confidence >= minTripConfidence && (signals.ruleScore >= minCorroboration || fullShape);
   // A page about scams never trips on the device model alone: the stronger model has to agree.
   if (t.riskScore >= high && corroborated && !aboutScams && !scamWordsPlusAsks) {

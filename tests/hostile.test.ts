@@ -130,3 +130,13 @@ describe('a page that presses the buttons itself', () => {
     expect(handler).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('an ordinary checkout that the small model misjudges', () => {
+  it('is never paused on the device model alone: a price and a card box prove nothing', async () => {
+    const checkout = 'Checkout. Order total $44.35. Enter your card number, expiry date and security code to place your order today. Questions? Call us on 1-855-555-0100.';
+    const { e, analyzeInCloud } = engine(90, 2);
+    const v = await assess({ text: checkout, hostname: 'shop.example', trigger: 'passive' }, { engine: e, config: DEFAULT_CONFIG });
+    expect(analyzeInCloud).toHaveBeenCalledTimes(1); // the stronger model is asked
+    expect(v.state).toBe('safe'); // and its all-clear stands
+  });
+});

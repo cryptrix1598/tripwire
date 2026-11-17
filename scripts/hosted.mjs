@@ -14,8 +14,14 @@ mkdirSync(SHOTS, { recursive: true });
 
 const browser = await chromium.launch({ channel: 'chromium', headless: true });
 const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: 'reduce' });
+// App Check on the hosted site uses reCAPTCHA Enterprise, which (correctly) refuses automated
+// browsers: "App attestation failed". So this run presents the project's App Check debug token
+// instead, read from .env and set only inside this test browser. Pass --recaptcha to use the
+// real provider and see what a robot gets.
+const DEBUG_TOKEN = process.argv.includes('--recaptcha') ? '' : (/^WXT_APPCHECK_DEBUG_TOKEN=(.+)$/m.exec(env)?.[1] ?? '').trim();
+if (DEBUG_TOKEN) await context.addInitScript((token) => { self.FIREBASE_APPCHECK_DEBUG_TOKEN = token; }, DEBUG_TOKEN);
 const page = await context.newPage();
-const ui = (selector) => page.locator(`tripwire-ui ${selector}`);
+const ui =(selector) => page.locator(`tripwire-ui ${selector}`);
 let failed = 0;
 const record = [];
 async function step(name, fn) {

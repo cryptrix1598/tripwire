@@ -136,8 +136,10 @@ export function Pair({ uid, onDone }: { uid: string; onDone: (deviceId: string) 
         addedAt: serverTimestamp(),
       });
       onDone(data.deviceId);
-    } catch {
-      setError(copy.errorGeneric);
+    } catch (err) {
+      // App Check refused this browser (for example an automated one): say so, instead of blaming the internet.
+      const refused = (err as { code?: string } | null)?.code === 'permission-denied';
+      setError(refused ? copy.errorBlocked : copy.errorGeneric);
     } finally {
       setBusy(false);
     }

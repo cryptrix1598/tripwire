@@ -108,14 +108,30 @@ try {
     if (!/^\d{6}$/.test(code)) throw new Error('no six-digit code shown');
   });
 
-  const family = await context.newPage();
+  // The hosted family page uses reCAPTCHA Enterprise for App Check, which refuses automated
+  // browsers. Present the project's debug token on that site only (from .env, never deployed).
+  const DEBUG_TOKEN = process.argv.includes('--recaptcha') ? '' : (/^WXT_APPCHECK_DEBUG_TOKEN=(.+)$/m.exec(env)?.[1] ?? '').trim();
+  const asTester = async (p) => {
+    if (DEBUG_TOKEN) await p.addInitScript((token) => { if (location.protocol.startsWith('http')) self.FIREBASE_APPCHECK_DEBUG_TOKEN = token; }, DEBUG_TOKEN);
+    return p;
+  };
+  const family = await asTester(await context.newPage());
+  const familyErrors = [];
+  family.on('console', (m) => m.type() === 'error' && familyErrors.push(m.text().slice(0, 300)));
+  family.on('pageerror', (e) => familyErrors.push(String(e).slice(0, 300)));
   await step('family page: guest sign-in and pairing with the code', async () => {
-    await family.goto(DASHBOARD);
-    await family.getByRole('button', { name: 'Continue without an account' }).click();
-    await family.getByLabel('Six-digit pairing code').fill(code);
-    await family.getByLabel('What should we call them?').fill('Mum');
-    await family.getByRole('button', { name: 'Connect' }).click();
-    await family.getByRole('heading', { name: 'All quiet.' }).waitFor({ timeout: 30_000 });
+    try {
+      await family.goto(DASHBOARD);
+      await family.getByRole('button', { name: 'Continue without an account' }).click();
+      await family.getByLabel('Six-digit pairing code').fill(code);
+      await family.getByLabel('What should we call them?').fill('Mum');
+      await family.getByRole('button', { name: 'Connect' }).click();
+      await family.getByRole('heading', { name: 'All quiet.' }).waitFor({ timeout: 30_000 });
+    } catch (err) {
+      // Say what the page was showing, so a failure here can be diagnosed from the record.
+      const seen = (await family.locator('body').innerText().catch(() => '')).replace(/\s+/g, ' ').slice(0, 400);
+      throw new Error(`${String(err.message).split('\n')[0]} | page: ${seen} | console: ${familyErrors.join(' ; ').slice(0, 600)}`);
+    }
   });
 
   await step('the extension confirms the connection and the code stops working', async () => {
@@ -123,7 +139,7 @@ try {
     await setup.getByText('A family member is connected.').waitFor({ timeout: 30_000 });
     await setup.close();
     const stranger = await context.browser()?.newContext?.() ?? null;
-    const again = await context.newPage();
+    const again = await asTester(await context.newPage());
     await again.goto(DASHBOARD);
     await again.getByRole('button', { name: 'Connect another person' }).click();
     await again.getByLabel('Six-digit pairing code').fill(code);

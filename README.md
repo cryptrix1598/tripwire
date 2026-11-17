@@ -45,11 +45,11 @@ Action tripwires: typing or focusing a card number field (Luhn checked, locally)
 
 ## Screenshots
 
-The first row was captured in desktop Chrome 157 with Gemini Nano answering, on the hosted practice pages (`node scripts/nano-probe.mjs --shots`). The rest come from `npm run e2e` in a Chromium that has no on-device model, so their badges show the fallback route.
+The first picture was captured in desktop Chrome 157 with Gemini Nano answering, on the hosted practice pages (`node scripts/nano-probe.mjs --shots`); the second is the hosted demo in a browser with no on-device model (`npm run hosted`). The rest come from `npm run e2e` in a Chromium that has no on-device model, so their badges show the fallback route.
 
-| On the device, nothing sent | The receipt: exactly what was sent |
+| On the device, nothing sent | With no on-device model: the route, and the receipt of what was sent |
 | --- | --- |
-| ![Pause with "Checked on your device, 0 bytes sent"](docs/screenshots/on-device-pause.png) | ![The redacted text that left the device](docs/screenshots/receipt-what-was-sent.png) |
+| ![Pause with "Checked on your device, 0 bytes sent"](docs/screenshots/on-device-pause.png) | ![Cloud path on the hosted demo, with "what was sent" opened](docs/screenshots/web-demo-pause.png) |
 
 | Caution | Tripped |
 | --- | --- |
@@ -130,7 +130,7 @@ Details worth knowing:
 
 ### A scam page is written by an adversary
 
-What Tripwire does about a page that fights back ([tests/hostile.test.ts](tests/hostile.test.ts), 13 tests, and one end-to-end step):
+What Tripwire does about a page that fights back ([tests/hostile.test.ts](tests/hostile.test.ts), 14 tests, and one end-to-end step):
 
 | The page tries to... | What happens |
 | --- | --- |
@@ -142,6 +142,8 @@ What Tripwire does about a page that fights back ([tests/hostile.test.ts](tests/
 | Wear the checker out with harmless changes, then show the scam | The scan budget refills with time (one scan every 20 seconds), so it cannot be spent for good. |
 | Delete the warning from the page | Tripwire puts it back and re-locks the page. If the page keeps removing it, the pause moves to an extension page the site cannot touch. |
 | Open the phone dialer before the check finishes | A phone link on a page that has not been checked yet is held until it has. |
+| Get a card number typed before the check finishes | A card field on a page that has not been checked yet is held read-only until it has. |
+| Find out the visitor has Tripwire, and behave | The extension answers a "are you there" ping only on the practice pages, never on ordinary sites. |
 | Skip the suspicious page entirely (a caller says "go to this site and install this") | A remote-access tool download always asks, once per tool, even with no suspicious page open. |
 
 Limits, stated plainly: text inside images, or inside a frame from another site, is not read (payment frames are only watched for card fields); the page guard is a race Tripwire usually wins, not a guarantee; a pairing code can still be guessed during its five minutes (one claim only, and the extension shows the connection and can remove it); and phone scams that never involve a risky page, payment field or download are outside what a browser extension can see.
@@ -220,7 +222,7 @@ Status: the app compiles against firebase-ai 18.2.0 and firebase-ai-ondevice 16.
 | `npm run dev:dashboard` | Family page on `localhost:5174` (`/preview.html` is a development-only screen gallery) |
 | `npm run typecheck` | TypeScript, strict |
 | `npm test` | Unit tests: redaction, router, practice pages |
-| `npm run test:rules` | Firestore rules against the emulator (needs JDK 21+; with JDK 17 run `npx firebase-tools@14 emulators:exec --only firestore --project demo-tripwire "npx vitest run tests/rules"`) |
+| `npm run test:rules` | Firestore rules against the emulator (needs a JDK; the script pins an emulator version that runs on JDK 17) |
 | `npm run eval` | Corpus run with rules only; exits non-zero on any false alarm |
 | `npm run live` | With `.env` filled in: live App Check, hybrid call, the corpus through the live router, pairing and a family alert |
 | `cd android && ./gradlew testDebugUnitTest assembleDebug` | Android companion: unit tests and debug APK |
@@ -237,10 +239,10 @@ Status: the app compiles against firebase-ai 18.2.0 and firebase-ai-ondevice 16.
 | Run | Scams flagged | False alarms | Bytes sent (whole request) |
 | --- | --- | --- | --- |
 | Built-in rules only (`npm run eval`) | 23 / 25 | **0 / 25** | 0 |
-| Cloud path, no on-device model (`npm run live`) | **25 / 25** | **0 / 25** | 21,482, all redacted first |
-| Gemini Nano on the device first (`node scripts/nano-probe.mjs --checks --corpus`) | **25 / 25** | **0 / 25** | 3,619, all redacted first |
+| Cloud path, no on-device model (`npm run live`) | **25 / 25** | **0 / 25** | 22,018, all redacted first |
+| Gemini Nano on the device first (`node scripts/nano-probe.mjs --checks --corpus`) | **25 / 25** | **0 / 25** | 3,096, all redacted first |
 
-With the on-device model, 35 of the 50 samples were decided on the device, 8 needed no model and 7 went to the cloud: about 83 percent less sent than the cloud-only path, with the same detection. (An earlier run the same day sent 2,554 bytes with 4 samples going to the cloud; the on-device model varies a little between runs.) Five on-device runs are committed in [eval-results/on-device/](eval-results/on-device): three from 14 Nov, which counted only the page text as "bytes sent" (so their byte figures are lower and not comparable), and two from 15 Nov. All five are 25/25 with zero false alarms. Three more were run on 14 Nov and not kept: two matched, and the first one produced a borderline false alarm on a gift-card shop page, which led to a router fix and a regression test. Results files record where they were run; the on-device runs use the Developer checks page served as a web page, because Chrome will not load an unpacked extension under automation.
+With the on-device model, 36 of the 50 samples were decided on the device, 8 needed no model and 6 went to the cloud: about 86 percent less sent than the cloud-only path, with the same detection. The on-device model varies a little between runs (earlier runs sent between 2,554 and 3,766 bytes). Seven on-device runs are committed in [eval-results/on-device/](eval-results/on-device): three from 14 Nov, which counted only the page text as "bytes sent" (so their byte figures are lower and not comparable), two from 15 Nov and two from 16 Nov. Six are 25/25 with zero false alarms. **One of the 16 Nov runs paused an ordinary checkout page**: a rule added that day let the device decide alone when a page asked for money and card details under pressure, which a real checkout also does. The rule now needs an ask no real shop makes (a Social Security number, a one-time code, online banking, a look at your screen); a regression test covers it and the run after it was clean. Three more were run on 14 Nov and not kept: two matched, and the first one produced a borderline false alarm on a gift-card shop page, which led to a router fix and a regression test. Results files record where they were run; the on-device runs use the Developer checks page served as a web page, because Chrome will not load an unpacked extension under automation.
 
 ### Held-out test, and what it found
 
@@ -249,7 +251,7 @@ With the on-device model, 35 of the 50 samples were decided on the device, 8 nee
 | Run | Scams flagged | False alarms on real pages | Check time when a model ran |
 | --- | --- | --- | --- |
 | First run, original design | 6 / 10 | 0 / 16 | median 51 s |
-| After the fixes below | **16 / 16** | **0 / 27** | **median 3.9 s, 90th percentile 7.0 s** |
+| After the fixes below | **16 / 16** | **0 / 28** | **median 3.7 s, 90th percentile 7.4 s** |
 
 The first run was a bad result and it was right:
 
@@ -257,13 +259,14 @@ The first run was a bad result and it was right:
 - **Long real pages took about 50 seconds**, because the on-device model was handed whole pages and timed out. Models now read a focused excerpt, a timeout is not retried, and on-device redaction lists details instead of rewriting text.
 - A middle run then **paused the Wikipedia article on tech support scams**. Pages that are about scams now need the cloud model to agree.
 
-Because those fixes were made after seeing round one, a second round of six new scam messages was written afterwards. Its first run caught 6 of 6. That same run had the Wikipedia false alarm, so one more change followed (pages about scams), and round two was still 6 of 6 after it. Sixteen of the real pages are no longer strictly held-out (one false alarm on them was found and fixed), so their zero is a result on pages the design has seen. The eleven sign-in and payment pages added later were run once, with no changes afterwards, and none was flagged. Nine of the 36 pages refused the automated browser and were skipped; they are listed in the result file. Worth knowing: 6 of the 27 ordinary pages were unclear enough to the on-device model that a redacted excerpt was sent to the cloud for a second opinion (which cleared them). An ordinary page is not always a zero-bytes page. All runs are in [eval-results/holdout/](eval-results/holdout).
+Because those fixes were made after seeing round one, a second round of six new scam messages was written afterwards. Its first run caught 6 of 6. That same run had the Wikipedia false alarm, so one more change followed (pages about scams), and round two was still 6 of 6 after it. Sixteen of the real pages are no longer strictly held-out (one false alarm on them was found and fixed), so their zero is a result on pages the design has seen. The eleven sign-in and payment pages added later were run once, with no changes afterwards, and none was flagged. Eight of the 36 pages refused the automated browser and were skipped; they are listed in the result file. In the latest run 14 of the 16 scams were decided on the device with nothing sent, and 2 went to the cloud. Worth knowing: 3 of the 28 ordinary pages were unclear enough to the on-device model that a redacted excerpt was sent to the cloud for a second opinion (which cleared them). An ordinary page is not always a zero-bytes page. All runs are in [eval-results/holdout/](eval-results/holdout).
 
 ### Everything else
 
-- Unit tests: 136 passing (extension), 6 (Android). Security-rules tests against the emulator: 19 passing ([eval-results/rules-tests.json](eval-results/rules-tests.json)). Typecheck, unit tests, the rules-only corpus, the build and the rules tests also run in CI on every push ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
+- Unit tests: 137 passing (extension), 6 (Android). Security-rules tests against the emulator: 19 passing ([eval-results/rules-tests.json](eval-results/rules-tests.json)). Typecheck, unit tests, the rules-only corpus, the build and the rules tests also run in CI on every push ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
 - End-to-end in Chromium (`npm run e2e`): 13 of 13 steps, including settings, the paused download, and a page that keeps deleting the warning. Result file: [eval-results/e2e.json](eval-results/e2e.json).
 - Live against the real project (`npm run live`): App Check token, hybrid call, Spanish explanations, pairing, single-use code, family alert. Result file: [eval-results/live-checks.json](eval-results/live-checks.json).
+- **App Check refuses robots, including ours.** On 16 Nov the hosted site began rejecting the automated test browser ("App attestation failed" from reCAPTCHA Enterprise), so pairing failed and the hosted demo fell back to built-in rules, with the badge saying so. The hosted demo was checked in an ordinary browser the same day and got its cloud answer. The automated runs of the hosted site now present the project's App Check debug token (read from `.env`, set only inside the test browser, never deployed); `--recaptcha` runs them as a robot. `node scripts/hosted-appcheck.mjs` shows the refusal, and the family page now says the browser could not be confirmed instead of blaming the internet.
 - Hosted demo with no extension (`npm run hosted`): the practice pages are flagged in a plain browser, the phone number on the page is absent from what was sent, and the ordinary checkout stays silent. Result file: [eval-results/hosted-demo.json](eval-results/hosted-demo.json).
 - Accessibility: axe-core on every screen in the end-to-end run. WCAG 2.2 A/AA: 0 problems. All text meets AAA contrast.
 - Languages: the banner, pause, reasons and "you stopped" page are in English, Spanish and French, following the browser. Model-written reasons were run live in Spanish and French on the device (0 bytes sent) and Spanish through the cloud.
@@ -276,7 +279,7 @@ Stated plainly so nobody is surprised:
 - **On-device inside the loaded extension, by automation.** The automated on-device runs go through a web page or the hosted demo. The loaded extension itself was checked by hand in desktop Chrome 157 on 14 Nov 2026: the offscreen document reported the model as ready, the fake bank practice page was paused with "Checked on your device · 0 bytes sent", and the same check passed with Wi-Fi off.
 - **The Android app has not been run.** It builds and its unit tests pass, but the machine it was built on cannot start the Android emulator and no phone was attached.
 - **Real users.** Nobody in the target age group has used it yet.
-- **Scale.** The corpora are small (50 tuning samples, 16 held-out scams, 27 real pages). They are enough to catch design mistakes, as above, not to state an accuracy figure.
+- **Scale.** The corpora are small (50 tuning samples, 16 held-out scams, 28 real pages). They are enough to catch design mistakes, as above, not to state an accuracy figure.
 - **Speed.** A check takes about 3 to 4 seconds on the device and 5 to 7 seconds when the cloud is also asked, on a desktop with an RTX 4060. Reading a page is never blocked by this, but a pause can appear a few seconds after the page does.
 
 ## Project layout

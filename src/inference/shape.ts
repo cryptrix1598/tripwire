@@ -19,7 +19,17 @@ const CREDENTIAL =
   /\b(?:card number|security code|cvv|cvc|verification code|one-time (?:code|passcode|password)|passcode|password|pin\b|social security|medicare number|date of birth|bank account|online banking|remote (?:access|session|support)|screen.?share|support session|read (?:me |him |her |them )?the (?:numbers|codes))\b/i;
 const PHONE = /(?:\+?\d[\d\s().-]{8,}\d)/;
 
+/**
+ * Asks that an honest checkout does not make. A shop asks for a card number and its security
+ * code; it does not ask for a Social Security number, a one-time code, your online banking
+ * or a look at your screen. (A corpus run paused an ordinary checkout before this distinction.)
+ */
+const SENSITIVE =
+  /\b(?:social security|medicare number|online banking|remote (?:access|session|support)|screen.?share|support session|verification code|one-time (?:code|passcode|password)|passcode|password|date of birth|read (?:me |him |her |them )?the (?:numbers|codes)|voucher numbers|card numbers and pins)\b/i;
+
 export interface Shape {
+  /** An ask a real shop would not make (see SENSITIVE). */
+  sensitiveAsk: boolean;
   moneyAsk: boolean;
   pressure: boolean;
   secrecy: boolean;
@@ -29,6 +39,7 @@ export interface Shape {
 
 export function detectShape(text: string): Shape {
   return {
+    sensitiveAsk: SENSITIVE.test(text),
     moneyAsk: MONEY.test(text),
     pressure: PRESSURE.test(text),
     secrecy: SECRECY.test(text),

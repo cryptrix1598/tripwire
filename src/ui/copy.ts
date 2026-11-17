@@ -414,6 +414,8 @@ export const DASHBOARD = {
     working: 'Connecting…',
     errorNotFound: 'That code was not found or has run out. Ask them for a new one.',
     errorGeneric: 'Could not connect just now. Check your internet and try again.',
+    errorBlocked:
+      'This browser could not be confirmed as a real visitor, so the connection was refused. Turn off any ad blocker or private window for this page, or try another browser.',
     errorFormat: 'The code is six digits.',
   },
   feed: {
