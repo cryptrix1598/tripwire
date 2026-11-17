@@ -81,6 +81,8 @@ export const BANNER = {
   sub: 'You do not have to do anything this page asks.',
   failSafeHeadline: 'Tripwire could not finish checking this page.',
   failSafeSub: 'To be careful, treat anything it asks for as suspicious.',
+  checkingCall: 'One moment. Tripwire is checking this page before the call starts.',
+  checkingCard: 'One moment. Tripwire is checking this page before you type a card number.',
 } as const;
 
 /* ------------------------------------------------------------------ */

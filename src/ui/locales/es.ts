@@ -53,6 +53,8 @@ export const ES: LocaleBundle = {
     sub: 'No tiene que hacer nada de lo que pide esta página.',
     failSafeHeadline: 'Tripwire no pudo terminar de revisar esta página.',
     failSafeSub: 'Para estar seguro, trate como sospechoso cualquier cosa que le pida.',
+    checkingCall: 'Un momento. Tripwire está revisando esta página antes de iniciar la llamada.',
+    checkingCard: 'Un momento. Tripwire está revisando esta página antes de que escriba un número de tarjeta.',
   },
   TRIP_LEAD: {
     passive: 'Esta página muestra señales claras de estafa.',

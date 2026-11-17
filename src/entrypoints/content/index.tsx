@@ -20,6 +20,7 @@ import type { Trigger, Verdict } from '../../inference/schemas';
 import { send, type AssessReply, type ToContent } from '../../messaging';
 import { describeField, isCardField, mayInspectValue, valueIsCardNumber } from '../../tripwires/cardField';
 import { Banner } from '../../ui/Banner';
+import { BANNER } from '../../ui/copy';
 import { applyLocale } from '../../ui/locale';
 import { Pause } from '../../ui/Pause';
 
@@ -37,7 +38,11 @@ const ACTION_COOLDOWN_MS = 8_000;
 const GIFT_FIELD = /gift\s*-?\s*card|card\s*(?:pin|code)|claim\s*code|redemption\s*code|voucher\s*code|itunes|google\s*play\s*code|steam\s*(?:wallet|code)/i;
 const WALLET_FIELD = /wallet|bitcoin|\bbtc\b|\beth(?:ereum)?\b|\busdt\b|crypto|recipient\s*address/i;
 
-type View = { kind: 'none' } | { kind: 'banner'; verdict: Verdict } | { kind: 'pause'; verdict: Verdict };
+type View =
+  | { kind: 'none' }
+  | { kind: 'checking'; what: 'call' | 'card' }
+  | { kind: 'banner'; verdict: Verdict }
+  | { kind: 'pause'; verdict: Verdict };
 
 export default defineContentScript({
   matches: ['http://*/*', 'https://*/*'],
@@ -113,6 +118,13 @@ function startTopFrame(ctx: ContentScriptContext): void {
   function App() {
     const v = useSyncExternalStore(subscribe, () => view);
     if (v.kind === 'banner') return <Banner verdict={v.verdict} onDismiss={dismiss} />;
+    if (v.kind === 'checking') {
+      return (
+        <div className="tw tw-checking" role="status">
+          {v.what === 'call' ? BANNER.checkingCall : BANNER.checkingCard}
+        </div>
+      );
+    }
     if (v.kind === 'pause') {
       return (
         <div className="tw-overlay">
@@ -206,6 +218,26 @@ function startTopFrame(ctx: ContentScriptContext): void {
   }, 400);
   ctx.onInvalidated(() => clearInterval(guard));
 
+  /**
+   * While a held action waits for its check, say so. A check can take several seconds, and a
+   * click that seems to do nothing looks broken. Shown only if the wait is long enough to notice.
+   */
+  function whileChecking<T>(what: 'call' | 'card', job: Promise<T>): Promise<T> {
+    let done = false;
+    const timer = setTimeout(() => {
+      void ensureUi()
+        .then(() => {
+          if (!done && view.kind === 'none') setView({ kind: 'checking', what });
+        })
+        .catch(() => undefined);
+    }, 350);
+    return job.finally(() => {
+      done = true;
+      clearTimeout(timer);
+      if (view.kind === 'checking') setView({ kind: 'none' });
+    });
+  }
+
   function hide(): void {
     unlock?.();
     if (view.kind !== 'none') setView({ kind: 'none' });
@@ -293,15 +325,17 @@ function startTopFrame(ctx: ContentScriptContext): void {
         const info = describeField(el);
         if (info.type.toLowerCase() === 'password') return;
         if (isCardField(info)) {
-          // If this page has not been judged yet, the field is held (read-only) for the few
-          // seconds the check takes, so a card number cannot be typed before the answer.
+          // If this page has not been judged yet, the field is held (read-only) until the check
+          // answers, so a card number cannot be typed first. The check itself is bounded by the
+          // router's timeouts; the cap here is only a backstop so a field is never stuck.
           const hold = !last && !acknowledged && !el.readOnly;
           if (hold) el.readOnly = true;
           const release = () => {
             if (hold) el.readOnly = false;
           };
-          const limit = setTimeout(release, 8000);
-          return void onAction('card_entry').finally(() => {
+          const limit = setTimeout(release, 40_000);
+          const check = onAction('card_entry');
+          return void (hold ? whileChecking('card', check) : check).finally(() => {
             clearTimeout(limit);
             release();
           });
@@ -341,12 +375,14 @@ function startTopFrame(ctx: ContentScriptContext): void {
         const link = target instanceof Element ? target.closest<HTMLAnchorElement>('a[href^="tel:" i]') : null;
         if (!link) return;
         if (acknowledged || view.kind === 'pause') return;
+        // Already checking for an earlier click: keep holding, do not start a second check.
+        if (view.kind === 'checking') return void event.preventDefault();
         if (last && last.state !== 'safe') return void onAction('phone_call', event);
         // Hold the call until the page AS IT IS NOW has been checked, so the dialer cannot open first
         // (a page may have changed since it was last read).
         event.preventDefault();
         const href = link.href;
-        void assess('phone_call').then((reply) => {
+        void whileChecking('call', assess('phone_call')).then((reply) => {
           if (reply?.verdict.state === 'tripped' && !reply.acknowledged) show({ kind: 'pause', verdict: reply.verdict });
           else location.href = href;
         });

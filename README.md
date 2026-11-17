@@ -141,8 +141,8 @@ What Tripwire does about a page that fights back ([tests/hostile.test.ts](tests/
 | Press "I'm sure, continue" itself | Clicks made by page script are marked untrusted by the browser and ignored; only a real click or key press counts. Checked end to end. |
 | Wear the checker out with harmless changes, then show the scam | The scan budget refills with time (one scan every 20 seconds), so it cannot be spent for good. |
 | Delete the warning from the page | Tripwire puts it back and re-locks the page. If the page keeps removing it, the pause moves to an extension page the site cannot touch. |
-| Open the phone dialer before the check finishes | A phone link on a page that has not been checked yet is held until it has. |
-| Get a card number typed before the check finishes | A card field on a page that has not been checked yet is held read-only until it has. |
+| Open the phone dialer before the check finishes | A phone link on a page that has not been checked yet is held until it has, with a notice saying the page is being checked. |
+| Get a card number typed before the check finishes | A card field on a page that has not been checked yet is held read-only until the check answers, with the same notice. |
 | Find out the visitor has Tripwire, and behave | The extension answers a "are you there" ping only on the practice pages, never on ordinary sites. |
 | Skip the suspicious page entirely (a caller says "go to this site and install this") | A remote-access tool download always asks, once per tool, even with no suspicious page open. |
 
@@ -253,6 +253,8 @@ With the on-device model, 36 of the 50 samples were decided on the device, 8 nee
 | First run, original design | 6 / 10 | 0 / 16 | median 51 s |
 | After the fixes below | **16 / 16** | **0 / 28** | **median 3.7 s, 90th percentile 7.4 s** |
 
+Read the second row with care: the fixes were made after seeing the first run, so only 6 of the 16 scams and 11 of the 28 pages were still unseen when they were run. Details below the list.
+
 The first run was a bad result and it was right:
 
 - **Four of ten scams never reached a model.** The keyword gate was tuned to the main corpus and missed a "grandchild needs bail" message, a utility shut-off notice, a refund call and a customs fee. The gate now looks at the shape of the request.
@@ -267,7 +269,7 @@ Because those fixes were made after seeing round one, a second round of six new 
 - End-to-end in Chromium (`npm run e2e`): 13 of 13 steps, including settings, the paused download, and a page that keeps deleting the warning. Result file: [eval-results/e2e.json](eval-results/e2e.json).
 - Live against the real project (`npm run live`): App Check token, hybrid call, Spanish explanations, pairing, single-use code, family alert. Result file: [eval-results/live-checks.json](eval-results/live-checks.json).
 - **App Check refuses robots, including ours.** On 16 Nov the hosted site began rejecting the automated test browser ("App attestation failed" from reCAPTCHA Enterprise), so pairing failed and the hosted demo fell back to built-in rules, with the badge saying so. The hosted demo was checked in an ordinary browser the same day and got its cloud answer. The automated runs of the hosted site now present the project's App Check debug token (read from `.env`, set only inside the test browser, never deployed); `--recaptcha` runs them as a robot. `node scripts/hosted-appcheck.mjs` shows the refusal, and the family page now says the browser could not be confirmed instead of blaming the internet.
-- Hosted demo with no extension (`npm run hosted`): the practice pages are flagged in a plain browser, the phone number on the page is absent from what was sent, and the ordinary checkout stays silent. Result file: [eval-results/hosted-demo.json](eval-results/hosted-demo.json).
+- Hosted demo with no extension (`npm run hosted`): the practice pages are flagged in a plain browser, the phone number on the page is absent from what was sent, the ordinary checkout stays silent, and a phone link clicked before the check has answered is held with a "checking this page" notice. Result file: [eval-results/hosted-demo.json](eval-results/hosted-demo.json).
 - Accessibility: axe-core on every screen in the end-to-end run. WCAG 2.2 A/AA: 0 problems. All text meets AAA contrast.
 - Languages: the banner, pause, reasons and "you stopped" page are in English, Spanish and French, following the browser. Model-written reasons were run live in Spanish and French on the device (0 bytes sent) and Spanish through the cloud.
 
@@ -278,6 +280,8 @@ Stated plainly so nobody is surprised:
 - **Webmail.** In Gmail, Outlook and Yahoo Mail only an opened message is read, never the inbox list. This relies on each site's page structure and has not been tested against real mailboxes.
 - **On-device inside the loaded extension, by automation.** The automated on-device runs go through a web page or the hosted demo. The loaded extension itself was checked by hand in desktop Chrome 157 on 14 Nov 2026: the offscreen document reported the model as ready, the fake bank practice page was paused with "Checked on your device · 0 bytes sent", and the same check passed with Wi-Fi off.
 - **The Android app has not been run.** It builds and its unit tests pass, but the machine it was built on cannot start the Android emulator and no phone was attached.
+- **App Check does not attest the extension in this build.** The extension presents a debug token that is compiled into the built extension, so anyone who unpacks a build can copy it. That is accepted for this submission, and it means App Check here keeps out callers who have neither the token nor a browser that passes reCAPTCHA, not a determined one. A store release needs a token endpoint (a Cloud Function), which is not written because it needs a paid plan.
+- **Pairing codes are six digits.** Any signed-in browser that passes App Check can try codes for the five minutes one is live. A code works once and the extension shows and can remove the connection, but there is no server-side limit on guesses.
 - **Real users.** Nobody in the target age group has used it yet.
 - **Scale.** The corpora are small (50 tuning samples, 16 held-out scams, 28 real pages). They are enough to catch design mistakes, as above, not to state an accuracy figure.
 - **Speed.** A check takes about 3 to 4 seconds on the device and 5 to 7 seconds when the cloud is also asked, on a desktop with an RTX 4060. Reading a page is never blocked by this, but a pause can appear a few seconds after the page does.

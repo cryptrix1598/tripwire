@@ -75,6 +75,25 @@ try {
     if ((await ui('.tw-overlay').count()) === 0) await page.locator('#gc').focus();
     await ui('.tw-overlay').waitFor({ timeout: 30_000 });
   });
+
+  await step('a phone link clicked before the check finishes is held, and says so', async () => {
+    await page.goto(`${SITE}/demo/support.html`, { waitUntil: 'domcontentloaded' });
+    // The hosted runtime starts a moment after load. Wait until it answers a ping (it does on the
+    // practice pages only), then click at once: the page has no verdict yet, which is the case under test.
+    await page.evaluate(
+      () =>
+        new Promise((resolve) => {
+          const timer = setInterval(() => window.dispatchEvent(new CustomEvent('tripwire-ping')), 40);
+          window.addEventListener('tripwire-pong', () => (clearInterval(timer), resolve(null)), { once: true });
+        }),
+    );
+    await page.locator('a[href^="tel:"]').first().click();
+    await ui('.tw-checking').waitFor({ timeout: 10_000 });
+    const notice = (await ui('.tw-checking').innerText()).trim();
+    await ui('.tw-overlay').waitFor({ timeout: 45_000 });
+    if ((await ui('.tw-checking').count()) !== 0) throw new Error('the checking notice stayed after the pause appeared');
+    return `notice: ${notice}`;
+  });
 } finally {
   await browser.close();
 }

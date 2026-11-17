@@ -413,6 +413,22 @@
 }
 
 /* ---------- in-page: caution banner ---------- */
+/* A held action (a call, a card field) is waiting for its check: say so, so the click never looks ignored. */
+.tw-checking {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 2147483646;
+  max-width: min(640px, calc(100vw - 32px));
+  padding: 16px 24px;
+  background: var(--tw-deep);
+  color: var(--tw-on-deep);
+  font: 700 1.25rem/1.4 var(--tw-font);
+  border-radius: var(--tw-radius-lg);
+  box-shadow: var(--tw-shadow-float);
+}
+
 .tw-banner {
   position: fixed;
   top: 16px;

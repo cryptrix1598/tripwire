@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-11-17T02:34:20.684Z",
+  "ranAt": "2026-11-17T02:45:24.542Z",
   "where": "hosted site, plain Chromium with no extension",
   "steps": [
     {
@@ -21,6 +21,11 @@
       "state": "pass",
       "name": "gift card demand pauses on the code field",
       "note": ""
+    },
+    {
+      "state": "pass",
+      "name": "a phone link clicked before the check finishes is held, and says so",
+      "note": "notice: One moment. Tripwire is checking this page before the call starts."
     }
   ]
 }
