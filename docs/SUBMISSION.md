@@ -5,6 +5,7 @@ Copy for the #BuildHybridAI 2026 submission form, plus a script for the demo vid
 - **Tracks:** Web / Chrome (primary). An Android companion app is included in the repo; it builds and is unit-tested but had not been run on a device when this was written, so only claim Android if you have run it on a phone.
 - **Repository:** https://github.com/cryptrix1598/tripwire (Apache-2.0)
 - **Hosted family page:** https://tripwire-buildhybridai.web.app
+- **Install the extension without building:** https://github.com/cryptrix1598/tripwire/blob/main/release/tripwire-chrome.zip (unzip, then Load unpacked in chrome://extensions)
 - **Try it with nothing to install:** https://tripwire-buildhybridai.web.app/demo/ (the practice pages run Tripwire in the page, through Firebase AI Logic)
 
 ## Tagline

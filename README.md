@@ -153,7 +153,15 @@ Limits, stated plainly: text inside images, or inside a frame from another site,
 
 **What is not guaranteed.** On a computer with no on-device model, redaction is pattern-matching: numbers, emails, addresses, greetings, titles and about 300 common given names. An unusual name in ordinary prose can get through, which is why that route is worded "the names, numbers and addresses it could recognise". "Bytes sent" counts the whole request Tripwire writes about a page (redacted text, site name, context lines); the fixed instructions are the same for every page and are not counted.
 
-## Run it
+## Install it (no building, no store)
+
+1. Download [release/tripwire-chrome.zip](release/tripwire-chrome.zip) and unzip it.
+2. Open `chrome://extensions`, turn on **Developer mode** (top right), click **Load unpacked** and choose the unzipped folder.
+3. Setup opens by itself. To try it, open a [practice page](https://tripwire-buildhybridai.web.app/demo/).
+
+This is the release build: it is connected to the live Firebase project and contains no debug token (App Check comes from reCAPTCHA on the hosted site). Tripwire is not on the Chrome Web Store; [docs/STORE.md](docs/STORE.md) has everything needed to publish it.
+
+## Run it from source
 
 Requirements: Node 22+, Chrome 139+ on desktop.
 
@@ -288,7 +296,7 @@ Stated plainly so nobody is surprised:
 - **Webmail.** In Gmail, Outlook and Yahoo Mail only an opened message is read, never the inbox list. This relies on each site's page structure and has not been tested against real mailboxes.
 - **The Android app has not been run.** It builds and its unit tests pass, but the machine it was built on cannot start the Android emulator and no phone was attached.
 - **App Check in the release build, inside the extension.** Verified: a real browser gets a token from `/attest.html` (checked in a desktop browser on 18 Nov), and the release build loads that page in its hidden frame and gets its answer back (checked by automation, where reCAPTCHA refuses the automated browser, as it should). Not yet verified by me: the whole path in a person's own Chrome. [docs/STORE.md](docs/STORE.md) has the one-minute check.
-- **Chrome Web Store.** The package, listing text, privacy answers, images and privacy policy are ready ([docs/STORE.md](docs/STORE.md)); publishing needs the owner's developer account and the store's review.
+- **Chrome Web Store.** Not published (the developer registration has a fee). The release build is in the repo instead ([release/tripwire-chrome.zip](release/tripwire-chrome.zip)), and [docs/STORE.md](docs/STORE.md) has everything needed to publish it later.
 - **Pairing codes are six digits.** Any signed-in browser that passes App Check can try codes for the five minutes one is live. A code works once and the extension shows and can remove the connection, but there is no server-side limit on guesses.
 - **Real users.** Nobody in the target age group has used it yet.
 - **Scale.** The corpora are small (50 tuning samples, 16 held-out scams, 28 real pages). They are enough to catch design mistakes, as above, not to state an accuracy figure.
