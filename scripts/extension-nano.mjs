@@ -96,6 +96,21 @@ try {
     return route.replace(/\s+/g, ' ');
   });
 
+  await step('a phone call the person describes is checked on the device', async () => {
+    const call = await context.newPage();
+    await call.goto(ext('call.html'));
+    await call
+      .getByLabel('What the caller says or asks you to do')
+      .fill('A man says he is from Medicare and my card is being replaced. He needs my Medicare number and date of birth right now or my benefits stop today.');
+    await call.getByRole('button', { name: 'Check this call' }).click();
+    await call.getByRole('heading', { name: /Hang up now\.|Be careful\./ }).waitFor({ timeout: 90_000 });
+    await call.screenshot({ path: 'docs/screenshots/call-check-on-device.png' });
+    const route = (await call.locator('.tw-route').innerText()).replace(/\s+/g, ' ');
+    const heading = await call.locator('h2').first().innerText();
+    await call.close();
+    return `${heading} | ${route}`;
+  });
+
   await step('an ordinary shop page stays silent', async () => {
     const page = await context.newPage();
     await page.goto('http://localhost:4174/shop.html');

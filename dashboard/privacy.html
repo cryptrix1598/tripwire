@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tripwire privacy policy</title>
+    <style>
+      body { margin: 0; background: #eef3f6; color: #0e2233; font: 18px/1.6 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+      main { max-width: 760px; margin: 0 auto; padding: 40px 16px 64px; }
+      h1 { font-size: 2rem; line-height: 1.2; } h2 { font-size: 1.3rem; margin-top: 2em; }
+      a { color: #14344d; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Tripwire privacy policy</h1>
+      <p>Last updated 18 November 2026. Tripwire is a free, open-source browser extension (<a href="https://github.com/cryptrix1598/tripwire">source code</a>). This page says exactly what it reads, what it sends, and what it keeps.</p>
+
+      <h2>What Tripwire reads</h2>
+      <p>The visible text of the page you are on, or of an email you have opened, so it can spot the warning signs of a scam. In webmail it reads only an opened message, never your inbox list. It notices when you start typing into a card number, gift card or crypto wallet field, but it never reads or keeps what you type. On the "check a phone call" page, it reads what you type there.</p>
+
+      <h2>What stays on your computer</h2>
+      <p>When your computer can run Google's on-device model (Gemini Nano in Chrome), the check happens on your computer and nothing is sent. Tripwire shows this as "Checked on your device · 0 bytes sent". Your settings and trusted sites are kept in your browser. Verdicts are kept only until the tab closes.</p>
+
+      <h2>What is sent, and to whom</h2>
+      <p>When the on-device check is unsure, or your computer has no on-device model, Tripwire first removes names, phone numbers, email addresses, street addresses and card and account numbers that it recognises, and then sends the remaining text for a second opinion to Google's Gemini model through Firebase AI Logic. Removal is automatic and can miss an unusual name; you can always open "See exactly what was sent" to read the text that left your computer. Google processes it under the <a href="https://firebase.google.com/terms/data-processing-terms">Firebase data processing terms</a>. Tripwire does not store it.</p>
+      <p>To prove to Firebase that requests come from a real browser, Tripwire opens a page of this site in a hidden frame, which uses Google reCAPTCHA Enterprise (<a href="https://policies.google.com/privacy">Google privacy policy</a>).</p>
+
+      <h2>Family alerts (only if you turn them on)</h2>
+      <p>If you connect a family member, each time Tripwire stops something it saves an alert with five fields only: the time, the kind of scam (from a fixed list), what you were about to do (from a fixed list), whether you stopped, and one fixed sentence. It never contains the page, the email, the site address or anything you typed. Alerts are stored in Google Cloud Firestore so the family member can see them. You can disconnect everyone at any time from Tripwire's settings, which stops any new alerts.</p>
+
+      <h2>What Tripwire never does</h2>
+      <p>It does not sell or share data, show ads, track you across sites, or keep your browsing history. It has no account of its own; family alerts use an anonymous sign-in.</p>
+
+      <h2>Contact</h2>
+      <p>Questions or problems: open an issue at <a href="https://github.com/cryptrix1598/tripwire/issues">github.com/cryptrix1598/tripwire/issues</a>.</p>
+    </main>
+  </body>
+</html>

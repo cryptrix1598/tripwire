@@ -1,6 +1,6 @@
 # Tripwire
 
-**Tripwire steps in at the exact moment you're about to fall for a scam, and protects your privacy while doing it.**
+**Tripwire steps in at the exact moment you're about to fall for a scam (on a page, in an email, or on the phone) and protects your privacy while doing it.**
 
 A Chrome extension for older adults and the family who look out for them. Built for the Firebase #BuildHybridAI 2026 hackathon (Web / Chrome track). Licensed under Apache-2.0.
 
@@ -26,6 +26,7 @@ Browsers block known bad sites and warn about dangerous pages, and Chrome's Enha
 2. **It reads the message, not the address.** A brand-new scam email on an ordinary mail site has no bad URL to block.
 3. **It shows its work.** Every verdict says what left the computer, and "See exactly what was sent" shows the redacted text itself.
 4. **It brings in family** without showing them anything private.
+5. **It covers the phone call**, where most of these scams start. No browser can hear a call, so the person tells Tripwire what the caller wants and gets a plain answer while still on the line.
 
 ## What it does
 
@@ -36,6 +37,8 @@ Browsers block known bad sites and warn about dangerous pages, and Chrome's Enha
 | Tripped | A full-page pause. "Stop and stay safe" is the big button; "I'm sure, continue" is a quiet link. |
 
 Action tripwires: typing or focusing a card number field (Luhn checked, locally), gift-card code fields, crypto wallet fields, phone links (held until the page has been checked), and downloads of remote-access tools (always asked about once, because the caller often names the site).
+
+**Someone on the phone?** Most scams on older people start with a call, which no browser can see. From the Tripwire menu, "Someone is on the phone with me" opens a page where the person types what the caller wants, in their own words. Gemini Nano checks it on the computer first (a redacted second opinion only if it is unsure), and the answer is plain: "Hang up now.", "Be careful." or "Nothing here sounds like a scam", always with "call back on a number you already know". "I hung up" sends the family alert.
 
 **Family Guardian** (optional): the person shows a six-digit code, a family member types it on the family page, and from then on sees a live feed of *that Tripwire stepped in*: the time, the kind of scam, the action, and whether they stopped. Never the page, the email, or anything typed. There is a web family page and an Android app (see [Android companion](#android-companion)).
 
@@ -112,7 +115,7 @@ Details worth knowing:
 - The router ([src/inference/router.ts](src/inference/router.ts)) pins the inference mode for each call instead of using `PREFER_ON_DEVICE`, and checks `response.inferenceSource`. If a call that must stay on the device was answered by the cloud, it throws a `PrivacyInvariantError` and the result is discarded.
 - Model output is structured JSON validated with zod. A bad answer is retried once, then Tripwire fails **safe** (caution), never open.
 - Thresholds, prompt version and keyword lists come from **Remote Config** (parameter `tripwire_config`, JSON) with local defaults in [src/config/defaults.ts](src/config/defaults.ts).
-- **App Check** is initialised before any AI or Firestore call. reCAPTCHA cannot load on a `chrome-extension://` origin under Manifest V3, so the extension uses a `CustomProvider` with a debug token from `.env`. A production build would back that provider with a Cloud Function that mints tokens. The hosted family page attests with reCAPTCHA Enterprise, and the Android app uses the debug provider in debug builds and Play Integrity in release builds. **App Check is enforced on both Firebase AI Logic and Firestore.**
+- **App Check** is initialised before any AI or Firestore call. reCAPTCHA cannot load on a `chrome-extension://` origin under Manifest V3, so the release build (`npm run zip:store`) uses a `CustomProvider` whose tokens come from Tripwire's own hosted site: the offscreen document keeps a hidden frame open on `/attest.html`, which passes a real reCAPTCHA Enterprise check and hands back an App Check token for the same web app ([src/firebase/attest.ts](src/firebase/attest.ts), [dashboard/src/attest.ts](dashboard/src/attest.ts)). No server and no paid plan, and the release build contains no debug token (the build script checks every file). The site lets only extensions frame that page (`frame-ancestors`), and the page answers only extension origins. Development and automated test builds use a debug token from `.env` instead, because reCAPTCHA rightly refuses automated browsers. The hosted family page attests with reCAPTCHA Enterprise too, and the Android app uses the debug provider in debug builds and Play Integrity in release builds. **App Check is enforced on both Firebase AI Logic and Firestore.**
 - Chrome's Prompt API is not available in service workers, so inference runs in an **offscreen document** ([src/entrypoints/offscreen](src/entrypoints/offscreen/main.ts)).
 - Other Firebase products: anonymous **Auth** (the device identity), **Firestore** (pairing codes and alerts), **Hosting** (family page).
 
@@ -269,8 +272,8 @@ Because those fixes were made after seeing round one, a second round of six new 
 
 ### Everything else
 
-- Unit tests: 137 passing (extension), 6 (Android). Security-rules tests: 17 against the emulator plus 2 that keep the rules and the app copy in step, 19 passing ([eval-results/rules-tests.json](eval-results/rules-tests.json)). Typecheck, unit tests, the rules-only corpus, the build and the rules tests also run in CI on every push ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
-- End-to-end in Chromium (`npm run e2e`): 13 of 13 steps, including settings, the paused download, and a page that keeps deleting the warning. Result file: [eval-results/e2e.json](eval-results/e2e.json).
+- Unit tests: 141 passing (extension), 6 (Android). Security-rules tests: 17 against the emulator plus 2 that keep the rules and the app copy in step, 19 passing ([eval-results/rules-tests.json](eval-results/rules-tests.json)). Typecheck, unit tests, the rules-only corpus, the build and the rules tests also run in CI on every push ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
+- End-to-end in Chromium (`npm run e2e`): 14 of 14 steps, including the phone-call check, settings, the paused download, and a page that keeps deleting the warning. Result file: [eval-results/e2e.json](eval-results/e2e.json).
 - Live against the real project (`npm run live`): App Check token, hybrid call, Spanish explanations, pairing, single-use code, family alert. Result file: [eval-results/live-checks.json](eval-results/live-checks.json).
 - **App Check refuses robots, including ours.** On 16 Nov the hosted site began rejecting the automated test browser ("App attestation failed" from reCAPTCHA Enterprise), so pairing failed and the hosted demo fell back to built-in rules, with the badge saying so. The hosted demo was checked in an ordinary browser the same day and got its cloud answer. The automated runs of the hosted site now present the project's App Check debug token (read from `.env`, set only inside the test browser, never deployed); `--recaptcha` runs them as a robot. `node scripts/hosted-appcheck.mjs` shows the refusal, and the family page now says the browser could not be confirmed instead of blaming the internet.
 - Hosted demo with no extension (`npm run hosted`): the practice pages are flagged in a plain browser, the phone number on the page is absent from what was sent, the ordinary checkout stays silent, and a phone link clicked before the check has answered is held with a "checking this page" notice. Result file: [eval-results/hosted-demo.json](eval-results/hosted-demo.json).
@@ -284,7 +287,8 @@ Stated plainly so nobody is surprised:
 
 - **Webmail.** In Gmail, Outlook and Yahoo Mail only an opened message is read, never the inbox list. This relies on each site's page structure and has not been tested against real mailboxes.
 - **The Android app has not been run.** It builds and its unit tests pass, but the machine it was built on cannot start the Android emulator and no phone was attached.
-- **App Check does not attest the extension in this build.** The extension presents a debug token that is compiled into the built extension, so anyone who unpacks a build can copy it. That is accepted for this submission, and it means App Check here keeps out callers who have neither the token nor a browser that passes reCAPTCHA, not a determined one. A store release needs a token endpoint (a Cloud Function), which is not written because it needs a paid plan.
+- **App Check in the release build, inside the extension.** Verified: a real browser gets a token from `/attest.html` (checked in a desktop browser on 18 Nov), and the release build loads that page in its hidden frame and gets its answer back (checked by automation, where reCAPTCHA refuses the automated browser, as it should). Not yet verified by me: the whole path in a person's own Chrome. [docs/STORE.md](docs/STORE.md) has the one-minute check.
+- **Chrome Web Store.** The package, listing text, privacy answers, images and privacy policy are ready ([docs/STORE.md](docs/STORE.md)); publishing needs the owner's developer account and the store's review.
 - **Pairing codes are six digits.** Any signed-in browser that passes App Check can try codes for the five minutes one is live. A code works once and the extension shows and can remove the connection, but there is no server-side limit on guesses.
 - **Real users.** Nobody in the target age group has used it yet.
 - **Scale.** The corpora are small (50 tuning samples, 16 held-out scams, 28 real pages). They are enough to catch design mistakes, as above, not to state an accuracy figure.

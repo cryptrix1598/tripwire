@@ -282,6 +282,36 @@ export const POPUP = {
   setup: 'Open setup',
   practice: 'Try a practice example',
   diagnostics: 'Developer checks',
+  callCheck: 'Someone is on the phone with me',
+} as const;
+
+/* ------------------------------------------------------------------ */
+/* Check a phone call                                                  */
+/* ------------------------------------------------------------------ */
+
+export const CALL = {
+  side: 'Is a caller asking you to do something?',
+  sideBody: 'Most scams start with a phone call. Tell Tripwire what the caller wants, and it will give you a second opinion while you are still on the line.',
+  title: 'What is the caller saying?',
+  body: 'Type it in your own words. You do not need to type any names or numbers.',
+  label: 'What the caller says or asks you to do',
+  placeholder: 'For example: He says he is from my bank and my account is frozen. He wants me to read him the code they just texted me.',
+  privacy: 'This is checked on your computer when it can. If it cannot, names and numbers are removed before an online check, and you can see exactly what was sent.',
+  check: 'Check this call',
+  checking: 'Checking…',
+  failed: 'Tripwire could not check this just now. To be safe, hang up and call back on a number you already know.',
+  hangUpAnytime: 'You can always hang up. A real bank, government office or company will understand and will still be there when you call back.',
+  result: {
+    tripped: { title: 'Hang up now.', body: 'This sounds like a scam. A real bank, government office or company does not ask for this on a call.' },
+    caution: { title: 'Be careful.', body: 'Some of this sounds like what scammers say. It is fine to hang up.' },
+    safe: { title: 'Nothing here sounds like a scam.', body: 'If you are still unsure, it is always fine to hang up.' },
+  },
+  callBack: 'Call back on a number you already know: the one on your card, your bill, or the official website. Never the number the caller gives you.',
+  hungUp: 'I hung up',
+  again: 'Check another call',
+  close: 'Close this tab',
+  doneTitle: 'Well done.',
+  doneBody: 'Hanging up was the right thing to do. If you gave out any details, call your bank on the number on your card.',
 } as const;
 
 /* ------------------------------------------------------------------ */

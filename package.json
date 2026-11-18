@@ -20,7 +20,8 @@
     "e2e": "node scripts/e2e.mjs",
     "live": "node scripts/live.mjs",
     "hosted": "node scripts/hosted.mjs",
-    "deploy:dashboard": "npm run build:dashboard && firebase deploy --only hosting,firestore:rules"
+    "deploy:dashboard": "npm run build:dashboard && firebase deploy --only hosting,firestore:rules",
+    "zip:store": "node scripts/store-build.mjs"
   },
   "dependencies": {
     "firebase": "^13.3.0",

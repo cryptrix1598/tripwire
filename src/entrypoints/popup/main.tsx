@@ -81,7 +81,10 @@ function Popup() {
         </div>
       </dl>
       <div className="tw-popup__actions">
-        <button type="button" className="tw-btn" onClick={() => openTab(demoUrl)}>
+        <button type="button" className="tw-btn" onClick={() => openTab(chrome.runtime.getURL('/call.html'))}>
+          {POPUP.callCheck}
+        </button>
+        <button type="button" className="tw-btn tw-btn--outline" onClick={() => openTab(demoUrl)}>
           {POPUP.practice}
         </button>
         <button type="button" className="tw-btn tw-btn--outline" onClick={() => openTab(chrome.runtime.getURL('/settings.html'))}>

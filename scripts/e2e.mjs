@@ -232,6 +232,22 @@ try {
     await popup.close();
   });
 
+  await step('a phone call the person describes is checked, and the advice is to hang up', async () => {
+    const call = await context.newPage();
+    await call.goto(ext('call.html'));
+    await expectVisible(call.getByRole('heading', { name: 'What is the caller saying?' }));
+    await shot(call, 'call-check');
+    await call
+      .getByLabel('What the caller says or asks you to do')
+      .fill('He says he is from my bank and my account is frozen. He wants me to read him the code they just texted me and not to tell anyone at the branch.');
+    await call.getByRole('button', { name: 'Check this call' }).click();
+    await expectVisible(call.getByRole('heading', { name: /Hang up now\.|Be careful\./ }), 60_000);
+    await shot(call, 'call-check-result');
+    const result = await text(call.locator('section'));
+    await call.close();
+    return result.slice(0, 120);
+  });
+
   await step('family page: connect screen and alert feed render (sample data)', async () => {
     const fam = await context.newPage();
     await fam.goto('http://localhost:5174/preview.html?page=pair');

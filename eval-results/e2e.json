@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-11-18T22:45:03.449Z",
+  "ranAt": "2026-11-18T22:59:30.231Z",
   "browser": "Chromium (Playwright), extension loaded",
   "steps": [
     {
@@ -49,6 +49,10 @@
     {
       "state": "pass",
       "name": "popup renders its three facts"
+    },
+    {
+      "state": "pass",
+      "name": "a phone call the person describes is checked, and the advice is to hang up"
     },
     {
       "state": "pass",

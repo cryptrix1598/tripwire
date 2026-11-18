@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-11-17T02:34:45.313Z",
+  "ranAt": "2026-11-18T23:03:20.732Z",
   "where": "live Firebase project, Chromium with the extension loaded",
   "steps": [
     {
@@ -10,12 +10,12 @@
     {
       "state": "pass",
       "name": "one hybrid call through Firebase AI Logic",
-      "note": "{ \"text\": \"ready\", \"source\": \"in_cloud\" }"
+      "note": "{ \"text\": \"Ready\", \"source\": \"in_cloud\" }"
     },
     {
       "state": "pass",
       "name": "explanations in the browser language (Spanish, cloud path)",
-      "note": "cloud_fallback: Crea urgencia para que actúes sin pensar."
+      "note": "cloud_fallback: Amenaza con cerrar su cuenta hoy mismo."
     },
     {
       "state": "pass",
@@ -35,7 +35,7 @@
     {
       "state": "pass",
       "name": "stopping a scam sends an alert that appears on the family page",
-      "note": "Today 9:34 PM Fake bank message A message posing as a bank asked for account or card details. Opened a suspicious page They stopped No action needed, though they may appreciate hearing from you."
+      "note": "Today 6:03 PM Fake bank message A message posing as a bank asked for account or card details. Opened a suspicious page They stopped No action needed, though they may appreciate hearing from you."
     }
   ]
 }

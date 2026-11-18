@@ -9,19 +9,17 @@
  * forbids remote code and an extension has no web origin, so they cannot run
  * here.
  *
- * Development and the hackathon submission use the App Check DEBUG provider:
- * a debug token (from .env, registered in the Firebase console) is exchanged
- * for real App Check tokens. In debug mode the SDK never calls the provider's
- * getToken(), so a CustomProvider is passed purely to satisfy the API, with no
- * remote script involved. (Verified against @firebase/app-check 0.13.1.)
+ * Release builds (`npm run zip:store`) contain no debug token. Their CustomProvider
+ * gets each token from Tripwire's own hosted page, which passes a real reCAPTCHA
+ * Enterprise check in a hidden frame (see attest.ts). Free, no server.
  *
- * Production path: keep the CustomProvider, but have getToken() call a small
- * backend (Cloud Functions + Admin SDK `appCheck().createToken(appId)`) that
- * first verifies the caller, for example with a Chrome Web Store licence or a
- * signed-in user. See README → "How it uses Firebase AI Logic".
+ * Development and automated test builds use the App Check DEBUG provider instead
+ * (a debug token from .env), because reCAPTCHA rightly refuses automated browsers.
+ * In debug mode the SDK never calls the provider's getToken().
  */
 import { getApp, getApps, initializeApp, type FirebaseApp } from 'firebase/app';
 import { CustomProvider, getToken, initializeAppCheck, type AppCheck } from 'firebase/app-check';
+import { attestedToken } from './attest';
 import { appCheckDebugToken, firebaseConfig, isFirebaseConfigured } from './config';
 
 let appCheck: AppCheck | null = null;
@@ -48,12 +46,8 @@ export function getFirebaseApp(): FirebaseApp {
   try {
     appCheck = initializeAppCheck(app, {
       provider: new CustomProvider({
-        getToken: async () => {
-          // Reached only when no debug token is configured.
-          throw new Error(
-            'No App Check provider for this build. Set WXT_APPCHECK_DEBUG_TOKEN, or implement the production token endpoint.',
-          );
-        },
+        // Reached only when no debug token is configured: a release build.
+        getToken: () => attestedToken(),
       }),
       isTokenAutoRefreshEnabled: true,
     });
@@ -66,7 +60,7 @@ export function getFirebaseApp(): FirebaseApp {
 }
 
 export function appCheckReady(): boolean {
-  return appCheck !== null && Boolean(appCheckDebugToken);
+  return appCheck !== null;
 }
 
 /**

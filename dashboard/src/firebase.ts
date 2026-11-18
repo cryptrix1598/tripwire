@@ -8,7 +8,7 @@
  * The debug token is used only by the local dev server and is never built in.
  */
 import { initializeApp } from 'firebase/app';
-import { CustomProvider, ReCaptchaEnterpriseProvider, initializeAppCheck } from 'firebase/app-check';
+import { CustomProvider, ReCaptchaEnterpriseProvider, initializeAppCheck, type AppCheck } from 'firebase/app-check';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 // The debug token is set by dashboard/vite.config.ts: present on the local dev server, an empty string in every build.
@@ -16,6 +16,8 @@ import { appCheckDebugToken, firebaseConfig, isFirebaseConfigured } from '../../
 
 export const configured = isFirebaseConfigured();
 const app = configured ? initializeApp(firebaseConfig) : null;
+/** Used by attest.html to issue tokens to the extension. */
+export let appCheck: AppCheck | null = null;
 
 if (app) {
   const siteKey = (import.meta.env as Record<string, string | undefined>).WXT_RECAPTCHA_SITE_KEY;
@@ -23,12 +25,12 @@ if (app) {
     if (import.meta.env.DEV && appCheckDebugToken) {
       // Local dev server only: the debug token, so tests do not depend on a reCAPTCHA score.
       (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN?: string }).FIREBASE_APPCHECK_DEBUG_TOKEN = appCheckDebugToken;
-      initializeAppCheck(app, {
+      appCheck = initializeAppCheck(app, {
         provider: new CustomProvider({ getToken: () => Promise.reject(new Error('Debug token only')) }),
         isTokenAutoRefreshEnabled: true,
       });
     } else if (siteKey) {
-      initializeAppCheck(app, { provider: new ReCaptchaEnterpriseProvider(siteKey), isTokenAutoRefreshEnabled: true });
+      appCheck = initializeAppCheck(app, { provider: new ReCaptchaEnterpriseProvider(siteKey), isTokenAutoRefreshEnabled: true });
     }
   } catch {
     // Without App Check the app still loads; Firestore will refuse if enforcement is on.

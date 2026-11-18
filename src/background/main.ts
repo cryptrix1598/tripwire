@@ -63,9 +63,9 @@ async function ensureOffscreen(): Promise<void> {
   creatingOffscreen ??= chrome.offscreen
     .createDocument({
       url: OFFSCREEN_PATH,
-      reasons: [chrome.offscreen.Reason.DOM_SCRAPING],
+      reasons: [chrome.offscreen.Reason.DOM_SCRAPING, chrome.offscreen.Reason.IFRAME_SCRIPTING],
       justification:
-        'Hosts the on-device Gemini Nano model (Prompt API is unavailable in service workers) and the Firebase SDK, to check page text for scams.',
+        'Hosts the on-device Gemini Nano model (Prompt API is unavailable in service workers) and the Firebase SDK, to check page text for scams, and a frame of Tripwire\'s own site that proves to Firebase App Check that this is a real browser.',
     })
     .finally(() => {
       creatingOffscreen = null;

@@ -339,3 +339,38 @@ describe('config and helpers', () => {
     expect(mergeConfig({ thresholds: { high: 85 }, promptVersion: 'v1' }).thresholds.high).toBe(85);
   });
 });
+
+describe('router: a phone call the person describes', () => {
+  const CALL = 'He says he is from the electric company and my power will be cut off this afternoon unless I go to the store and pay him.';
+  const call = (text: string, engine: AiEngine) =>
+    assess({ text, hostname: 'phone call', trigger: 'phone_call', source: 'call' }, { engine, config: DEFAULT_CONFIG });
+
+  it('always reaches the on-device model, even with no warning signs a page would need', async () => {
+    const engine = fakeEngine({ triage: async () => triageJson(10, 0.95, 'none') });
+    const v = await call('Someone called about my car warranty and asked me to stay on the line.', engine);
+    expect(engine.triageOnDevice).toHaveBeenCalledTimes(1);
+    expect(v.route).toBe('on_device');
+    expect(v.bytesSentToCloud).toBe(0);
+  });
+
+  it('tells the model it is judging a caller, not a page', async () => {
+    const engine = fakeEngine({ triage: async () => triageJson(10, 0.95, 'none') });
+    await call(CALL, engine);
+    const prompt = engine.triageOnDevice.mock.calls[0]![1];
+    expect(prompt).toContain("the reader's own description of what the caller says");
+  });
+
+  it('with no on-device model, asks the cloud (redacted) instead of skipping the check', async () => {
+    const engine = fakeEngine({ status: 'unavailable', cloud: async () => cloudJson(90, 0.9, 'other') });
+    const v = await call('My grandson called, said he is in jail and needs $2,000 in gift cards, and not to tell his mom. Call 555-201-3344.', engine);
+    expect(engine.analyzeInCloud).toHaveBeenCalledTimes(1);
+    expect(engine.analyzeInCloud.mock.calls[0]![1]).not.toContain('555-201-3344');
+    expect(v.state).toBe('tripped');
+  });
+
+  it('a page with the same quiet text is still not checked', async () => {
+    const engine = fakeEngine();
+    const v = await run('Someone called about my car warranty and asked me to stay on the line.', engine);
+    expect(v.route).toBe('not_checked');
+  });
+});

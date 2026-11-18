@@ -107,7 +107,13 @@ export interface PromptContext {
   signalSummary: string;
   /** When set, the reasons are written in this language instead of English. */
   language?: ExplainLanguage;
+  /** "call": the text is the reader's own account of a phone call, not a page. */
+  source?: 'page' | 'call';
 }
+
+const CALL_SITUATION =
+  "The reader is on a phone call now, or just had one. The text is the reader's own description of what the caller says and asks for. Judge the caller, not the reader.";
+const situation = (ctx: PromptContext) => (ctx.source === 'call' ? CALL_SITUATION : TRIGGER_CONTEXT[ctx.trigger]);
 
 export function buildTranslatePrompt(texts: readonly string[], language: ExplainLanguage): string {
   return [`Translate into ${language.name} (${language.code}):`, JSON.stringify(texts)].join('\n');
@@ -116,7 +122,7 @@ export function buildTranslatePrompt(texts: readonly string[], language: Explain
 export function buildTriagePrompt(text: string, ctx: PromptContext): string {
   return [
     `Site: ${ctx.hostname || 'unknown'}`,
-    `Situation: ${TRIGGER_CONTEXT[ctx.trigger]}`,
+    `Situation: ${situation(ctx)}`,
     `Warning signs found by simple rules: ${ctx.signalSummary}`,
     'Text:',
     '"""',
@@ -132,7 +138,7 @@ export function buildRedactPrompt(preRedacted: string): string {
 export function buildCloudPrompt(redactedText: string, ctx: PromptContext, deviceTriage?: Triage | null): string {
   const lines = [
     `Site: ${ctx.hostname || 'unknown'}`,
-    `Situation: ${TRIGGER_CONTEXT[ctx.trigger]}`,
+    `Situation: ${situation(ctx)}`,
     `Warning signs found by simple rules: ${ctx.signalSummary}`,
   ];
   // The on-device score is deliberately NOT passed on: the second opinion has to be independent.

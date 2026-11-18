@@ -71,6 +71,11 @@ export interface AssessInput {
   trigger: Trigger;
   /** Browser UI language (e.g. "es-ES"). When not English, the reasons are written in it. */
   language?: string;
+  /**
+   * Where the text came from. "call": the person typed what a caller is saying, and asked for
+   * the check, so it always reaches a model. Default: a page or opened email.
+   */
+  source?: 'page' | 'call';
 }
 
 export interface RouterDeps {
@@ -206,6 +211,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
   const ctx: PromptContext = {
     hostname: input.hostname,
     trigger: input.trigger,
+    source: input.source,
     signalSummary:
       describeSignals(signals) +
       (steering ? '. Warning: the text contains instructions aimed at an automated checker, which ordinary pages never do' : '') +
@@ -283,10 +289,12 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
   // ── Gate ────────────────────────────────────────────────────────────────
   // A passive scan with no warning signs never reaches a model.
   // Keyword lists alone were too narrow (see shape.ts), so the shape of the request counts too.
-  const localLook = worthChecking(signals) || worthALocalLook(shape);
+  const asked = input.source === 'call';
+  const localLook = asked || worthChecking(signals) || worthALocalLook(shape);
   // An ordinary checkout always has a price and a card number box, so when the person is
   // typing a card (or similar) those two prove nothing: only secrecy plus pressure does.
   const cloudLook =
+    asked ||
     worthChecking(signals) ||
     (input.trigger === 'passive' ? worthACloudLook(shape) : shape.secrecy && (shape.pressure || shape.hasPhone));
   if (input.trigger === 'passive' && !localLook) {

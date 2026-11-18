@@ -18,7 +18,7 @@ export default defineConfig(({ command, mode }) => {
   return {
     root: at('.'),
     envDir: at('..'),
-    envPrefix: ['WXT_FIREBASE_', 'WXT_DASHBOARD_', 'WXT_RECAPTCHA_', 'WXT_DEMO_'],
+    envPrefix: ['WXT_FIREBASE_', 'WXT_DASHBOARD_', 'WXT_RECAPTCHA_', 'WXT_DEMO_', 'WXT_EXTENSION_'],
     define: { __APPCHECK_DEBUG_TOKEN__: JSON.stringify(debugToken) },
     publicDir: at('../public'),
     css: { postcss: { plugins: [] } },
@@ -30,7 +30,7 @@ export default defineConfig(({ command, mode }) => {
       outDir: at('./dist'),
       emptyOutDir: true,
       rolldownOptions: {
-        input: { main: at('./index.html'), stopped: at('./stopped.html'), try: at('./src/demoRuntime.tsx') },
+        input: { main: at('./index.html'), stopped: at('./stopped.html'), attest: at('./attest.html'), privacy: at('./privacy.html'), try: at('./src/demoRuntime.tsx') },
         output: {
           // A fixed name, because the static practice pages link to it.
           entryFileNames: (chunk) => (chunk.name === 'try' ? 'try.js' : 'assets/[name]-[hash].js'),
