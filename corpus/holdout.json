@@ -121,5 +121,130 @@
       "hostname": "relief.example.test",
       "text": "URGENT APPEAL: Families who lost everything in last week's floods are sleeping in their cars tonight. Our volunteers are on the ground now, but our bank has placed a hold on our account and we cannot access donations for 10 days. That is why we are asking supporters to give today by gift card or cryptocurrency, which reach the families immediately. Buy any amount of Amazon or Visa gift cards and reply to this message with the card numbers and PINs, or send Bitcoin to the wallet in the next message. Please do not use our website donation form, it is not working. Every hour counts."
     }
+  ],
+  "round3About": "Round 3, written on 18 Nov 2026 after all tuning was finished and run once. Nothing was changed after seeing its result. Twelve scams of kinds not in the earlier rounds, and twelve ordinary messages chosen to look like scams on the surface (money, codes, deadlines, phone numbers) while asking for nothing a scammer would.",
+  "scamsRound3": [
+    {
+      "id": "round3-01-ssa-suspended",
+      "hostname": "mail.example.test",
+      "text": "Social Security Administration, Office of the Inspector General. Your Social Security number has been suspended because it was found at a crime scene in Texas linked to money laundering. To avoid arrest and the freezing of your benefits, you must call our enforcement officer at 1-888-555-0143 today. You will be asked to verify your number and move your savings into a protected government account until the investigation is closed. Do not discuss this case with your bank, as bank staff may be involved."
+    },
+    {
+      "id": "round3-02-amazon-order",
+      "hostname": "mail.example.test",
+      "text": "Amazon Order Confirmation. Thank you for your order of Apple iPhone 16 Pro Max (512 GB), total $1,299.00, shipping to Miami, FL. If you did not place this order, call Amazon Fraud Support immediately at 1-844-555-0177 to cancel it and receive a full refund. A technician will help you install a secure support session on your computer to remove the unauthorized charge. Orders not disputed within 2 hours will be shipped and charged."
+    },
+    {
+      "id": "round3-03-crypto-atm-protect",
+      "hostname": "messages.example.test",
+      "text": "This is Agent Daniel Brooks from your bank's fraud team. Hackers have accessed your checking and savings accounts and are moving money right now. To protect it, withdraw your balance in cash today and deposit it at the Bitcoin machine at the gas station on Main Street, using the QR code I will text you. The money stays in your name. Stay on the line with me while you drive and do not tell the teller why you are withdrawing, they are under investigation."
+    },
+    {
+      "id": "round3-04-rental-deposit",
+      "hostname": "listings.example.test",
+      "text": "Hello, thank you for your interest in my 2-bedroom apartment. I am currently working overseas with a medical mission so I cannot show it in person, but I have many people asking. If you send the first month and deposit, $1,850 in total, by wire transfer or Zelle today, I will mail you the keys and the lease by courier. This is the only way to hold it for you. Please send your full name and phone number and I will give you the transfer details."
+    },
+    {
+      "id": "round3-05-marketplace-overpay",
+      "hostname": "mail.example.test",
+      "text": "Hi, I am the buyer for your dining table. My assistant mailed a cashier's check for $2,400 by mistake instead of $400. Please deposit it today and send the extra $2,000 back to my mover with Zelle or gift cards so he can collect the table tomorrow. I am traveling and cannot take calls, so please reply here quickly, the mover is waiting."
+    },
+    {
+      "id": "round3-06-inheritance",
+      "hostname": "mail.example.test",
+      "text": "Dear Beneficiary, I am Barrister Edward Collins, attorney to the late Mr. Harold Wren, who died without a will and shares your family name. His estate of $4.7 million will go to the government unless a relative claims it within 10 days. To release your share I need a copy of your ID and a court filing fee of $1,950, payable by wire transfer. Please treat this as strictly confidential until the funds are released."
+    },
+    {
+      "id": "round3-07-roof-deposit",
+      "hostname": "messages.example.test",
+      "text": "Hi, this is Mike from Storm Pro Roofing, we were working on your neighbor's house and noticed your roof has hail damage that will leak this winter. We have materials left over from the job so we can do it today at half price, $3,200, but we need a cash deposit of $1,600 this morning to hold the crew. Your insurance will pay you back. The offer ends today when the truck leaves."
+    },
+    {
+      "id": "round3-08-microsoft-closing",
+      "hostname": "mail.example.test",
+      "text": "Microsoft account team. Unusual sign-in activity was detected and your account will be closed within 24 hours, including all email, photos and files. To keep your account, verify your identity now: reply with your password and the verification code we just sent to your phone. If you do not verify, Microsoft cannot recover your data."
+    },
+    {
+      "id": "round3-09-federal-grant",
+      "hostname": "messages.example.test",
+      "text": "Congratulations! You have been selected to receive a $9,000 Federal Senior Assistance Grant for paying your bills on time. This is free money and never has to be repaid. To release the grant you only need to pay a one-time processing fee of $250 with Google Play or Apple gift cards. Call the Grant Department at 1-877-555-0102 before Friday and read the card numbers to the agent."
+    },
+    {
+      "id": "round3-10-medicare-brace",
+      "hostname": "messages.example.test",
+      "text": "Hello, this is your Medicare benefits coordinator. You qualify for a free knee and back brace kit at no cost to you, already approved by your plan. To ship it today we just need to confirm your Medicare number and date of birth. This offer is only available this week and supplies are limited, so please reply with your details now."
+    },
+    {
+      "id": "round3-11-student-loan",
+      "hostname": "mail.example.test",
+      "text": "Department of Education Loan Forgiveness Center. Good news: your student loan balance of $38,412 qualifies for full forgiveness under the new program. Enrollment closes at midnight tonight. Pay the $399 enrollment fee and send us your FSA ID username and password so we can submit the paperwork on your behalf. Call 1-866-555-0161 to complete enrollment."
+    },
+    {
+      "id": "round3-12-fraud-text-code",
+      "hostname": "messages.example.test",
+      "text": "BANK ALERT: Did you attempt a purchase of $849.00 at Walmart? Reply YES or NO. You replied NO. A fraud specialist will call you from our department shortly. To stop the charge, you will need to read them the 6-digit security code we send to your phone. Keep your phone nearby and do not hang up when they call."
+    }
+  ],
+  "benignMessagesRound3": [
+    {
+      "id": "round3-ok-01-real-fraud-alert",
+      "hostname": "mail.example.test",
+      "text": "Fraud alert from your card issuer. We noticed a purchase of $412.88 at an electronics store that does not match your usual activity, so we paused it. If you made this purchase, sign in to the app and tap \"It was me\". If you did not, call the number on the back of your card. We will never ask you for a code, your PIN or your password over the phone, by text or by email."
+    },
+    {
+      "id": "round3-ok-02-pharmacy-pickup",
+      "hostname": "mail.example.test",
+      "text": "Your prescription is ready for pickup at the pharmacy on Oak Street. Copay: $12.50. It will be held for 7 days. Pharmacy hours are 9 am to 9 pm, Monday to Saturday. Questions? Call the pharmacy at 555-0134. Reply STOP to unsubscribe from pickup texts."
+    },
+    {
+      "id": "round3-ok-03-utility-autopay",
+      "hostname": "mail.example.test",
+      "text": "Your electricity bill for October is $86.42. Because you are enrolled in AutoPay, this amount will be paid from your checking account ending in 4471 on November 21. You do not need to do anything. To view your bill or change your payment settings, sign in at the utility's website."
+    },
+    {
+      "id": "round3-ok-04-family-photos",
+      "hostname": "mail.example.test",
+      "text": "Hi Grandma! Mom said you wanted the pictures from Lily's recital, so here they are. She was so nervous but she did great. We are driving up for Thanksgiving on Wednesday, should be there around 4. I will call you on Sunday like always. Love you!"
+    },
+    {
+      "id": "round3-ok-05-medicare-enrollment",
+      "hostname": "mail.example.test",
+      "text": "Medicare Open Enrollment runs from October 15 to December 7. This is your chance to review your coverage and change plans for next year. You can compare plans online or call 1-800-MEDICARE. Remember: Medicare will never call you to sell anything or ask for your Medicare number. If someone does, hang up."
+    },
+    {
+      "id": "round3-ok-06-shipping",
+      "hostname": "mail.example.test",
+      "text": "Your package has shipped. Order of 2 items, arriving Thursday, November 20. Track your package in Your Orders. Total charged to your card: $34.97. Thank you for shopping with us."
+    },
+    {
+      "id": "round3-ok-07-church-drive",
+      "hostname": "mail.example.test",
+      "text": "St. Mark's Weekly News. Our winter coat drive starts this Sunday: please bring gently used coats to the parish hall. The Christmas food basket fund is also open, and donations can be placed in the collection or mailed by check to the parish office. Choir practice moves to Thursdays at 7. Thank you, Father Tom."
+    },
+    {
+      "id": "round3-ok-08-appointment",
+      "hostname": "messages.example.test",
+      "text": "Reminder: you have an appointment with Dr. Patel on Tuesday, November 25 at 10:30 am. Please arrive 15 minutes early and bring your insurance card and a list of your medications. Reply C to confirm or call the office at 555-0187 to reschedule."
+    },
+    {
+      "id": "round3-ok-09-tax-accepted",
+      "hostname": "mail.example.test",
+      "text": "Good news: your federal tax return was accepted. Your refund of $1,204 is expected by direct deposit to your account ending in 2290 within 21 days. You can check its status any time on the IRS \"Where's My Refund?\" page. No further action is needed. Thank you for filing with us."
+    },
+    {
+      "id": "round3-ok-10-neighbor-sale",
+      "hostname": "messages.example.test",
+      "text": "Hi, it's Carol from next door. The rocking chair is still yours if you want it, $40. Come by any time Saturday morning, you can pay cash or Venmo, whatever is easier. Bill can help carry it over."
+    },
+    {
+      "id": "round3-ok-11-statement",
+      "hostname": "mail.example.test",
+      "text": "Your credit card statement is ready. New balance: $642.18. Minimum payment due: $35.00 by December 3. To avoid interest, pay the full balance by the due date. Sign in to view your statement or set up automatic payments."
+    },
+    {
+      "id": "round3-ok-12-password-reset",
+      "hostname": "mail.example.test",
+      "text": "We received a request to reset the password for your account. If you made this request, use the link in this email within 30 minutes. If you did not, you can ignore this email: your password will not change. For your security, never share this email or any code with anyone."
+    }
   ]
 }

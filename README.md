@@ -20,7 +20,7 @@ These are published figures, not our own research. Tripwire has not been tested 
 
 ## How this differs from the protection already in a browser
 
-Browsers block known bad sites and warn about dangerous pages. Tripwire does four different things:
+Browsers block known bad sites and warn about dangerous pages, and Chrome's Enhanced Protection now also uses Gemini Nano to spot tech-support scam pages. That is a page-level warning for one kind of scam, for people who opted in to sending more browsing data to Google. Tripwire does four different things, for every kind of scam in the corpus (government and bank imposters, gift cards, crypto, family emergencies, refunds, romance), with standard browser settings:
 
 1. **It acts at the moment of action**, not on page load: a card field, a gift-card code box, a wallet address, a phone link, a remote-access download.
 2. **It reads the message, not the address.** A brand-new scam email on an ordinary mail site has no bad URL to block.
@@ -41,7 +41,7 @@ Action tripwires: typing or focusing a card number field (Luhn checked, locally)
 
 **Settings**: a three-step warning level (fewer warnings, standard, more careful) and a list of trusted sites that Tripwire never checks. The trusted-sites screen carries a warning written for the exact way a scammer would try to abuse it.
 
-**Explanations in your language**: when the browser is not set to English, the reasons are written in the browser's language. A verdict that never left the device is translated on the device, so "0 bytes sent" stays true; a verdict that used the cloud is written in that language by the cloud model. The banner, the pause, the reasons and the "you stopped" page are also shown in Spanish or French; setup, settings and the family page are English only.
+**Explanations in your language**: when the browser is not set to English, the reasons are written in the browser's language. A verdict that never left the device is translated on the device, so "0 bytes sent" stays true; a verdict that used the cloud is written in that language by the cloud model. Every screen follows the browser language too, in English, Spanish or French: the banner, the pause, the reasons, the "you stopped" page, setup, the menu, settings and the family page. The one sentence stored with a family alert stays English, because the security rules check it word for word; the family page shows it in the reader's language.
 
 ## Screenshots
 
@@ -227,7 +227,8 @@ Status: the app compiles against firebase-ai 18.2.0 and firebase-ai-ondevice 16.
 | `npm run live` | With `.env` filled in: live App Check, hybrid call, the corpus through the live router, pairing and a family alert |
 | `cd android && ./gradlew testDebugUnitTest assembleDebug` | Android companion: unit tests and debug APK |
 | `npm run hosted` | Tests the zero-install demo on the hosted site in a plain browser |
-| `node scripts/holdout.mjs` | Held-out scams and real public pages, with the on-device model and latency |
+| `node scripts/holdout.mjs` | Held-out scams and real public pages, with the on-device model and latency (`--round3` runs only the newest round) |
+| `node scripts/extension-nano.mjs --corpus` | The built extension itself in Google Chrome with Gemini Nano, headless: status, a scam, a practice page, an ordinary page, and the corpus |
 | `npm run e2e` | Loads the built extension in Chromium, drives the practice pages, saves screenshots (first run: `npx playwright install chromium`) |
 
 ## Test results
@@ -240,6 +241,7 @@ Status: the app compiles against firebase-ai 18.2.0 and firebase-ai-ondevice 16.
 | --- | --- | --- | --- |
 | Built-in rules only (`npm run eval`) | 23 / 25 | **0 / 25** | 0 |
 | Cloud path, no on-device model (`npm run live`) | **25 / 25** | **0 / 25** | 22,018, all redacted first |
+| Gemini Nano inside the built extension (`node scripts/extension-nano.mjs --corpus`, 18 Nov) | **25 / 25** | **0 / 25** | 3,920, all redacted first |
 | Gemini Nano on the device first (`node scripts/nano-probe.mjs --checks --corpus`) | **25 / 25** | **0 / 25** | 3,096, all redacted first |
 
 With the on-device model, 36 of the 50 samples were decided on the device, 8 needed no model and 6 went to the cloud: about 86 percent less sent than the cloud-only path, with the same detection. The on-device model varies a little between runs (earlier runs sent between 2,554 and 3,766 bytes). Seven on-device runs are committed in [eval-results/on-device/](eval-results/on-device): three from 14 Nov, which counted only the page text as "bytes sent" (so their byte figures are lower and not comparable), two from 15 Nov and two from 16 Nov. Six are 25/25 with zero false alarms. **One of the 16 Nov runs paused an ordinary checkout page**: a rule added that day let the device decide alone when a page asked for money and card details under pressure, which a real checkout also does. The rule now needs an ask no real shop makes (a Social Security number, a one-time code, online banking, a look at your screen); a regression test covers it and the run after it was clean. Three more were run on 14 Nov and not kept: two matched, and the first one produced a borderline false alarm on a gift-card shop page, which led to a router fix and a regression test. Results files record where they were run; the on-device runs use the Developer checks page served as a web page, because Chrome will not load an unpacked extension under automation.
@@ -261,6 +263,8 @@ The first run was a bad result and it was right:
 - **Long real pages took about 50 seconds**, because the on-device model was handed whole pages and timed out. Models now read a focused excerpt, a timeout is not retried, and on-device redaction lists details instead of rewriting text.
 - A middle run then **paused the Wikipedia article on tech support scams**. Pages that are about scams now need the cloud model to agree.
 
+**Round three** (18 Nov, [corpus/holdout.json](corpus/holdout.json) `scamsRound3` and `benignMessagesRound3`): written after all tuning was finished and run once, with nothing changed after seeing the result. Twelve scams of kinds the earlier rounds did not have (a "suspended" Social Security number, an Amazon order you did not place, a "move your money to a Bitcoin machine" call, a rental deposit, a buyer who overpaid, an inheritance, a roofer's cash deposit, a Microsoft account "closing", a federal grant fee, a Medicare brace, student-loan forgiveness, a fake fraud text asking for a code), and twelve ordinary messages picked to look like scams on the surface: a real card fraud alert, a pharmacy copay, autopay, a tax refund, a password reset, a neighbour selling a chair for cash or Venmo. **Result: 12 of 12 scams paused, 0 of 12 false alarms.** Seven scams were decided on the device and five went to the cloud; nine of the ordinary messages needed no model at all. Result file: [eval-results/holdout/2026-11-18T22-43-48-751Z.json](eval-results/holdout/2026-11-18T22-43-48-751Z.json).
+
 Because those fixes were made after seeing round one, a second round of six new scam messages was written afterwards. Its first run caught 6 of 6. That same run had the Wikipedia false alarm, so one more change followed (pages about scams), and round two was still 6 of 6 after it. Sixteen of the real pages are no longer strictly held-out (one false alarm on them was found and fixed), so their zero is a result on pages the design has seen. The eleven sign-in and payment pages added later were run once, with no changes afterwards, and none was flagged. Eight of the 36 pages refused the automated browser and were skipped; they are listed in the result file. In the latest run 14 of the 16 scams were decided on the device with nothing sent, and 2 went to the cloud. Worth knowing: 3 of the 28 ordinary pages were unclear enough to the on-device model that a redacted excerpt was sent to the cloud for a second opinion (which cleared them). An ordinary page is not always a zero-bytes page. All runs are in [eval-results/holdout/](eval-results/holdout).
 
 ### Everything else
@@ -271,14 +275,14 @@ Because those fixes were made after seeing round one, a second round of six new 
 - **App Check refuses robots, including ours.** On 16 Nov the hosted site began rejecting the automated test browser ("App attestation failed" from reCAPTCHA Enterprise), so pairing failed and the hosted demo fell back to built-in rules, with the badge saying so. The hosted demo was checked in an ordinary browser the same day and got its cloud answer. The automated runs of the hosted site now present the project's App Check debug token (read from `.env`, set only inside the test browser, never deployed); `--recaptcha` runs them as a robot. `node scripts/hosted-appcheck.mjs` shows the refusal, and the family page now says the browser could not be confirmed instead of blaming the internet.
 - Hosted demo with no extension (`npm run hosted`): the practice pages are flagged in a plain browser, the phone number on the page is absent from what was sent, the ordinary checkout stays silent, and a phone link clicked before the check has answered is held with a "checking this page" notice. Result file: [eval-results/hosted-demo.json](eval-results/hosted-demo.json).
 - Accessibility: axe-core on every screen in the end-to-end run. WCAG 2.2 A/AA: 0 problems. All text meets AAA contrast.
-- Languages: the banner, pause, reasons and "you stopped" page are in English, Spanish and French, following the browser. Model-written reasons were run live in Spanish and French on the device (0 bytes sent) and Spanish through the cloud.
+- Languages: every screen is in English, Spanish and French, following the browser. Model-written reasons were run live in Spanish and French on the device (0 bytes sent) and Spanish through the cloud.
+- **The built extension with Gemini Nano, by automation** (`node scripts/extension-nano.mjs --corpus`): Chrome no longer takes `--load-extension`, so the script loads the built extension over the DevTools protocol, headless. The offscreen document found the model, the practice bank page was paused with "Checked on your device · 0 bytes sent", the ordinary shop page stayed silent, and the corpus ran 25/25 with 0 false alarms (34 of 50 decided on the device). Result file: [eval-results/extension-on-device.json](eval-results/extension-on-device.json). It was also checked by hand in desktop Chrome 157 with Wi-Fi off.
 
 ## Not verified yet
 
 Stated plainly so nobody is surprised:
 
 - **Webmail.** In Gmail, Outlook and Yahoo Mail only an opened message is read, never the inbox list. This relies on each site's page structure and has not been tested against real mailboxes.
-- **On-device inside the loaded extension, by automation.** The automated on-device runs go through a web page or the hosted demo. The loaded extension itself was checked by hand in desktop Chrome 157 on 14 Nov 2026: the offscreen document reported the model as ready, the fake bank practice page was paused with "Checked on your device · 0 bytes sent", and the same check passed with Wi-Fi off.
 - **The Android app has not been run.** It builds and its unit tests pass, but the machine it was built on cannot start the Android emulator and no phone was attached.
 - **App Check does not attest the extension in this build.** The extension presents a debug token that is compiled into the built extension, so anyone who unpacks a build can copy it. That is accepted for this submission, and it means App Check here keeps out callers who have neither the token nor a browser that passes reCAPTCHA, not a determined one. A store release needs a token endpoint (a Cloud Function), which is not written because it needs a paid plan.
 - **Pairing codes are six digits.** Any signed-in browser that passes App Check can try codes for the five minutes one is live. A code works once and the extension shows and can remove the connection, but there is no server-side limit on guesses.

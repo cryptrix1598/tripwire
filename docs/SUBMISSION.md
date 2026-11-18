@@ -63,7 +63,9 @@ TypeScript (strict), Manifest V3 with WXT, React, Shadow DOM for the in-page UI,
 - **The privacy gate, measured:** 3,096 redacted bytes left the device, against 22,018 when the same corpus runs with no on-device model. About 86 percent less, with the same detection.
 - **Held-out test:** scam messages never used for tuning plus 36 real public pages fetched live (IRS, SSA and Apple pages about scams, Wikipedia, bank and payment sign-in pages, a remote-access vendor, news). Final result: 16 of 16 scams flagged (14 of them on the device, nothing sent), 0 false alarms on the 28 pages that loaded, median check 3.7 seconds.
 - **We publish the bad first run too.** Before the fixes it caught 6 of 10 and took 51 seconds on long pages. See "Challenges".
-- Explanations in the browser's language, run live in Spanish and French with 0 bytes sent.
+- **A third held-out round, written after all tuning and run once:** 12 of 12 new kinds of scam paused, 0 false alarms on 12 ordinary messages chosen to look like scams.
+- **The built extension itself, with Gemini Nano, by automation:** 25/25 scams, 0/25 false alarms, 34 of 50 decided on the device.
+- Every screen in English, Spanish and French; explanations run live in Spanish and French with 0 bytes sent.
 - Twelve adversarial tests: a page that tells the model what to answer, repeats "scam" to look like advice, hides the ask under filler, or deletes the warning. None gets through quietly.
 - 137 unit tests, 19 security-rules tests, a 13-step end-to-end run, a live run against the real project, a test of the hosted demo with no extension, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems).
 

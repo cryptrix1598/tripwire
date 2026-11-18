@@ -12,7 +12,7 @@ import { collection, doc, getDoc, limit, onSnapshot, orderBy, query, serverTimes
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { PAIRING_CODE_PATTERN } from '../../src/guardian/model';
 import type { ScamType, Trigger } from '../../src/inference/schemas';
-import { DASHBOARD, SCAM_TYPE_LABEL, TRIGGER_LABEL } from '../../src/ui/copy';
+import { ALERT_SUMMARY_SHOWN, DASHBOARD, SCAM_TYPE_LABEL, TRIGGER_LABEL } from '../../src/ui/copy';
 import { Brand, NoticeIcon, Split, Tick } from '../../src/ui/kit';
 import { auth, configured, db } from './firebase';
 
@@ -209,7 +209,7 @@ export function AlertRow({ alert }: { alert: Alert }) {
       </p>
       <div className="tw-alert__what">
         <h2 className="tw-h3">{SCAM_TYPE_LABEL[alert.scamType as ScamType] ?? SCAM_TYPE_LABEL.other}</h2>
-        <p>{alert.summary}</p>
+        <p>{ALERT_SUMMARY_SHOWN[alert.scamType as ScamType] ?? alert.summary}</p>
         <p className="tw-small">{TRIGGER_LABEL[alert.action as Trigger] ?? TRIGGER_LABEL.passive}</p>
       </div>
       <div className="tw-alert__outcome">

@@ -21,7 +21,11 @@ type Loose<T> = T extends (...args: infer A) => infer R
         ? { -readonly [K in keyof T]?: Loose<T[K]> }
         : T;
 
-const GROUPS = ['ROUTE_BADGE', 'CAUTION_HEADLINE', 'BANNER', 'TRIP_LEAD', 'INTERSTITIAL', 'WHY', 'RULE_FLAG', 'EXPLANATION', 'SAFE_PAGE', 'DOWNLOAD_PAUSE'] as const;
+const GROUPS = [
+  'ROUTE_BADGE', 'CAUTION_HEADLINE', 'BANNER', 'TRIP_LEAD', 'INTERSTITIAL', 'WHY', 'RULE_FLAG', 'EXPLANATION', 'SAFE_PAGE', 'DOWNLOAD_PAUSE',
+  // Setup, the menu, settings and the family page.
+  'ONBOARDING', 'POPUP', 'SETTINGS', 'DASHBOARD', 'SCAM_TYPE_LABEL', 'TRIGGER_LABEL', 'OUTCOME_LABEL', 'ALERT_SUMMARY_SHOWN',
+] as const;
 type Group = (typeof GROUPS)[number];
 export type LocaleBundle = { [K in Group]?: Loose<(typeof copy)[K]> };
 

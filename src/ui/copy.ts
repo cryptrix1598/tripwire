@@ -377,6 +377,9 @@ export const ALERT_SUMMARY: Record<ScamType, string> = {
   other: 'A page showed several warning signs of a scam.',
 };
 
+/** The same sentences, for showing on the family page in the reader's language. Never stored. */
+export const ALERT_SUMMARY_SHOWN: Record<ScamType, string> = { ...ALERT_SUMMARY };
+
 export const TRIGGER_LABEL: Record<Trigger, string> = {
   passive: 'Opened a suspicious page',
   card_entry: 'Started typing a card number',

@@ -50,9 +50,12 @@ try {
   const model = await harness.evaluate(async () => (typeof LanguageModel === 'undefined' ? 'no LanguageModel API' : await LanguageModel.availability({ expectedInputs: [{ type: 'text', languages: ['en'] }], expectedOutputs: [{ type: 'text', languages: ['en'] }] })));
   console.log(`Chrome ${context.browser()?.version() ?? ''} | on-device model: ${model}\n`);
 
-  for (const sample of [...set.scams, ...(set.scamsRound2 ?? [])]) record(sample.id, 'scam', sample.text.length, await check(sample.text));
+  const onlyRound3 = process.argv.includes('--round3');
+  const scamSet = onlyRound3 ? set.scamsRound3 ?? [] : [...set.scams, ...(set.scamsRound2 ?? []), ...(set.scamsRound3 ?? [])];
+  for (const sample of scamSet) record(sample.id, 'scam', sample.text.length, await check(sample.text));
+  for (const sample of set.benignMessagesRound3 ?? []) record(sample.id, 'benign', sample.text.length, await check(sample.text));
 
-  for (const url of set.benignPages) {
+  for (const url of onlyRound3 ? [] : set.benignPages) {
     const tab = await context.newPage();
     try {
       await tab.goto(url, { waitUntil: 'domcontentloaded', timeout: 30_000 });
@@ -78,6 +81,12 @@ try {
     mode: `held-out, live-web-harness (Chrome ${context.browser()?.version() ?? ''}), on-device model ${model}`,
     scams: scams.length,
     detected: scams.filter((r) => r.correct).length,
+    roundThree: {
+      scams: scams.filter((r) => r.id.startsWith('round3-') && !r.id.startsWith('round3-ok')).length,
+      detected: scams.filter((r) => r.id.startsWith('round3-') && r.correct).length,
+      ordinaryMessages: benign.filter((r) => r.id.startsWith('round3-ok')).length,
+      falseAlarms: benign.filter((r) => r.id.startsWith('round3-ok') && !r.correct).length,
+    },
     roundTwo: { scams: scams.filter((r) => r.id.startsWith('round2')).length, detected: scams.filter((r) => r.id.startsWith('round2') && r.correct).length },
     paused: scams.filter((r) => r.state === 'tripped').length,
     benignPages: benign.length,

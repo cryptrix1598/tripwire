@@ -1,0 +1,305 @@
+{
+  "ranAt": "2026-11-18T22:43:48.751Z",
+  "mode": "held-out, live-web-harness (Chrome 157.0.8103.79), on-device model available",
+  "scams": 12,
+  "detected": 12,
+  "roundThree": {
+    "scams": 12,
+    "detected": 12,
+    "ordinaryMessages": 12,
+    "falseAlarms": 0
+  },
+  "roundTwo": {
+    "scams": 0,
+    "detected": 0
+  },
+  "paused": 12,
+  "benignPages": 12,
+  "falseAlarms": 0,
+  "pagesSkipped": [],
+  "routes": {
+    "on_device": 8,
+    "device_then_cloud": 7,
+    "not_checked": 9
+  },
+  "totalBytesSentToCloud": 3601,
+  "averageChars": 327,
+  "latencyMs": {
+    "whenAModelRan": {
+      "median": 6012,
+      "p90": 7558
+    },
+    "onDeviceOnly": {
+      "median": 4174
+    },
+    "deviceThenCloud": {
+      "median": 6998
+    }
+  },
+  "rows": [
+    {
+      "id": "round3-01-ssa-suspended",
+      "label": "scam",
+      "chars": 505,
+      "state": "tripped",
+      "riskScore": 95,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 11011,
+      "correct": true
+    },
+    {
+      "id": "round3-02-amazon-order",
+      "label": "scam",
+      "chars": 433,
+      "state": "tripped",
+      "riskScore": 90,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 4064,
+      "correct": true
+    },
+    {
+      "id": "round3-03-crypto-atm-protect",
+      "label": "scam",
+      "chars": 457,
+      "state": "tripped",
+      "riskScore": 95,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 4174,
+      "correct": true
+    },
+    {
+      "id": "round3-04-rental-deposit",
+      "label": "scam",
+      "chars": 447,
+      "state": "tripped",
+      "riskScore": 93,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 613,
+      "elapsedMs": 7532,
+      "correct": true
+    },
+    {
+      "id": "round3-05-marketplace-overpay",
+      "label": "scam",
+      "chars": 338,
+      "state": "tripped",
+      "riskScore": 95,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 4549,
+      "correct": true
+    },
+    {
+      "id": "round3-06-inheritance",
+      "label": "scam",
+      "chars": 416,
+      "state": "tripped",
+      "riskScore": 95,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 4294,
+      "correct": true
+    },
+    {
+      "id": "round3-07-roof-deposit",
+      "label": "scam",
+      "chars": 379,
+      "state": "tripped",
+      "riskScore": 88,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 535,
+      "elapsedMs": 6744,
+      "correct": true
+    },
+    {
+      "id": "round3-08-microsoft-closing",
+      "label": "scam",
+      "chars": 334,
+      "state": "tripped",
+      "riskScore": 95,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 4055,
+      "correct": true
+    },
+    {
+      "id": "round3-09-federal-grant",
+      "label": "scam",
+      "chars": 381,
+      "state": "tripped",
+      "riskScore": 98,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 573,
+      "elapsedMs": 6588,
+      "correct": true
+    },
+    {
+      "id": "round3-10-medicare-brace",
+      "label": "scam",
+      "chars": 332,
+      "state": "tripped",
+      "riskScore": 93,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 501,
+      "elapsedMs": 7558,
+      "correct": true
+    },
+    {
+      "id": "round3-11-student-loan",
+      "label": "scam",
+      "chars": 354,
+      "state": "tripped",
+      "riskScore": 95,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 3803,
+      "correct": true
+    },
+    {
+      "id": "round3-12-fraud-text-code",
+      "label": "scam",
+      "chars": 310,
+      "state": "tripped",
+      "riskScore": 93,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 453,
+      "elapsedMs": 6998,
+      "correct": true
+    },
+    {
+      "id": "round3-ok-01-real-fraud-alert",
+      "label": "benign",
+      "chars": 371,
+      "state": "safe",
+      "riskScore": 15,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 501,
+      "elapsedMs": 7093,
+      "correct": true
+    },
+    {
+      "id": "round3-ok-02-pharmacy-pickup",
+      "label": "benign",
+      "chars": 251,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 0,
+      "correct": true
+    },
+    {
+      "id": "round3-ok-03-utility-autopay",
+      "label": "benign",
+      "chars": 281,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 1,
+      "correct": true
+    },
+    {
+      "id": "round3-ok-04-family-photos",
+      "label": "benign",
+      "chars": 245,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 0,
+      "correct": true
+    },
+    {
+      "id": "round3-ok-05-medicare-enrollment",
+      "label": "benign",
+      "chars": 304,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 0,
+      "correct": true
+    },
+    {
+      "id": "round3-ok-06-shipping",
+      "label": "benign",
+      "chars": 178,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 0,
+      "correct": true
+    },
+    {
+      "id": "round3-ok-07-church-drive",
+      "label": "benign",
+      "chars": 311,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 0,
+      "correct": true
+    },
+    {
+      "id": "round3-ok-08-appointment",
+      "label": "benign",
+      "chars": 243,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 0,
+      "correct": true
+    },
+    {
+      "id": "round3-ok-09-tax-accepted",
+      "label": "benign",
+      "chars": 278,
+      "state": "safe",
+      "riskScore": 15,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 3922,
+      "correct": true
+    },
+    {
+      "id": "round3-ok-10-neighbor-sale",
+      "label": "benign",
+      "chars": 195,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 0,
+      "correct": true
+    },
+    {
+      "id": "round3-ok-11-statement",
+      "label": "benign",
+      "chars": 219,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 0,
+      "correct": true
+    },
+    {
+      "id": "round3-ok-12-password-reset",
+      "label": "benign",
+      "chars": 274,
+      "state": "safe",
+      "riskScore": 10,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 425,
+      "elapsedMs": 6012,
+      "correct": true
+    }
+  ]
+}
