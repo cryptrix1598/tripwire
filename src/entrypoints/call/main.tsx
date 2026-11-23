@@ -2,7 +2,8 @@
  * "Someone is on the phone with me": the check for a phone call.
  *
  * Most scams that reach older people start with a call, which no browser can see. Here the
- * person types, in their own words, what the caller is saying or asking. The same router
+ * person taps three questions (who the caller says they are, what they want, how they act),
+ * with optional typing; src/call/describe.ts turns that into plain English. The same router
  * checks it: Gemini Nano on this computer first, and only when it is unsure (or this
  * computer has no on-device model) a redacted copy goes to the cloud. The person asked
  * for this check, so it always reaches a model.
