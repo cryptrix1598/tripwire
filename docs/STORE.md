@@ -35,7 +35,7 @@ Steps in at the moment a scam asks for money or details. Checks privately on you
 > Most scams do not take your money when you read them. They take it when you act: when you type a card number, buy gift cards, call "support", or install a program that lets a stranger into your computer. Tripwire stays quiet until that moment, then gives you a calm second look.
 >
 > • It pauses you before you type a card number, gift card code or crypto address on a page that looks like a scam, before you call a number a scam page pushes, and before you install a remote-access program.
-> • Someone on the phone? Open Tripwire, choose "Someone is on the phone with me" and type what the caller wants. It tells you plainly whether to hang up.
+> • Someone on the phone? Open Tripwire, choose "Someone is on the phone with me" and tap what the caller wants. No typing needed. It tells you plainly whether to hang up.
 > • Private by design. On computers that can run Google's on-device AI (Gemini Nano in Chrome), the check happens on your computer and nothing is sent. Otherwise names, numbers and addresses are removed first, and you can see exactly what was sent.
 > • Plain words, large text, one clear button. In English, Spanish and French.
 > • Family alerts (optional): a son, daughter or friend can be told when Tripwire steps in, without ever seeing your emails, the pages you visit, or anything you type.

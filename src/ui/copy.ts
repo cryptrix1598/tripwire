@@ -293,8 +293,25 @@ export const CALL = {
   side: 'Is a caller asking you to do something?',
   sideBody: 'Most scams start with a phone call. Tell Tripwire what the caller wants, and it will give you a second opinion while you are still on the line.',
   title: 'What is the caller saying?',
-  body: 'Type it in your own words. You do not need to type any names or numbers.',
-  label: 'What the caller says or asks you to do',
+  body: 'Tap what fits. You do not need to type anything.',
+  ask: {
+    who: {
+      legend: 'Who do they say they are?',
+      options: { bank: 'My bank', government: 'The government, Social Security or Medicare', company: 'A company like Amazon or Microsoft', family: 'Family or a friend in trouble', other: 'I don’t know' },
+    },
+    want: {
+      legend: 'What do they want you to do?',
+      hint: 'Tap all that fit.',
+      options: { money: 'Pay or move money', gift_cards: 'Buy gift cards', crypto: 'Send crypto or use a Bitcoin machine', code: 'Read them a code from my phone', details: 'Give my Social Security, Medicare or bank details', computer: 'Let them into my computer', nothing: 'Nothing yet' },
+    },
+    how: {
+      legend: 'How are they acting?',
+      hint: 'Tap all that fit.',
+      options: { rushing: 'Rushing me or threatening', secret: 'Telling me to keep it secret', stay_on_line: 'Telling me to stay on the line', patient: 'Calm, and said I can call back' },
+    },
+    needOne: 'Tap at least one thing they want you to do.',
+  },
+  label: 'Anything else they said? (You can skip this.)',
   placeholder: 'For example: He says he is from my bank and my account is frozen. He wants me to read him the code they just texted me.',
   privacy: 'This is checked on your computer when it can. If it cannot, names and numbers are removed before an online check, and you can see exactly what was sent.',
   check: 'Check this call',

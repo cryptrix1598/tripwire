@@ -353,8 +353,25 @@ export const FR: LocaleBundle = {
     side: 'Quelqu’un au téléphone vous demande de faire quelque chose ?',
     sideBody: 'La plupart des arnaques commencent par un appel. Dites à Tripwire ce que veut votre interlocuteur, et il vous donnera un deuxième avis pendant que vous êtes encore en ligne.',
     title: 'Que dit votre interlocuteur ?',
-    body: 'Écrivez-le avec vos propres mots. Inutile de taper des noms ou des numéros.',
-    label: 'Ce que l’interlocuteur dit ou vous demande',
+    body: 'Touchez ce qui correspond. Inutile de taper quoi que ce soit.',
+    ask: {
+      who: {
+        legend: 'Qui dit-il être ?',
+        options: { bank: 'Ma banque', government: 'L’administration, la Sécurité sociale ou Medicare', company: 'Une entreprise comme Amazon ou Microsoft', family: 'Un proche ou un ami en difficulté', other: 'Je ne sais pas' },
+      },
+      want: {
+        legend: 'Que vous demande-t-il ?',
+        hint: 'Touchez tout ce qui correspond.',
+        options: { money: 'Payer ou déplacer de l’argent', gift_cards: 'Acheter des cartes cadeaux', crypto: 'Envoyer de la crypto ou utiliser un distributeur Bitcoin', code: 'Lui lire un code reçu sur mon téléphone', details: 'Donner mes numéros de sécurité sociale ou de banque', computer: 'Le laisser accéder à mon ordinateur', nothing: 'Rien pour l’instant' },
+      },
+      how: {
+        legend: 'Comment se comporte-t-il ?',
+        hint: 'Touchez tout ce qui correspond.',
+        options: { rushing: 'Il me presse ou me menace', secret: 'Il me demande de garder le secret', stay_on_line: 'Il me demande de rester en ligne', patient: 'Calme, et dit que je peux rappeler' },
+      },
+      needOne: 'Touchez au moins une chose qu’il vous demande.',
+    },
+    label: 'Il a dit autre chose ? (Vous pouvez passer.)',
     placeholder: 'Par exemple : il dit qu’il appelle de ma banque et que mon compte est bloqué. Il veut que je lui lise le code que je viens de recevoir.',
     privacy: 'C’est vérifié sur votre ordinateur quand c’est possible. Sinon, les noms et numéros sont retirés avant une vérification en ligne, et vous pouvez voir exactement ce qui a été envoyé.',
     check: 'Vérifier cet appel',

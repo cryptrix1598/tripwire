@@ -32,7 +32,7 @@ It trips on actions: a card number field (checked locally), a gift-card code fie
 
 **Settings** give a three-step warning level and a list of trusted sites, with a warning aimed at the exact way a scammer would try to abuse that list. **Explanations follow the browser's language**: a verdict that stayed on the device is translated on the device, so "0 bytes sent" stays true.
 
-**Someone on the phone?** Most scams on older people start with a call, which no browser can see. From the Tripwire menu, "Someone is on the phone with me" opens a page where the person types what the caller wants, in their own words. Gemini Nano checks it on the computer first (a redacted second opinion only if it is unsure), and the answer is plain: "Hang up now.", "Be careful." or "Nothing here sounds like a scam", always with "call back on a number you already know". "I hung up" sends the family alert.
+**Someone on the phone?** Most scams on older people start with a call, which no browser can see. From the Tripwire menu, "Someone is on the phone with me" opens a page where the person answers three questions by tapping big buttons, with no typing: who the caller says they are, what they want (money, gift cards, crypto, a code from the phone, personal details, access to the computer) and how they are acting (rushing, secrecy, "stay on the line"). Tripwire turns the taps into a plain English description, plus anything the person chooses to type, so the model reads clear English whatever language the screen is in. Gemini Nano checks it on the computer first (a redacted second opinion only if it is unsure), and the answer is plain: "Hang up now.", "Be careful." or "Nothing here sounds like a scam", always with "call back on a number you already know". "I hung up" sends the family alert.
 
 **Family Guardian** is optional. The person shows a six-digit code, a relative types it on the family page, and from then on sees that Tripwire stepped in: the time, the kind of scam, the action, and whether they stopped. Never the page, the email, or anything typed.
 
@@ -70,7 +70,7 @@ TypeScript (strict), Manifest V3 with WXT, React, Shadow DOM for the in-page UI,
 - **The built extension itself, with Gemini Nano, by automation:** 25/25 scams, 0/25 false alarms, 34 of 50 decided on the device.
 - Every screen in English, Spanish and French; explanations run live in Spanish and French with 0 bytes sent.
 - Twelve adversarial tests: a page that tells the model what to answer, repeats "scam" to look like advice, hides the ask under filler, or deletes the warning. None gets through quietly.
-- 141 unit tests, 19 security-rules tests, a 14-step end-to-end run, a live run against the real project, a test of the hosted demo with no extension, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems).
+- 145 unit tests, 19 security-rules tests, a 14-step end-to-end run, a live run against the real project, a test of the hosted demo with no extension, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems).
 
 ## Challenges
 
@@ -103,7 +103,7 @@ Record in desktop Chrome with the extension loaded and the on-device model downl
 | 0:50 | Click "Why did Tripwire stop me?"; point at the route badge | "It tells me why in plain words, and exactly what left my computer: checked on your device, zero bytes sent." |
 | 1:05 | **Turn Wi-Fi off.** Open the fake tech-support page; it is still caught | "This is the on-device model through Firebase AI Logic. With no internet at all, it still catches it." |
 | 1:25 | Wi-Fi back on. The "polite email about a refund" practice page; show the orange badge, then click "See exactly what was sent" | "When the device isn't sure, it removes names, numbers and addresses first, and only then asks the cloud model. And you can read exactly what was sent." |
-| 1:45 | Tripwire menu → "Someone is on the phone with me"; type "He says he's from Medicare and needs my number and date of birth or my benefits stop today"; "Hang up now." | "Most of these scams start with a phone call, and no browser can hear a call. So I just tell Tripwire what the caller wants. It checks on my computer and tells me plainly: hang up." |
+| 1:45 | Tripwire menu → "Someone is on the phone with me"; tap "The government, Social Security or Medicare", "Give my Social Security, Medicare or bank details", "Rushing me or threatening"; "Hang up now." | "Most of these scams start with a phone call, and no browser can hear a call. So I just tap what the caller wants. No typing. It checks on my computer and tells me plainly: hang up." |
 | 2:00 | Click the download button on the tech-support page; the paused-download tab | "It also pauses the download of a remote-access tool, the way these scams usually end." |
 | 2:15 | "Stop and stay safe", then the family page updating live | "If I've paired a family member, they see that it happened and what kind of scam it was. Never my email, never what I typed." |
 | 2:35 | The Developer checks page: corpus result, then the README held-out table | "Twenty-five of twenty-five, zero false alarms, and about eighty-six percent less data sent than a cloud-only check. On pages we did not write: sixteen of sixteen." |

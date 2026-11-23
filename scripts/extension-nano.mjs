@@ -99,9 +99,9 @@ try {
   await step('a phone call the person describes is checked, the on-device model first', async () => {
     const call = await context.newPage();
     await call.goto(ext('call.html'));
-    await call
-      .getByLabel('What the caller says or asks you to do')
-      .fill('A man says he is from Medicare and my card is being replaced. He needs my Medicare number and date of birth right now or my benefits stop today.');
+    for (const choice of ['The government, Social Security or Medicare', 'Give my Social Security, Medicare or bank details', 'Rushing me or threatening']) {
+      await call.getByRole('button', { name: choice }).click();
+    }
     await call.getByRole('button', { name: 'Check this call' }).click();
     await call.getByRole('heading', { name: /Hang up now\.|Be careful\./ }).waitFor({ timeout: 90_000 });
     await call.screenshot({ path: 'docs/screenshots/call-check-on-device.png' });

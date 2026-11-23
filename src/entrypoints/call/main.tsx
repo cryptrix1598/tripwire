@@ -10,12 +10,19 @@
 import { useState, type FormEvent } from 'react';
 import { send, type AssessReply } from '../../messaging';
 import type { Verdict } from '../../inference/schemas';
+import { CALL_HOW, CALL_WANT, CALL_WHO, canCheck, describeCall, type CallHow, type CallWant, type CallWho } from '../../call/describe';
 import { CALL } from '../../ui/copy';
 import { closeThisTab, mount } from '../../ui/ext';
 import { Brand, RouteLine, SentReceipt, Split, flagsFor, routeExplanation } from '../../ui/kit';
 
 function CallCheck() {
   const [text, setText] = useState('');
+  const [who, setWho] = useState<CallWho | undefined>();
+  const [want, setWant] = useState<CallWant[]>([]);
+  const [how, setHow] = useState<CallHow[]>([]);
+  const answers = { who, want, how, notes: text };
+  const ready = canCheck(answers);
+  const toggle = <T,>(list: T[], value: T): T[] => (list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
   const [busy, setBusy] = useState(false);
   const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [failed, setFailed] = useState(false);
@@ -23,7 +30,7 @@ function CallCheck() {
 
   const check = async (event: FormEvent) => {
     event.preventDefault();
-    if (text.trim().length < 8 || busy) return;
+    if (!ready || busy) return;
     setBusy(true);
     setFailed(false);
     setVerdict(null);
@@ -31,7 +38,7 @@ function CallCheck() {
       const reply = await send<AssessReply>({
         target: 'background',
         type: 'assess',
-        input: { text: text.trim().slice(0, 4000), hostname: 'phone call', trigger: 'phone_call', source: 'call', language: navigator.language },
+        input: { text: describeCall({ ...answers, notes: text.trim().slice(0, 3000) }), hostname: 'phone call', trigger: 'phone_call', source: 'call', language: navigator.language },
       });
       if (reply?.verdict) setVerdict(reply.verdict);
       else setFailed(true);
@@ -51,6 +58,9 @@ function CallCheck() {
 
   const again = () => {
     setText('');
+    setWho(undefined);
+    setWant([]);
+    setHow([]);
     setVerdict(null);
     setDone(false);
   };
@@ -115,6 +125,38 @@ function CallCheck() {
         <form className="tw-stack" onSubmit={(e) => void check(e)}>
           <h2 className="tw-h1">{CALL.title}</h2>
           <p style={{ fontSize: 20 }}>{CALL.body}</p>
+          <fieldset className="tw-choices">
+            <legend>{CALL.ask.who.legend}</legend>
+            <div className="tw-choices__grid">
+              {CALL_WHO.map((key) => (
+                <button key={key} type="button" className="tw-choice" aria-pressed={who === key} onClick={() => setWho(who === key ? undefined : key)}>
+                  {CALL.ask.who.options[key]}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset className="tw-choices">
+            <legend>{CALL.ask.want.legend}</legend>
+            <p className="tw-small">{CALL.ask.want.hint}</p>
+            <div className="tw-choices__grid">
+              {CALL_WANT.map((key) => (
+                <button key={key} type="button" className="tw-choice" aria-pressed={want.includes(key)} onClick={() => setWant(toggle(want, key))}>
+                  {CALL.ask.want.options[key]}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset className="tw-choices">
+            <legend>{CALL.ask.how.legend}</legend>
+            <p className="tw-small">{CALL.ask.how.hint}</p>
+            <div className="tw-choices__grid">
+              {CALL_HOW.map((key) => (
+                <button key={key} type="button" className="tw-choice" aria-pressed={how.includes(key)} onClick={() => setHow(toggle(how, key))}>
+                  {CALL.ask.how.options[key]}
+                </button>
+              ))}
+            </div>
+          </fieldset>
           <div className="tw-stack tw-stack--tight">
             <label className="tw-label" htmlFor="call-text">
               {CALL.label}
@@ -122,7 +164,7 @@ function CallCheck() {
             <textarea
               id="call-text"
               className="tw-textarea"
-              rows={6}
+              rows={3}
               value={text}
               placeholder={CALL.placeholder}
               onChange={(e) => setText(e.target.value)}
@@ -131,10 +173,11 @@ function CallCheck() {
           <p className="tw-small">{CALL.privacy}</p>
           {failed && <p role="alert">{CALL.failed}</p>}
           <div className="tw-row">
-            <button type="submit" className="tw-btn tw-btn--xl" disabled={busy || text.trim().length < 8}>
+            <button type="submit" className="tw-btn tw-btn--xl" disabled={busy || !ready}>
               {busy ? CALL.checking : CALL.check}
             </button>
           </div>
+          {!ready && <p className="tw-small">{CALL.ask.needOne}</p>}
           <p className="tw-muted">{CALL.hangUpAnytime}</p>
         </form>
       )}

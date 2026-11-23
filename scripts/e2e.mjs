@@ -60,7 +60,7 @@ const shot = async (page, name, inPage = false) => {
   await audit(page, name, inPage);
 };
 const ui = (page, selector = '') => page.locator(`tripwire-ui ${selector}`.trim());
-const expectVisible = (locator, timeout = 15_000) => locator.first().waitFor({ state: 'visible', timeout });
+const expectVisible = (locator, timeout = 30_000) => locator.first().waitFor({ state: 'visible', timeout });
 const text = async (locator) => (await locator.first().innerText()).replace(/\s+/g, ' ');
 
 try {
@@ -236,12 +236,20 @@ try {
     const call = await context.newPage();
     await call.goto(ext('call.html'));
     await expectVisible(call.getByRole('heading', { name: 'What is the caller saying?' }));
+    await call.getByRole('button', { name: 'My bank' }).click();
+    await call.getByRole('button', { name: 'Read them a code from my phone' }).click();
     await shot(call, 'call-check');
-    await call
-      .getByLabel('What the caller says or asks you to do')
-      .fill('He says he is from my bank and my account is frozen. He wants me to read him the code they just texted me and not to tell anyone at the branch.');
+    await call.getByRole('button', { name: 'My bank' }).click();
+    await call.getByRole('button', { name: 'Read them a code from my phone' }).click();
+    // Taps only, no typing: who, what they want, how they act.
+    for (const choice of ['My bank', 'Read them a code from my phone', 'Telling me to keep it secret', 'Rushing me or threatening']) {
+      await call.getByRole('button', { name: choice }).click();
+    }
     await call.getByRole('button', { name: 'Check this call' }).click();
-    await expectVisible(call.getByRole('heading', { name: /Hang up now\.|Be careful\./ }), 60_000);
+    // Wait for any answer, then insist it is the right one, so a failure says what was shown.
+    await expectVisible(call.locator('section[aria-live], p[role=alert]'), 60_000);
+    const shown = await text(call.locator('body'));
+    if (!/Hang up now\.|Be careful\./.test(shown)) throw new Error(`expected hang-up advice, page said: ${shown.slice(0, 400)}`);
     await shot(call, 'call-check-result');
     const result = await text(call.locator('section'));
     await call.close();

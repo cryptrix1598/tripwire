@@ -353,8 +353,25 @@ export const ES: LocaleBundle = {
     side: '¿Alguien al teléfono le pide que haga algo?',
     sideBody: 'La mayoría de las estafas empiezan con una llamada. Cuéntele a Tripwire lo que quiere quien llama, y le dará una segunda opinión mientras sigue en la línea.',
     title: '¿Qué le dice quien llama?',
-    body: 'Escríbalo con sus propias palabras. No hace falta escribir nombres ni números.',
-    label: 'Lo que dice o le pide quien llama',
+    body: 'Toque lo que corresponda. No hace falta escribir nada.',
+    ask: {
+      who: {
+        legend: '¿Quién dice que es?',
+        options: { bank: 'Mi banco', government: 'El gobierno, el Seguro Social o Medicare', company: 'Una empresa como Amazon o Microsoft', family: 'Un familiar o amigo en apuros', other: 'No lo sé' },
+      },
+      want: {
+        legend: '¿Qué quiere que haga?',
+        hint: 'Toque todo lo que corresponda.',
+        options: { money: 'Pagar o mover dinero', gift_cards: 'Comprar tarjetas de regalo', crypto: 'Enviar cripto o usar un cajero de Bitcoin', code: 'Leerle un código de mi teléfono', details: 'Dar mis datos del Seguro Social, Medicare o del banco', computer: 'Dejarle entrar en mi computadora', nothing: 'Nada todavía' },
+      },
+      how: {
+        legend: '¿Cómo se comporta?',
+        hint: 'Toque todo lo que corresponda.',
+        options: { rushing: 'Me apura o me amenaza', secret: 'Me pide que lo mantenga en secreto', stay_on_line: 'Me pide que no cuelgue', patient: 'Tranquilo, y dijo que puedo llamar después' },
+      },
+      needOne: 'Toque al menos una cosa que quiere que haga.',
+    },
+    label: '¿Dijo algo más? (Puede omitirlo.)',
     placeholder: 'Por ejemplo: Dice que es de mi banco y que mi cuenta está congelada. Quiere que le lea el código que me acaban de enviar.',
     privacy: 'Se revisa en su computadora cuando es posible. Si no, se quitan nombres y números antes de una revisión en línea, y puede ver exactamente lo que se envió.',
     check: 'Revisar esta llamada',

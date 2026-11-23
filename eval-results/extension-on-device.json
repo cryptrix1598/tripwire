@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-11-18T23:00:12.881Z",
+  "ranAt": "2026-11-23T22:34:07.419Z",
   "where": "the built extension in Chrome/157.0.8103.79, headless, Gemini Nano on the device",
   "steps": [
     {
@@ -10,7 +10,7 @@
     {
       "state": "pass",
       "name": "a scam message is stopped, and the route is reported",
-      "note": "tripped via device_then_cloud, 336 bytes sent, risk 97"
+      "note": "tripped via device_then_cloud, 336 bytes sent, risk 95"
     },
     {
       "state": "pass",
