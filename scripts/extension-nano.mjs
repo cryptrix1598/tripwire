@@ -96,7 +96,7 @@ try {
     return route.replace(/\s+/g, ' ');
   });
 
-  await step('a phone call the person describes is checked on the device', async () => {
+  await step('a phone call the person describes is checked, the on-device model first', async () => {
     const call = await context.newPage();
     await call.goto(ext('call.html'));
     await call
