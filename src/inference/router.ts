@@ -111,7 +111,7 @@ export function extractJson(raw: string): unknown {
   }
 }
 
-type CallResult<T> = { ok: true; value: T } | { ok: false; reason: 'invalid' | 'unreachable' };
+type CallResult<T> = { ok: true; value: T } | { ok: false; reason: 'invalid' | 'unreachable'; timedOut?: boolean };
 
 /**
  * Run a model call, validate its output, retry once.
@@ -123,13 +123,17 @@ async function callValidated<S extends z.ZodType>(
   schema: S,
 ): Promise<CallResult<z.output<S>>> {
   let sawAnswer = false;
+  let timedOut = false;
   for (let attempt = 0; attempt < 2; attempt++) {
     let raw: string;
     try {
       raw = await call();
     } catch (err) {
       // A timeout is not worth a second wait of the same length.
-      if (err instanceof Error && err.message.includes('timed out')) break;
+      if (err instanceof Error && err.message.includes('timed out')) {
+        timedOut = true;
+        break;
+      }
       continue;
     }
     sawAnswer = true;
@@ -140,7 +144,7 @@ async function callValidated<S extends z.ZodType>(
       // fall through to retry
     }
   }
-  return { ok: false, reason: sawAnswer ? 'invalid' : 'unreachable' };
+  return { ok: false, reason: sawAnswer ? 'invalid' : 'unreachable', timedOut };
 }
 
 function stateFor(score: number, trigger: Trigger, config: TripwireConfig, allowTrip: boolean): VerdictState {
@@ -187,6 +191,11 @@ interface Draft {
   /** The request text that went to the cloud, if any. */
   sent?: string;
 }
+
+/** What a cloud request carried when no usable answer came back. Reported like a successful one. */
+type CloudAttempt = { bytesSentToCloud: number; redactionCount: number; sent: string };
+const attemptOf = (cloud: { kind: string; attempt?: CloudAttempt }): Partial<CloudAttempt> =>
+  cloud.kind === 'unreachable' || cloud.kind === 'invalid' ? (cloud.attempt ?? {}) : {};
 
 /** Stage 1: everything the router knows about the text before any model is asked. Pure. */
 function readPage(input: AssessInput, config: TripwireConfig) {
@@ -322,7 +331,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
   };
 
   /** Deterministic verdict for when no model can be reached. */
-  const rulesVerdict = (failSafe: boolean): Verdict => {
+  const rulesVerdict = (failSafe: boolean, attempt?: CloudAttempt): Verdict => {
     const { low, rulesOnlyCaution } = config.thresholds;
     // After a model failure the bar for caution drops to LOW: never silently pass.
     const cautionAt = failSafe ? low : rulesOnlyCaution;
@@ -338,6 +347,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
       route: 'rules_only',
       failSafe: failSafe && flagged,
       allowTrip: false,
+      ...attempt,
     });
   };
 
@@ -370,7 +380,8 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
     deviceTriage: Triage | null,
   ): Promise<
     | { kind: 'ok'; analysis: CloudAnalysis; bytes: number; redactionCount: number; sent: string }
-    | { kind: 'unreachable' | 'invalid' | 'gate_closed' }
+    | { kind: 'unreachable' | 'invalid'; attempt?: CloudAttempt }
+    | { kind: 'gate_closed' }
   > => {
     const redaction = await redactForCloud(text, redactor);
     if (!redaction.safeToSend) return { kind: 'gate_closed' };
@@ -379,7 +390,14 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
       () => withTimeout(engine.analyzeInCloud(prompts.cloudSystem, prompt, config.cloudModel), timeouts.cloudMs, 'cloud analysis'),
       CloudAnalysisSchema,
     );
-    if (!result.ok) return { kind: result.reason };
+    // An answer that was invalid, or a request that timed out, means the redacted text left
+    // (or may have), so the verdict must not claim that nothing left the computer. A request
+    // that failed outright (offline) never got out.
+    const attempt: CloudAttempt | undefined =
+      !result.ok && (result.reason === 'invalid' || result.timedOut)
+        ? { bytesSentToCloud: utf8Bytes(prompt), redactionCount: redaction.redactionCount, sent: prompt }
+        : undefined;
+    if (!result.ok) return { kind: result.reason, attempt };
     // Everything Tripwire wrote into the request about this page: the redacted text plus the
     // site name and the lines around it. (The fixed instructions are the same for every page.)
     return { kind: 'ok', analysis: result.value, bytes: utf8Bytes(prompt), redactionCount: redaction.redactionCount, sent: prompt };
@@ -388,7 +406,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
   /** The cloud alone decides (no on-device model, or it failed); rules if the cloud cannot. */
   const cloudOnly = async (failSafeIfUnreachable: boolean): Promise<Verdict> => {
     const cloud = await runCloud(null, null);
-    if (cloud.kind !== 'ok') return rulesVerdict(failSafeIfUnreachable || cloud.kind === 'invalid');
+    if (cloud.kind !== 'ok') return rulesVerdict(failSafeIfUnreachable || cloud.kind === 'invalid', cloud.kind === 'gate_closed' ? undefined : cloud.attempt);
     const a = cloud.analysis;
     return finish({
       score: a.riskScore,
@@ -516,6 +534,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
       route: 'on_device',
       cloudUnreachable: cloud.kind === 'unreachable',
       allowTrip: false,
+      ...attemptOf(cloud),
     });
   }
   // Otherwise the on-device verdict stands on its own, and nothing was sent.
@@ -529,6 +548,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
       route: 'on_device',
       cloudUnreachable: cloud.kind === 'unreachable',
       failSafe: cloud.kind === 'invalid',
+      ...attemptOf(cloud),
       // Same rule as stage 4: a page full of scam words plus asks is never tripped by the device alone.
       allowTrip: corroborated && !scamWordsPlusAsks,
     }),

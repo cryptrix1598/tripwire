@@ -55,6 +55,7 @@ export const FR: LocaleBundle = {
     failSafeSub: 'Par prudence, considérez comme suspect tout ce qu’elle vous demande.',
     checkingCall: 'Un instant. Tripwire vérifie cette page avant de lancer l’appel.',
     checkingCard: 'Un instant. Tripwire vérifie cette page avant que vous ne saisissiez un numéro de carte.',
+    checkingCode: 'Un instant. Tripwire vérifie cette page avant que vous ne saisissiez un code ou une adresse.',
   },
   TRIP_LEAD: {
     passive: 'Cette page présente des signes nets d’arnaque.',
@@ -85,6 +86,8 @@ export const FR: LocaleBundle = {
     noFlags: 'Tripwire n’a pas pu finir sa vérification, il vous demande donc d’être prudent.',
     redactions: (n: number) => (n === 1 ? '1 donnée personnelle a d’abord été retirée.' : `${n} données personnelles ont d’abord été retirées.`),
     cloudUnreachable: 'Une vérification plus poussée n’a pas été possible car cet ordinateur est hors ligne.',
+    attemptedDetail: 'données personnelles retirées, puis peut-être envoyées',
+    attempted: 'Tripwire a tenté une vérification plus poussée : il a retiré les données personnelles et envoyé le reste, mais aucune réponse utilisable n’est arrivée. « Voir exactement ce qui a été envoyé » montre ce qu’il a envoyé.',
     sentShow: 'Voir exactement ce qui a été envoyé',
     sentHide: 'Masquer ce qui a été envoyé',
     sentNote: 'Voici tout ce que Tripwire a envoyé à propos de cette page. Les données personnelles ont d’abord été remplacées par des étiquettes comme [NAME].',

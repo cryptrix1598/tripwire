@@ -83,6 +83,7 @@ export const BANNER = {
   failSafeSub: 'To be careful, treat anything it asks for as suspicious.',
   checkingCall: 'One moment. Tripwire is checking this page before the call starts.',
   checkingCard: 'One moment. Tripwire is checking this page before you type a card number.',
+  checkingCode: 'One moment. Tripwire is checking this page before you type a code or an address.',
 } as const;
 
 /* ------------------------------------------------------------------ */
@@ -125,6 +126,8 @@ export const WHY = {
   redactions: (n: number) =>
     n === 1 ? '1 piece of personal info was removed first.' : `${n} pieces of personal info were removed first.`,
   cloudUnreachable: 'A deeper check was not possible because this computer is offline.',
+  attemptedDetail: 'personal info removed, then it may have been sent',
+  attempted: 'Tripwire tried a deeper check: it removed personal info and sent the rest, but no usable answer came back. "See exactly what was sent" shows what it sent.',
   sentShow: 'See exactly what was sent',
   sentHide: 'Hide what was sent',
   sentNote: 'This is everything Tripwire sent about this page. Personal details were replaced with tags like [NAME] first.',

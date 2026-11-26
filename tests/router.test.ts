@@ -413,3 +413,39 @@ describe('router: no second opinion on a page full of scam words', () => {
     expect(v.bytesSentToCloud).toBe(0);
   });
 });
+
+describe('router: a cloud check that got no usable answer is not reported as "nothing sent"', () => {
+  it('an invalid cloud answer: the redacted text was sent, and the verdict says so', async () => {
+    const engine = fakeEngine({ status: 'unavailable', cloud: async () => 'not json at all' });
+    const v = await run(BANK_EMAIL.text, engine);
+    expect(v.route).toBe('rules_only');
+    expect(v.bytesSentToCloud).toBeGreaterThan(0);
+    expect(v.sentPreview).toBeDefined();
+    expect(v.sentPreview).not.toContain('@');
+  });
+
+  it('a cloud request that timed out after the device was unsure: counted as sent', async () => {
+    const engine = fakeEngine({
+      triage: async () => triageJson(55),
+      cloud: async () => {
+        throw new Error('cloud analysis timed out after 1ms');
+      },
+    });
+    const v = await run(SCAM.text, engine);
+    expect(v.route).toBe('on_device');
+    expect(v.bytesSentToCloud).toBeGreaterThan(0);
+    expect(v.sentPreview).toBeDefined();
+  });
+
+  it('offline (the request never got out): nothing is counted as sent', async () => {
+    const engine = fakeEngine({
+      triage: async () => triageJson(55),
+      cloud: async () => {
+        throw new TypeError('Failed to fetch');
+      },
+    });
+    const v = await run(SCAM.text, engine);
+    expect(v.bytesSentToCloud).toBe(0);
+    expect(v.sentPreview).toBeUndefined();
+  });
+});

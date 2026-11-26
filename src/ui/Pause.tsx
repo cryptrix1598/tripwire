@@ -48,7 +48,7 @@ export function Pause({
       <div className="tw-split__side">
         <Brand />
         <Title className="tw-h1 tw-h1--xl">{INTERSTITIAL.title}</Title>
-        <RouteLine route={verdict.route} />
+        <RouteLine route={verdict.route} sent={verdict.bytesSentToCloud > 0} />
       </div>
       <div className="tw-split__main">
         <div className="tw-stack">

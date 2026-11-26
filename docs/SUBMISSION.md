@@ -62,12 +62,12 @@ TypeScript (strict), Manifest V3 with WXT, React, Shadow DOM for the in-page UI,
 
 ## Results
 
-- **Main corpus (25 scams, 25 ordinary messages), with Gemini Nano first:** 25 of 25 flagged, 0 false alarms. 35 of the 50 were decided on the device and only 7 reached the cloud.
-- **The privacy gate, measured:** 3,096 redacted bytes left the device, against 22,018 when the same corpus runs with no on-device model. About 86 percent less, with the same detection.
+- **Main corpus (25 scams, 25 ordinary messages), Gemini Nano inside the built extension (26 Nov):** 25 of 25 flagged, 0 false alarms. 34 of the 50 were decided on the device, 8 needed no model and 8 reached the cloud.
+- **The privacy gate, measured:** 4,207 redacted bytes left the device, against 22,018 when the same corpus runs with no on-device model. About 81 percent less, with the same detection.
 - **Held-out test:** scam messages never used for tuning plus 36 real public pages fetched live (IRS, SSA and Apple pages about scams, Wikipedia, bank and payment sign-in pages, a remote-access vendor, news). Final result: 16 of 16 scams flagged (14 of them on the device, nothing sent), 0 false alarms on the 28 pages that loaded, median check 3.7 seconds.
 - **We publish the bad first run too.** Before the fixes it caught 6 of 10 and took 51 seconds on long pages. See "Challenges".
 - **A third held-out round, written after all tuning and run once:** 12 of 12 new kinds of scam paused, 0 false alarms on 12 ordinary messages chosen to look like scams.
-- **The built extension itself, with Gemini Nano, by automation:** 25/25 scams, 0/25 false alarms, 34 of 50 decided on the device.
+- **The built extension itself is what was measured above**, loaded over the DevTools protocol with Gemini Nano running in its offscreen document.
 - Every screen in English, Spanish and French; explanations run live in Spanish and French with nothing sent.
 - Twelve adversarial tests: a page that tells the model what to answer, repeats "scam" to look like advice, hides the ask under filler, or deletes the warning. None gets through quietly.
 - 191 unit tests, 29 security-rules tests (including a limit of one family alert every 15 seconds), a 14-step end-to-end run, a live run against the real project, a test of the hosted demo with no extension, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems).
@@ -106,5 +106,5 @@ Record in desktop Chrome with the extension loaded and the on-device model downl
 | 1:45 | Tripwire menu → "Someone is on the phone with me"; tap "The government, Social Security or Medicare", "Give my Social Security, Medicare or bank details", "Rushing me or threatening"; "Hang up now." | "Most of these scams start with a phone call, and no browser can hear a call. So I just tap what the caller wants. No typing. It checks on my computer and tells me plainly: hang up." |
 | 2:00 | Click the download button on the tech-support page; the paused-download tab | "It also pauses the download of a remote-access tool, the way these scams usually end." |
 | 2:15 | "Stop and stay safe", then the family page updating live | "If I've paired a family member, they see that it happened and what kind of scam it was. Never my email, never what I typed." |
-| 2:35 | The Developer checks page: corpus result, then the README held-out table | "Twenty-five of twenty-five, zero false alarms, and about eighty-six percent less data sent than a cloud-only check. On pages we did not write: sixteen of sixteen." |
+| 2:35 | The Developer checks page: corpus result, then the README held-out table | "Twenty-five of twenty-five, zero false alarms, and about eighty percent less data sent than a cloud-only check. On pages we did not write: sixteen of sixteen." |
 | 2:45 | Title card with the repo address | "Tripwire. A calm second look before you act." |

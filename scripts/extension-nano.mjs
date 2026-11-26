@@ -136,7 +136,7 @@ try {
         await call.getByRole('button', { name: 'Check this call' }).click();
         await call.locator('section[aria-live] .tw-route').waitFor({ timeout: 90_000 });
         const heading = await call.locator('h2').first().innerText();
-        const route = (await call.locator('.tw-route').innerText()).replace(/s+/g, ' ');
+        const route = (await call.locator('.tw-route').innerText()).replace(/\s+/g, ' ');
         const flagged = !/Nothing here sounds like a scam/.test(heading);
         rows.push({ id: c.id, label: c.label, heading, route, ms: Date.now() - t0, correct: c.label === 'scam' ? flagged : !flagged });
         await call.close();

@@ -55,6 +55,7 @@ export const ES: LocaleBundle = {
     failSafeSub: 'Para estar seguro, trate como sospechoso cualquier cosa que le pida.',
     checkingCall: 'Un momento. Tripwire está revisando esta página antes de iniciar la llamada.',
     checkingCard: 'Un momento. Tripwire está revisando esta página antes de que escriba un número de tarjeta.',
+    checkingCode: 'Un momento. Tripwire está revisando esta página antes de que escriba un código o una dirección.',
   },
   TRIP_LEAD: {
     passive: 'Esta página muestra señales claras de estafa.',
@@ -85,6 +86,8 @@ export const ES: LocaleBundle = {
     noFlags: 'Tripwire no pudo terminar su revisión, así que le pide que tenga cuidado.',
     redactions: (n: number) => (n === 1 ? 'Primero se quitó 1 dato personal.' : `Primero se quitaron ${n} datos personales.`),
     cloudUnreachable: 'No fue posible una revisión más a fondo porque esta computadora no tiene conexión.',
+    attemptedDetail: 'datos personales retirados; luego quizá se envió',
+    attempted: 'Tripwire intentó una revisión más a fondo: retiró los datos personales y envió el resto, pero no llegó una respuesta útil. "Ver exactamente qué se envió" muestra lo que envió.',
     sentShow: 'Ver exactamente lo que se envió',
     sentHide: 'Ocultar lo que se envió',
     sentNote: 'Esto es todo lo que Tripwire envió sobre esta página. Los datos personales se sustituyeron antes por etiquetas como [NAME].',

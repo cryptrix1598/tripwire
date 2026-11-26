@@ -91,8 +91,9 @@ function CallCheck() {
             </button>
           </div>
         </section>
-      ) : busy && neverSafe(answers) ? (
+      ) : (busy || (failed && !verdict)) && neverSafe(answers) ? (
         // No model is needed to know this one: answer at once, and add the reasons when they come.
+        // If the check fails, the answer stays: the ask alone is reason enough to hang up.
         <section className="tw-stack" aria-live="polite">
           <h2 className="tw-h1">{CALL.result.tripped.title}</h2>
           <p style={{ fontSize: 20 }}>{CALL.result.tripped.body}</p>
@@ -102,7 +103,7 @@ function CallCheck() {
               {CALL.hungUp}
             </button>
           </div>
-          <p className="tw-small" role="status">{CALL.addingReasons}</p>
+          <p className="tw-small" role="status">{busy ? CALL.addingReasons : CALL.failed}</p>
         </section>
       ) : verdict && result ? (
         <section className="tw-stack" aria-live="polite">
@@ -131,7 +132,7 @@ function CallCheck() {
               {CALL.again}
             </button>
           </div>
-          <RouteLine route={verdict.route} />
+          <RouteLine route={verdict.route} sent={verdict.bytesSentToCloud > 0} />
           <p className="tw-small">{routeExplanation(verdict)}</p>
           <SentReceipt verdict={verdict} />
         </section>

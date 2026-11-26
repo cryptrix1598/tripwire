@@ -50,13 +50,15 @@ export function byPerson(handler: () => void) {
 }
 
 /** What left this device, said the same way everywhere. */
-export function RouteLine({ route }: { route: Route }) {
+export function RouteLine({ route, sent = false }: { route: Route; sent?: boolean }) {
   const badge = ROUTE_BADGE[route];
+  // A deeper check was tried and got no usable answer: the redacted text did leave (or may have).
+  const detail = sent && (badge.tone === 'local' || badge.tone === 'rules') ? WHY.attemptedDetail : badge.detail;
   return (
     <p className="tw-route">
       <span className={`tw-dot tw-dot--${badge.tone}`} aria-hidden="true" />
       <span>
-        <strong>{badge.label}</strong> · {badge.detail}
+        <strong>{badge.label}</strong> · {detail}
       </span>
     </p>
   );
@@ -66,7 +68,9 @@ export function RouteLine({ route }: { route: Route }) {
 export function routeExplanation(verdict: Verdict): string {
   const parts = [ROUTE_BADGE[verdict.route].long];
   if (verdict.bytesSentToCloud > 0 && verdict.redactionCount > 0) parts.push(WHY.redactions(verdict.redactionCount));
-  if (verdict.cloudUnreachable) parts.push(WHY.cloudUnreachable);
+  const attempted = verdict.bytesSentToCloud > 0 && (verdict.route === 'on_device' || verdict.route === 'rules_only');
+  if (attempted) parts.push(WHY.attempted);
+  else if (verdict.cloudUnreachable) parts.push(WHY.cloudUnreachable);
   return parts.join(' ');
 }
 

@@ -40,7 +40,7 @@ const WALLET_FIELD = /wallet|bitcoin|\bbtc\b|\beth(?:ereum)?\b|\busdt\b|crypto|r
 
 type View =
   | { kind: 'none' }
-  | { kind: 'checking'; what: 'call' | 'card' }
+  | { kind: 'checking'; what: 'call' | 'card' | 'code' }
   | { kind: 'banner'; verdict: Verdict }
   | { kind: 'pause'; verdict: Verdict };
 
@@ -121,7 +121,7 @@ function startTopFrame(ctx: ContentScriptContext): void {
     if (v.kind === 'checking') {
       return (
         <div className="tw tw-checking" role="status">
-          {v.what === 'call' ? BANNER.checkingCall : BANNER.checkingCard}
+          {v.what === 'call' ? BANNER.checkingCall : v.what === 'card' ? BANNER.checkingCard : BANNER.checkingCode}
         </div>
       );
     }
@@ -145,6 +145,10 @@ function startTopFrame(ctx: ContentScriptContext): void {
         anchor: 'body',
         append: 'last',
         isolateEvents: true,
+        // The release build closes the shadow root, so the page's own scripts cannot read the pause
+        // or the "what was sent" receipt. Development and test builds keep it open, because the
+        // browser tests and the accessibility audit need to reach inside it.
+        mode: import.meta.env.MODE === 'store' ? 'closed' : 'open',
         onMount(container) {
           const root = createRoot(container);
           root.render(<App />);
@@ -222,7 +226,7 @@ function startTopFrame(ctx: ContentScriptContext): void {
    * While a held action waits for its check, say so. A check can take several seconds, and a
    * click that seems to do nothing looks broken. Shown only if the wait is long enough to notice.
    */
-  function whileChecking<T>(what: 'call' | 'card', job: Promise<T>): Promise<T> {
+  function whileChecking<T>(what: 'call' | 'card' | 'code', job: Promise<T>): Promise<T> {
     let done = false;
     const timer = setTimeout(() => {
       void ensureUi()
@@ -324,25 +328,27 @@ function startTopFrame(ctx: ContentScriptContext): void {
         if (!(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return;
         const info = describeField(el);
         if (info.type.toLowerCase() === 'password') return;
-        if (isCardField(info)) {
-          // If this page has not been judged yet, the field is held (read-only) until the check
-          // answers, so a card number cannot be typed first. The check itself is bounded by the
-          // router's timeouts; the cap here is only a backstop so a field is never stuck.
+        // If this page has not been judged yet, the field is held (read-only) until the check
+        // answers, so a card number, gift card code or wallet address cannot be typed first. The
+        // check itself is bounded by the router's timeouts; the cap here is only a backstop so a
+        // field is never stuck.
+        const held = (trigger: Trigger, what: 'card' | 'code') => {
           const hold = !last && !acknowledged && !el.readOnly;
           if (hold) el.readOnly = true;
           const release = () => {
             if (hold) el.readOnly = false;
           };
           const limit = setTimeout(release, 40_000);
-          const check = onAction('card_entry');
-          return void (hold ? whileChecking('card', check) : check).finally(() => {
+          const check = onAction(trigger);
+          void (hold ? whileChecking(what, check) : check).finally(() => {
             clearTimeout(limit);
             release();
           });
-        }
+        };
+        if (isCardField(info)) return held('card_entry', 'card');
         const hay = [info.name, info.id, info.placeholder, info.ariaLabel, info.labelText].join(' ');
-        if (GIFT_FIELD.test(hay)) return void onAction('gift_card');
-        if (WALLET_FIELD.test(hay)) return void onAction('crypto_wire');
+        if (GIFT_FIELD.test(hay)) return held('gift_card', 'code');
+        if (WALLET_FIELD.test(hay)) return held('crypto_wire', 'code');
       } catch {
         /* ignore */
       }

@@ -25,7 +25,7 @@ page, email or phone call
 | --- | --- | --- | --- |
 | Gemini Nano in the built extension, 50 messages | 25 / 25 | 0 / 25 | 4,207 bytes, all redacted first |
 | Cloud only (no on-device model) | 25 / 25 | 0 / 25 | 22,018 bytes, all redacted first |
-| Phone-call check, Gemini Nano, 20 calls | 12 / 12 | 0 / 8 | |
+| Phone-call check, Gemini Nano, 20 calls (latest run) | 12 / 12 | 1 / 8 | |
 
 191 unit tests, 29 security-rules tests, a 14-step end-to-end run with 0 accessibility problems, a live run against the real Firebase project. Details are in [Test results](#test-results).
 
@@ -123,6 +123,7 @@ Every verdict carries a `route`, shown to the person in plain words:
 - **Personal info removed · sent for a deeper check**
 - **Your device doesn't support on-device AI · personal info removed before checking**
 - **Checked with built-in safety rules · nothing left your computer** (offline, or no model reachable)
+- If a deeper check was sent but no usable answer came back (a timeout or an unreadable answer), the badge does not say "nothing left your computer": it says "personal info removed, then it may have been sent", and "See exactly what was sent" shows the text.
 
 What decides each step (all of this was changed after a held-out test, see "Test results"):
 
@@ -276,7 +277,7 @@ Status: the app compiles against firebase-ai 18.2.0 and firebase-ai-ondevice 16.
 | Gemini Nano inside the built extension (`node scripts/extension-nano.mjs --corpus`, 26 Nov) | **25 / 25** | **0 / 25** | 4,207, all redacted first |
 | Gemini Nano on the device first (`node scripts/nano-probe.mjs --checks --corpus`) | **25 / 25** | **0 / 25** | 3,096, all redacted first |
 
-With the on-device model, 36 of the 50 samples were decided on the device, 8 needed no model and 6 went to the cloud: about 86 percent less sent than the cloud-only path, with the same detection. The on-device model varies a little between runs (earlier runs sent between 2,554 and 3,766 bytes). Seven on-device runs are committed in [eval-results/on-device/](eval-results/on-device): three from 14 Nov, which counted only the page text as "bytes sent" (so their byte figures are lower and not comparable), two from 15 Nov and two from 16 Nov. Six are 25/25 with zero false alarms. **One of the 16 Nov runs paused an ordinary checkout page**: a rule added that day let the device decide alone when a page asked for money and card details under pressure, which a real checkout also does. The rule now needs an ask no real shop makes (a Social Security number, a one-time code, online banking, a look at your screen); a regression test covers it and the run after it was clean. Three more were run on 14 Nov and not kept: two matched, and the first one produced a borderline false alarm on a gift-card shop page, which led to a router fix and a regression test. Results files record where they were run; the on-device runs use the Developer checks page served as a web page, because Chrome will not load an unpacked extension under automation.
+In the built extension (the headline run, 26 Nov), 34 of the 50 samples were decided on the device, 8 needed no model and 8 went to the cloud: about 81 percent less sent than the cloud-only path, with the same detection. The Developer checks page run in the row below it decided 36 on the device and sent 3,096 bytes. The on-device model varies a little between runs (earlier runs sent between 2,554 and 3,766 bytes). Seven on-device runs are committed in [eval-results/on-device/](eval-results/on-device): three from 14 Nov, which counted only the page text as "bytes sent" (so their byte figures are lower and not comparable), two from 15 Nov and two from 16 Nov. Six are 25/25 with zero false alarms. **One of the 16 Nov runs paused an ordinary checkout page**: a rule added that day let the device decide alone when a page asked for money and card details under pressure, which a real checkout also does. The rule now needs an ask no real shop makes (a Social Security number, a one-time code, online banking, a look at your screen); a regression test covers it and the run after it was clean. Three more were run on 14 Nov and not kept: two matched, and the first one produced a borderline false alarm on a gift-card shop page, which led to a router fix and a regression test. Results files record where they were run; the on-device runs use the Developer checks page served as a web page, because Chrome will not load an unpacked extension under automation.
 
 ### Held-out test, and what it found
 
@@ -308,8 +309,11 @@ Because those fixes were made after seeing round one, a second round of six new 
 | Built-in rules only (`npm run eval`) | 8 / 12 | 0 / 8 |
 | Gemini Nano in the built extension, first run (26 Nov) | **12 / 12** | **2 / 8** |
 | Same, after the fix below | **12 / 12** | **0 / 8** |
+| Same, run again later that day (the latest run) | **12 / 12** | **1 / 8** |
 
 The first run told people to hang up on two calls that had asked for nothing, a "bank" and a "government office", only because of who the caller said they were. A call that asks for nothing, with no pressure and nothing typed, now gets no model check and the answer "nothing risky so far; hang up if they ask for money, gift cards, a code or your details". Because that rule came from seeing the run, the second row is not a held-out result. Two more rules hold whatever a model says: a call asking for gift cards, crypto, a code from the phone, personal details or computer access is never answered "safe". Result files: [eval-results/calls-on-device-run1.json](eval-results/calls-on-device-run1.json), [eval-results/calls-on-device.json](eval-results/calls-on-device.json) (`node scripts/extension-nano.mjs --calls`).
+
+The latest run told people to hang up on one ordinary call: a delivery driver saying when he would arrive. That call has a typed note, so it does get a model check; it went to the cloud, which answered "hang up". The run before it passed the same call, so the model is not fully consistent on this one. Nothing was changed to hide it.
 
 ### Everything else
 
