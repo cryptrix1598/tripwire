@@ -395,6 +395,7 @@ export const ES: LocaleBundle = {
     nothingYet: 'Hasta ahora no le ha pedido nada arriesgado. Si le pide dinero, tarjetas de regalo, un código de su teléfono o sus datos personales, cuelgue.',
     callBack: 'Llame a un número que ya conozca: el de su tarjeta, su factura o la página oficial. Nunca al número que le da quien llama.',
     hungUp: 'Ya colgué',
+    addingReasons: 'Tripwire está añadiendo los motivos…',
     again: 'Revisar otra llamada',
     close: 'Cerrar esta pestaña',
     doneTitle: 'Muy bien.',

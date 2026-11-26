@@ -382,7 +382,7 @@ describe('router: a call with an ask that is never safe', () => {
       { text: 'The caller says they are from my bank. They want me to read them a code that was just sent to my phone.', hostname: 'phone call', trigger: 'phone_call', source: 'call', neverSafe: true },
       { engine, config: DEFAULT_CONFIG },
     );
-    expect(v.state).toBe('caution');
+    expect(v.state).toBe('tripped');
     expect(v.explanation).toContain('does not ask for this on a call');
   });
 

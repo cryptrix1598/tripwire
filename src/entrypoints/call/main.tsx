@@ -51,8 +51,8 @@ function CallCheck() {
   };
 
   const hungUp = () => {
-    if (verdict && verdict.state !== 'safe') {
-      void send({ target: 'background', type: 'outcome', scamType: verdict.scamType, trigger: 'live_call', outcome: 'stopped', hostname: 'phone call' });
+    if (!verdict || verdict.state !== 'safe') {
+      void send({ target: 'background', type: 'outcome', scamType: verdict?.scamType ?? 'other', trigger: 'live_call', outcome: 'stopped', hostname: 'phone call' });
     }
     setDone(true);
   };
@@ -90,6 +90,19 @@ function CallCheck() {
               {CALL.again}
             </button>
           </div>
+        </section>
+      ) : busy && neverSafe(answers) ? (
+        // No model is needed to know this one: answer at once, and add the reasons when they come.
+        <section className="tw-stack" aria-live="polite">
+          <h2 className="tw-h1">{CALL.result.tripped.title}</h2>
+          <p style={{ fontSize: 20 }}>{CALL.result.tripped.body}</p>
+          <p className="tw-muted">{CALL.callBack}</p>
+          <div className="tw-row">
+            <button type="button" className="tw-btn tw-btn--xl" onClick={hungUp}>
+              {CALL.hungUp}
+            </button>
+          </div>
+          <p className="tw-small" role="status">{CALL.addingReasons}</p>
         </section>
       ) : verdict && result ? (
         <section className="tw-stack" aria-live="polite">

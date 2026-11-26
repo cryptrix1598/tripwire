@@ -395,6 +395,7 @@ export const FR: LocaleBundle = {
     nothingYet: 'Pour l’instant, il ne vous a rien demandé de risqué. S’il vous demande de l’argent, des cartes cadeaux, un code reçu sur votre téléphone ou vos données personnelles, raccrochez.',
     callBack: 'Rappelez un numéro que vous connaissez déjà : celui de votre carte, de votre facture ou du site officiel. Jamais celui que donne l’interlocuteur.',
     hungUp: 'J’ai raccroché',
+    addingReasons: 'Tripwire ajoute les raisons…',
     again: 'Vérifier un autre appel',
     close: 'Fermer cet onglet',
     doneTitle: 'Bien joué.',

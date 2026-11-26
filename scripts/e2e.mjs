@@ -247,7 +247,7 @@ try {
     }
     await call.getByRole('button', { name: 'Check this call' }).click();
     // Wait for any answer, then insist it is the right one, so a failure says what was shown.
-    await expectVisible(call.locator('section[aria-live], p[role=alert]'), 60_000);
+    await expectVisible(call.locator('section[aria-live] .tw-route, p[role=alert]'), 60_000);
     const shown = await text(call.locator('body'));
     if (!/Hang up now\.|Be careful\./.test(shown)) throw new Error(`expected hang-up advice, page said: ${shown.slice(0, 400)}`);
     await shot(call, 'call-check-result');

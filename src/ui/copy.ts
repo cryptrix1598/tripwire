@@ -333,6 +333,7 @@ export const CALL = {
   nothingYet: 'So far they have not asked for anything risky. If they ask for money, gift cards, a code from your phone or your personal details, hang up.',
   callBack: 'Call back on a number you already know: the one on your card, your bill, or the official website. Never the number the caller gives you.',
   hungUp: 'I hung up',
+  addingReasons: 'Tripwire is adding the reasons…',
   again: 'Check another call',
   close: 'Close this tab',
   doneTitle: 'Well done.',

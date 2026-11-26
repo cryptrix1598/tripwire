@@ -254,7 +254,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
     const floored = steering && d.route !== 'not_checked' && state === 'safe';
     const insisted = !floored && input.neverSafe === true && state === 'safe';
     const floorNote = floored ? EXPLANATION.steering : EXPLANATION.neverSafe;
-    const finalState: VerdictState = (d.failSafe || floored || insisted) && state === 'safe' ? 'caution' : state;
+    const finalState: VerdictState = insisted ? 'tripped' : (d.failSafe || floored) && state === 'safe' ? 'caution' : state;
     return {
       state: finalState,
       riskScore: floored || insisted ? Math.max(d.score, config.thresholds.low) : d.score,

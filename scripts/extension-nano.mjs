@@ -134,7 +134,7 @@ try {
         if (c.notes) await call.getByLabel('Anything else they said? (You can skip this.)').fill(c.notes);
         const t0 = Date.now();
         await call.getByRole('button', { name: 'Check this call' }).click();
-        await call.locator('section[aria-live]').waitFor({ timeout: 90_000 });
+        await call.locator('section[aria-live] .tw-route').waitFor({ timeout: 90_000 });
         const heading = await call.locator('h2').first().innerText();
         const route = (await call.locator('.tw-route').innerText()).replace(/s+/g, ' ');
         const flagged = !/Nothing here sounds like a scam/.test(heading);
