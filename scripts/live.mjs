@@ -105,7 +105,7 @@ try {
     await setup.getByRole('button', { name: 'Show a pairing code' }).click();
     await setup.locator('.tw-code').waitFor({ timeout: 30_000 });
     code = (await setup.locator('.tw-code').innerText()).replace(/\D/g, '');
-    if (!/^\d{6}$/.test(code)) throw new Error('no six-digit code shown');
+    if (!/^\d{8}$/.test(code)) throw new Error('no eight-digit code shown');
   });
 
   // The hosted family page uses reCAPTCHA Enterprise for App Check, which refuses automated
@@ -123,7 +123,7 @@ try {
     try {
       await family.goto(DASHBOARD);
       await family.getByRole('button', { name: 'Continue without an account' }).click();
-      await family.getByLabel('Six-digit pairing code').fill(code);
+      await family.getByLabel('Eight-digit pairing code').fill(code);
       await family.getByLabel('What should we call them?').fill('Mum');
       await family.getByLabel('Your first name').fill('Sam');
       await family.getByRole('button', { name: 'Connect' }).click();
@@ -148,7 +148,7 @@ try {
     const again = await asTester(await context.newPage());
     await again.goto(DASHBOARD);
     await again.getByRole('button', { name: 'Connect another person' }).click();
-    await again.getByLabel('Six-digit pairing code').fill(code);
+    await again.getByLabel('Eight-digit pairing code').fill(code);
     await again.getByRole('button', { name: 'Connect' }).click();
     await again.getByText('That code was not found or has run out.').waitFor({ timeout: 30_000 });
     await again.close();

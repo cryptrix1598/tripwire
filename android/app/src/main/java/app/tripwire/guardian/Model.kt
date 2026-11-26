@@ -25,10 +25,10 @@ data class Alert(
 }
 
 object Pairing {
-    /** The six digits of a pairing code, or null if that is not what was typed. */
+    /** The eight digits of a pairing code, or null if that is not what was typed. */
     fun cleanCode(input: String): String? {
         val digits = input.filter { it.isDigit() }
-        return if (digits.length == 6 && input.all { it.isDigit() || it.isWhitespace() || it == '-' }) digits else null
+        return if (digits.length == 8 && input.all { it.isDigit() || it.isWhitespace() || it == '-' }) digits else null
     }
 
     fun cleanNickname(input: String): String = input.trim().take(40)

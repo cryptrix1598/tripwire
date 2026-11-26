@@ -177,7 +177,7 @@ function Pairing({ paired, onConnected }: { paired: number; onConnected: () => v
   }
 
   if (reply?.ok) {
-    const spaced = `${reply.code.slice(0, 3)} ${reply.code.slice(3)}`;
+    const spaced = `${reply.code.slice(0, 4)} ${reply.code.slice(4)}`;
     return (
       <div className="tw-card">
         <h2 className="tw-label">{copy.codeLabel}</h2>
@@ -240,6 +240,7 @@ function Onboarding() {
     return (
       <Split side={<Side step={3} title={ONBOARDING.done.title} />}>
         <p className="tw-body">{ONBOARDING.done.body}</p>
+        <p className="tw-body">{ONBOARDING.done.pin}</p>
         <div className="tw-row">
           <button type="button" className="tw-btn" onClick={() => openTab(demoUrl)}>
             {ONBOARDING.done.demo}

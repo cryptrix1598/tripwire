@@ -131,7 +131,7 @@ export function Pair({ uid, onDone }: { uid: string; onDone: (deviceId: string) 
       const batch = writeBatch(db!);
       batch.update(doc(db!, 'pairingCodes', clean), { usedBy: uid });
       // Their name goes on the link, so the person sees who is asking before tapping "Yes, allow".
-      const myName = me.trim().slice(0, 40);
+      const myName = me.trim().slice(0, 40).replace(/^[^\p{L}]+/u, '');
       batch.set(doc(db!, 'devices', data.deviceId, 'guardians', uid), { code: clean, pairedAt: serverTimestamp(), ...(myName ? { name: myName } : {}) });
       await batch.commit();
       await setDoc(doc(db!, 'guardians', uid, 'people', data.deviceId), {
@@ -165,7 +165,7 @@ export function Pair({ uid, onDone }: { uid: string; onDone: (deviceId: string) 
             type="text"
             inputMode="numeric"
             autoComplete="one-time-code"
-            maxLength={7}
+            maxLength={9}
             placeholder="000000"
             value={code}
             onChange={(e) => setCode(e.target.value)}
@@ -179,7 +179,7 @@ export function Pair({ uid, onDone }: { uid: string; onDone: (deviceId: string) 
         </div>
         <div className="tw-field">
           <label htmlFor="pair-me">{copy.meLabel}</label>
-          <input id="pair-me" className="tw-input" type="text" autoComplete="given-name" maxLength={40} placeholder={copy.mePlaceholder} value={me} onChange={(e) => setMe(e.target.value)} aria-describedby="pair-me-help" />
+          <input id="pair-me" className="tw-input" type="text" autoComplete="given-name" maxLength={40} placeholder={copy.mePlaceholder} value={me} onChange={(e) => setMe(e.target.value.replace(/[^\p{L} .'-]/gu, ''))} aria-describedby="pair-me-help" />
           <p id="pair-me-help" className="tw-small">{copy.meHelp}</p>
         </div>
         {error && (

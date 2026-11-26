@@ -249,6 +249,7 @@ export const ONBOARDING = {
     body: 'You can close this tab. Tripwire will stay out of your way until something looks wrong.',
     demo: 'See a practice example',
     close: 'Close this tab',
+    pin: 'Tip: if someone ever calls you about money, a computer problem or your bank, Tripwire can check the call with you. Pin it to your toolbar (click the puzzle-piece icon at the top right, then the pin next to Tripwire), then click it and choose "Someone is on the phone with me". You can also right-click any page, or press Alt+Shift+K.',
   },
 } as const;
 
@@ -474,8 +475,8 @@ export const DASHBOARD = {
   },
   pair: {
     title: 'Connect to their Tripwire',
-    body: 'Ask them to open Tripwire and choose “Show a pairing code”. Type the six digits here.',
-    codeLabel: 'Six-digit pairing code',
+    body: 'Ask them to open Tripwire and choose “Show a pairing code”. Type the eight digits here.',
+    codeLabel: 'Eight-digit pairing code',
     nameLabel: 'What should we call them?',
     namePlaceholder: 'For example: Mum',
     meLabel: 'Your first name',
@@ -487,7 +488,7 @@ export const DASHBOARD = {
     errorGeneric: 'Could not connect just now. Check your internet and try again.',
     errorBlocked:
       'This browser could not be confirmed as a real visitor, so the connection was refused. Turn off any ad blocker or private window for this page, or try another browser.',
-    errorFormat: 'The code is six digits.',
+    errorFormat: 'The code is eight digits.',
   },
   feed: {
     title: 'Recent alerts',

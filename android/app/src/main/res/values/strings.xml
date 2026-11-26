@@ -8,14 +8,14 @@
 
     <!-- Pairing -->
     <string name="pair_title">Connect to their Tripwire</string>
-    <string name="pair_body">Ask them to open Tripwire and choose “Show a pairing code”. Type the six digits here.</string>
-    <string name="pair_code_label">Six-digit pairing code</string>
+    <string name="pair_body">Ask them to open Tripwire and choose “Show a pairing code”. Type the eight digits here.</string>
+    <string name="pair_code_label">Eight-digit pairing code</string>
     <string name="pair_name_label">What should we call them?</string>
     <string name="pair_name_placeholder">For example: Mum</string>
     <string name="pair_submit">Connect</string>
     <string name="pair_working">Connecting…</string>
     <string name="pair_cancel">Back to alerts</string>
-    <string name="pair_error_format">The code is six digits.</string>
+    <string name="pair_error_format">The code is eight digits.</string>
     <string name="pair_error_not_found">That code was not found or has run out. Ask them for a new one.</string>
     <string name="pair_error_generic">Could not connect just now. Check your internet and try again.</string>
 

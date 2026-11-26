@@ -29,7 +29,7 @@ page.on('console', (m) => (m.type() === 'error' || m.type() === 'warning') && er
 
 await page.goto(DASHBOARD);
 await page.getByRole('button', { name: 'Continue without an account' }).click();
-await page.getByLabel('Six-digit pairing code').fill('000000');
+await page.getByLabel('Eight-digit pairing code').fill('00000000');
 await page.getByLabel('What should we call them?').fill('Test');
 await page.getByRole('button', { name: 'Connect' }).click();
 await page.waitForTimeout(12_000);

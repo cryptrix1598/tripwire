@@ -17,7 +17,11 @@ import { SCAM_TYPES, TRIGGERS, type ScamType, type Trigger } from '../inference/
 import { ALERT_SUMMARY, type Outcome } from '../ui/copy';
 
 export const PAIRING_TTL_MS = 5 * 60 * 1000;
-export const PAIRING_CODE_PATTERN = /^\d{6}$/;
+/** What a family member's first name may contain. The security rules check the same thing. */
+export const GUARDIAN_NAME_PATTERN = /^\p{L}[\p{L} .'-]{0,39}$/u;
+
+// Eight digits (a hundred million codes): guessing a live one within its few minutes is not practical.
+export const PAIRING_CODE_PATTERN = /^\d{8}$/;
 /** The only fields an alert may contain. Mirrored in firestore.rules. */
 export const ALERT_FIELDS = ['createdAt', 'scamType', 'summary', 'action', 'outcome'] as const;
 export const ALERT_SUMMARY_MAX = 200;
@@ -77,6 +81,8 @@ export function applyDecision(
 
 export function generatePairingCode(): string {
   const buf = new Uint32Array(1);
-  crypto.getRandomValues(buf);
-  return String(buf[0]! % 1_000_000).padStart(6, '0');
+  // Values above the last whole multiple of 10^8 are drawn again, so every code is equally likely.
+  do crypto.getRandomValues(buf);
+  while (buf[0]! >= 4_200_000_000);
+  return String(buf[0]! % 100_000_000).padStart(8, '0');
 }

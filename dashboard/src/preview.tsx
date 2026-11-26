@@ -60,7 +60,7 @@ const status: StatusReply = {
       ({
         'get-status': status,
         'get-tab-state': { verdict: { ...verdict, state: 'caution' }, hostname: 'example.test' },
-        'pairing-code': { ok: true, code: '482913', expiresAt: Date.now() + 900_000 },
+        'pairing-code': { ok: true, code: '48291375', expiresAt: Date.now() + 900_000 },
       })[msg.type] ?? { ok: true },
   },
   tabs: { query: async () => [{ id: 1, url: 'https://example.test/' }], create: () => undefined, getCurrent: async () => null },

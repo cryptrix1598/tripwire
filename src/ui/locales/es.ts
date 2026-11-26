@@ -195,6 +195,7 @@ export const ES: LocaleBundle = {
       body: 'Puede cerrar esta pestaña. Tripwire no le molestará hasta que algo parezca raro.',
       demo: 'Ver un ejemplo de práctica',
       close: 'Cerrar esta pestaña',
+      pin: 'Consejo: si alguien le llama por dinero, por un problema con la computadora o por su banco, Tripwire puede revisar la llamada con usted. Fíjelo en la barra de herramientas (haga clic en el icono de pieza de rompecabezas, arriba a la derecha, y luego en el alfiler junto a Tripwire), después haga clic en él y elija "Alguien está al teléfono conmigo". También puede hacer clic derecho en cualquier página o pulsar Alt+Mayús+K.',
     },
   },
   POPUP: {
@@ -321,8 +322,8 @@ export const ES: LocaleBundle = {
     },
     pair: {
       title: 'Conectar con su Tripwire',
-      body: 'Pídale que abra Tripwire y elija “Mostrar un código para conectar”. Escriba aquí los seis dígitos.',
-      codeLabel: 'Código de seis dígitos',
+      body: 'Pídale que abra Tripwire y elija “Mostrar un código para conectar”. Escriba aquí los ocho dígitos.',
+      codeLabel: 'Código de ocho dígitos',
       nameLabel: '¿Cómo quiere llamarle?',
       namePlaceholder: 'Por ejemplo: Mamá',
       meLabel: 'Su nombre',
@@ -333,7 +334,7 @@ export const ES: LocaleBundle = {
       errorNotFound: 'Ese código no existe o ya caducó. Pídale uno nuevo.',
       errorGeneric: 'No se pudo conectar ahora. Revise su internet e inténtelo de nuevo.',
       errorBlocked: 'No se pudo confirmar que este navegador es un visitante real, así que se rechazó la conexión. Desactive el bloqueador de anuncios o la ventana privada en esta página, o pruebe con otro navegador.',
-      errorFormat: 'El código tiene seis dígitos.',
+      errorFormat: 'El código tiene ocho dígitos.',
     },
     feed: {
       title: 'Avisos recientes',

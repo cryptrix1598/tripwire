@@ -54,6 +54,7 @@ function PausedDownload() {
         note={pending.filename ? <p className="tw-muted">{DOWNLOAD_PAUSE.file(pending.filename)}</p> : undefined}
         onStop={() => void decide('stopped').then(() => location.replace(chrome.runtime.getURL('/safe.html')))}
         onContinue={() => void decide('continued').then(() => (pending?.page ? history.back() : closeThisTab()))}
+        onPhone={() => void chrome.tabs.create({ url: chrome.runtime.getURL('/call.html') })}
       />
     </div>
   );

@@ -130,7 +130,7 @@ function startTopFrame(ctx: ContentScriptContext): void {
     if (v.kind === 'pause') {
       return (
         <div className="tw-overlay">
-          <Pause heading="h2" verdict={v.verdict} onStop={stop} onContinue={proceed} />
+          <Pause heading="h2" verdict={v.verdict} onStop={stop} onContinue={proceed} onPhone={() => void send({ target: 'background', type: 'open-call' })} />
         </div>
       );
     }

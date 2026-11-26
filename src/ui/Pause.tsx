@@ -8,29 +8,40 @@
  */
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Trigger, Verdict } from '../inference/schemas';
-import { INTERSTITIAL, TRIP_LEAD } from './copy';
+import { INTERSTITIAL, POPUP, TRIP_LEAD } from './copy';
 import { Brand, RouteLine, SentReceipt, byPerson, flagsFor, routeExplanation } from './kit';
 
-/** A passive trip still deserves the most specific opening line we can honestly give. */
+/** What the pause is really about. A passive trip still gets the most specific reading we can honestly give. */
+function tripFor(verdict: Verdict): Trigger {
+  if (verdict.trigger !== 'passive') return verdict.trigger;
+  if (verdict.scamType === 'gift_card') return 'gift_card';
+  if (verdict.scamType === 'investment_crypto') return 'crypto_wire';
+  if (verdict.scamType === 'tech_support') return 'phone_call';
+  return 'passive';
+}
+
+/** Pauses where a scammer is usually on the phone, talking the person through it. */
+const PHONE_TRIGGERS = new Set<Trigger>(['phone_call', 'gift_card', 'crypto_wire', 'remote_download']);
+
 export function leadFor(verdict: Verdict): string {
-  let trigger: Trigger = verdict.trigger;
-  if (trigger === 'passive') {
-    if (verdict.scamType === 'gift_card') trigger = 'gift_card';
-    else if (verdict.scamType === 'investment_crypto') trigger = 'crypto_wire';
-  }
-  return TRIP_LEAD[trigger];
+  const trigger = tripFor(verdict);
+  // A tech-support page read passively keeps the general opening line.
+  return TRIP_LEAD[trigger === 'phone_call' && verdict.trigger === 'passive' ? 'passive' : trigger];
 }
 
 export function Pause({
   verdict,
   onStop,
   onContinue,
+  onPhone,
   note,
   heading = 'h1',
 }: {
   verdict: Verdict;
   onStop: () => void;
   onContinue: () => void;
+  /** Opens the phone-call check. Shown when the pause is about a call, gift cards, crypto or remote access. */
+  onPhone?: () => void;
   note?: ReactNode;
   heading?: 'h1' | 'h2';
 }) {
@@ -64,6 +75,11 @@ export function Pause({
               {INTERSTITIAL.secondary}
             </button>
           </div>
+          {onPhone && PHONE_TRIGGERS.has(tripFor(verdict)) && (
+            <button type="button" className="tw-btn tw-btn--outline" onClick={byPerson(onPhone)} style={{ alignSelf: 'flex-start' }}>
+              {POPUP.callCheck}
+            </button>
+          )}
           <div className="tw-rule">
             <button type="button" className="tw-link tw-link--strong" aria-expanded={open} onClick={() => setOpen(!open)} style={{ alignSelf: 'flex-start' }}>
               {open ? INTERSTITIAL.hideWhy : INTERSTITIAL.why}

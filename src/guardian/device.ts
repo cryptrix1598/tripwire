@@ -4,7 +4,7 @@
  * Auth: the protected person never has to create an account. The extension
  * signs in anonymously (firebase/auth/web-extension, which avoids the popup
  * and remote-script flows MV3 forbids) and that uid becomes the device id.
- * A family member links to it with a short-lived six-digit code.
+ * A family member links to it with a short-lived eight-digit code.
  */
 import { getAuth, onAuthStateChanged, signInAnonymously, type User } from 'firebase/auth/web-extension';
 import {
@@ -22,7 +22,7 @@ import {
 import { getFirebaseApp } from '../firebase/app';
 import type { ScamType, Trigger } from '../inference/schemas';
 import type { Outcome } from '../ui/copy';
-import { buildAlert, applyDecision, choosePending, generatePairingCode, PAIRING_TTL_MS } from './model';
+import { buildAlert, applyDecision, choosePending, generatePairingCode, GUARDIAN_NAME_PATTERN, PAIRING_TTL_MS } from './model';
 
 let userPromise: Promise<User> | null = null;
 
@@ -114,8 +114,8 @@ export async function guardianLinks(): Promise<{ approved: number; pending: numb
   const waiting = links.docs.filter((d) => d.data().approved !== true);
   const pendingNames = waiting
     .map((d) => d.data().name)
-    .filter((n): n is string => typeof n === 'string' && n.trim().length > 0)
-    .map((n) => n.trim().slice(0, 40));
+    .filter((n): n is string => typeof n === 'string' && GUARDIAN_NAME_PATTERN.test(n.trim()))
+    .map((n) => n.trim());
   return { approved: links.size - waiting.length, pending: waiting.length, pendingNames };
 }
 

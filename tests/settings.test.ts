@@ -213,3 +213,11 @@ describe('the answer to "someone just typed your code"', () => {
     expect(applyDecision({ approve: [], remove: [] }, false)).toEqual({ approve: [], remove: [] });
   });
 });
+
+describe('pairing codes', () => {
+  it('are eight digits, so a live code cannot practically be guessed', async () => {
+    const { generatePairingCode, PAIRING_CODE_PATTERN } = await import('../src/guardian/model');
+    for (let i = 0; i < 200; i++) expect(generatePairingCode()).toMatch(PAIRING_CODE_PATTERN);
+    expect(PAIRING_CODE_PATTERN.test('482913')).toBe(false);
+  });
+});

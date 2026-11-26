@@ -255,19 +255,17 @@ describe('redactForCloud: the privacy gate', () => {
     for (const n of ['Bob', 'Ann', 'Eve', 'Tom', 'Joe', 'Sue']) expect(out.text).not.toContain(n);
   });
 
-  it('sends the regex text when the model gives no answer at all', async () => {
+  it('closes the gate when the on-device model gives no answer at all', async () => {
     const out = await redactForCloud(text, async () => null);
-    expect(out.safeToSend).toBe(true);
-    expect(out.usedModel).toBe(false);
-    expect(out.text).toContain('[CARD]');
+    expect(out.safeToSend).toBe(false);
   });
 
-  it('survives a model that throws', async () => {
+  it('survives a model that throws, and keeps the text on the device', async () => {
     const out = await redactForCloud(text, async () => {
       throw new Error('model crashed');
     });
-    expect(out.safeToSend).toBe(true);
-    expect(out.usedModel).toBe(false);
+    expect(out.safeToSend).toBe(false);
+    expect(out.text).toBe('');
   });
 
   it('closes the gate when the model puts a removed value back', async () => {

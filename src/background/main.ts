@@ -10,7 +10,7 @@ import { applySensitivity, isTrusted, loadSettings } from '../config/settings';
 import { loadConfig } from '../config/store';
 import type { AiEngine } from '../inference/engine';
 import { assess, escalateForAction } from '../inference/router';
-import { DOWNLOAD_PAUSE, RULE_FLAG } from '../ui/copy';
+import { DOWNLOAD_PAUSE, POPUP, RULE_FLAG } from '../ui/copy';
 import type { Verdict } from '../inference/schemas';
 import {
   send,
@@ -209,6 +209,9 @@ async function handle(msg: ToBackground, sender: chrome.runtime.MessageSender): 
     case 'outcome':
       await handleOutcome(msg, tabId);
       return { ok: true };
+    case 'open-call':
+      await openCallCheck();
+      return { ok: true };
     case 'leave':
       if (tabId !== undefined) await chrome.tabs.update(tabId, { url: chrome.runtime.getURL('/safe.html') });
       return { ok: true };
@@ -300,6 +303,11 @@ async function inspectDownload(id: number, ...names: Array<string | undefined>):
   await chrome.tabs.create({ url: chrome.runtime.getURL(`/pause.html#${id}`), active: true });
 }
 
+/** The phone-call check, in its own tab. */
+async function openCallCheck(): Promise<void> {
+  await chrome.tabs.create({ url: chrome.runtime.getURL('/call.html'), active: true });
+}
+
 /* ---------- wiring ---------- */
 
 export function startBackground(): void {
@@ -307,7 +315,18 @@ export function startBackground(): void {
     if (details.reason === 'install') {
       void chrome.tabs.create({ url: chrome.runtime.getURL('/onboarding.html') });
     }
+    // Right-click on any page, or on the toolbar icon: "Someone is on the phone with me".
+    chrome.contextMenus.removeAll(() => {
+      chrome.contextMenus.create({ id: 'check-a-call', title: POPUP.callCheck, contexts: ['page', 'action'] }, () => void chrome.runtime.lastError);
+    });
     void toOffscreen({ target: 'offscreen', type: 'refresh-config' });
+  });
+
+  chrome.contextMenus.onClicked.addListener((info) => {
+    if (info.menuItemId === 'check-a-call') void openCallCheck();
+  });
+  chrome.commands.onCommand.addListener((command) => {
+    if (command === 'check-a-call') void openCallCheck();
   });
 
   chrome.runtime.onStartup.addListener(() => {

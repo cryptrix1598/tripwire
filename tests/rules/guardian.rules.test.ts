@@ -15,7 +15,7 @@ import { SCAM_TYPES } from '../../src/inference/schemas';
 const DEVICE = 'device-mum';
 const GUARDIAN = 'guardian-sam';
 const STRANGER = 'stranger';
-const CODE = '482913';
+const CODE = '48291375';
 
 let env: RulesTestEnvironment;
 const as = (uid: string) => env.authenticatedContext(uid).firestore();
@@ -227,6 +227,16 @@ describe('the name on a link', () => {
     await assertFails(claim(''));
     await assertFails(claim('x'.repeat(41)));
     await assertFails(claim(42));
+  });
+  it('a name with accents or a hyphen is accepted', async () => {
+    await seedCode();
+    await assertSucceeds(claim("Zoë O'Neil-Smith"));
+  });
+  it('a name with digits or symbols is refused, so it cannot carry a phone number or a link', async () => {
+    await seedCode();
+    await assertFails(claim('Microsoft Support 1-800-555-0101'));
+    await assertFails(claim('Call me at bank.example'.replace('.', '/')));
+    await assertFails(claim(' Sam'));
   });
 });
 

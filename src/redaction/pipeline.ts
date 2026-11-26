@@ -13,8 +13,12 @@
  * if its output is unusable or does not pass the leak check, the gate closes
  * (`safeToSend` is false) and the router keeps the verdict local. Sending the
  * regex-only text instead would send the names the model had just found.
- * Only when no model is available, or it failed to answer at all, is the
- * regex-only text sent.
+ * When the on-device model is available but fails to answer (a timeout, an
+ * invalid answer), the gate closes too: the text would otherwise go out with
+ * only the regex pass under a badge that says the device removed the names.
+ * Only when there is no on-device model at all is the regex-only text sent,
+ * and that path has its own badge ("personal info removed before checking",
+ * "the names, numbers and addresses it could recognise").
  */
 import { PrivacyInvariantError } from '../inference/engine';
 import { countTags, findLeaks, regexRedact } from './regex';
@@ -60,9 +64,10 @@ export async function redactForCloud(original: string, modelRedactor?: ModelReda
     } catch (err) {
       // An on-device call that ran in the cloud is not "no model": the caller must stop.
       if (err instanceof PrivacyInvariantError) throw err;
-      // A model that failed to answer is the same as no model: the regex pass already ran.
     }
-    if (rewritten !== null) {
+    // The device was meant to look and could not: keep the verdict local rather than send a weaker redaction.
+    if (rewritten === null) return CLOSED;
+    {
       // The model answered. Its findings must not be dropped, so an unusable answer closes the gate.
       if (!usableResult(first.text, rewritten)) return CLOSED;
       // Second regex pass over the model's output, in case it produced anything pattern-shaped.

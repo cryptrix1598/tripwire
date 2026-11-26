@@ -44,11 +44,12 @@ describe('on-device redaction by listing', () => {
     expect(sent).toContain('Thornwick depot');
   });
 
-  it('still sends (regex-redacted) text when the model gives a malformed answer', async () => {
+  it('sends nothing when the model gives a malformed answer: the verdict stays on the device', async () => {
     const { e, analyzeInCloud } = engine({ nonsense: true });
     const v = await run(e);
-    expect(analyzeInCloud).toHaveBeenCalledTimes(1);
-    expect(v.route).toBe('device_then_cloud');
+    expect(analyzeInCloud).not.toHaveBeenCalled();
+    expect(v.route).toBe('on_device');
+    expect(v.bytesSentToCloud).toBe(0);
   });
 });
 

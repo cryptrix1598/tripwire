@@ -32,7 +32,7 @@ service cloud.firestore {
 
     function validNewCode(code) {
       let d = request.resource.data;
-      return code.matches('^[0-9]{6}$')
+      return code.matches('^[0-9]{8}$')
         && d.keys().hasOnly(['deviceId', 'createdAt', 'expiresAt'])
         && d.deviceId == request.auth.uid
         && d.createdAt == request.time
@@ -121,10 +121,13 @@ service cloud.firestore {
           && request.auth.uid == guardianId
           && request.auth.uid != deviceId
           && request.resource.data.keys().hasOnly(['code', 'pairedAt', 'name'])
+          // A first name only: letters, spaces, hyphens, apostrophes and full stops. No digits, so
+          // "Microsoft Support 1-800..." cannot appear in the "just typed your code" prompt.
           && (!('name' in request.resource.data) || (request.resource.data.name is string
-              && request.resource.data.name.size() >= 1 && request.resource.data.name.size() <= 40))
+              && request.resource.data.name.size() >= 1 && request.resource.data.name.size() <= 40
+              && request.resource.data.name.matches("^\\p{L}[\\p{L} .'-]{0,39}$")))
           && request.resource.data.code is string
-          && request.resource.data.code.matches('^[0-9]{6}$')
+          && request.resource.data.code.matches('^[0-9]{8}$')
           && request.resource.data.pairedAt == request.time
           && exists(/databases/$(database)/documents/pairingCodes/$(request.resource.data.code))
           && get(/databases/$(database)/documents/pairingCodes/$(request.resource.data.code)).data.deviceId == deviceId

@@ -195,6 +195,7 @@ export const FR: LocaleBundle = {
       body: 'Vous pouvez fermer cet onglet. Tripwire ne vous dérangera pas tant que rien ne semble anormal.',
       demo: 'Voir un exemple d’entraînement',
       close: 'Fermer cet onglet',
+      pin: 'Astuce : si quelqu’un vous appelle au sujet d’argent, d’un problème d’ordinateur ou de votre banque, Tripwire peut vérifier l’appel avec vous. Épinglez-le à la barre d’outils (cliquez sur l’icône en forme de pièce de puzzle en haut à droite, puis sur l’épingle à côté de Tripwire), puis cliquez dessus et choisissez « Quelqu’un est au téléphone avec moi ». Vous pouvez aussi faire un clic droit sur n’importe quelle page, ou appuyer sur Alt+Maj+K.',
     },
   },
   POPUP: {
@@ -321,8 +322,8 @@ export const FR: LocaleBundle = {
     },
     pair: {
       title: 'Se connecter à son Tripwire',
-      body: 'Demandez-lui d’ouvrir Tripwire et de choisir « Afficher un code d’association ». Tapez les six chiffres ici.',
-      codeLabel: 'Code à six chiffres',
+      body: 'Demandez-lui d’ouvrir Tripwire et de choisir « Afficher un code d’association ». Tapez les huit chiffres ici.',
+      codeLabel: 'Code à huit chiffres',
       nameLabel: 'Comment voulez-vous l’appeler ?',
       namePlaceholder: 'Par exemple : Maman',
       meLabel: 'Votre prénom',
@@ -333,7 +334,7 @@ export const FR: LocaleBundle = {
       errorNotFound: 'Ce code est introuvable ou a expiré. Demandez-lui un nouveau code.',
       errorGeneric: 'Connexion impossible pour l’instant. Vérifiez internet et réessayez.',
       errorBlocked: 'Ce navigateur n’a pas pu être confirmé comme un vrai visiteur, la connexion a donc été refusée. Désactivez le bloqueur de publicités ou la navigation privée pour cette page, ou essayez un autre navigateur.',
-      errorFormat: 'Le code a six chiffres.',
+      errorFormat: 'Le code a huit chiffres.',
     },
     feed: {
       title: 'Alertes récentes',

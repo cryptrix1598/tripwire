@@ -14,19 +14,19 @@ class ModelTest {
     private fun at(day: Int, hour: Int) = ZonedDateTime.of(2026, 11, day, hour, 0, 0, 0, zone).toInstant().toEpochMilli()
 
     @Test
-    fun `pairing code accepts six digits with spaces or a dash`() {
-        assertEquals("482913", Pairing.cleanCode("482913"))
-        assertEquals("482913", Pairing.cleanCode("482 913"))
-        assertEquals("482913", Pairing.cleanCode(" 482-913 "))
+    fun `pairing code accepts eight digits with spaces or a dash`() {
+        assertEquals("48291375", Pairing.cleanCode("48291375"))
+        assertEquals("48291375", Pairing.cleanCode("4829 1375"))
+        assertEquals("48291375", Pairing.cleanCode(" 4829-1375 "))
     }
 
     @Test
     fun `pairing code rejects anything else`() {
         assertNull(Pairing.cleanCode(""))
-        assertNull(Pairing.cleanCode("48291"))
-        assertNull(Pairing.cleanCode("4829134"))
-        assertNull(Pairing.cleanCode("48291a"))
-        assertNull(Pairing.cleanCode("482913; drop"))
+        assertNull(Pairing.cleanCode("482913"))
+        assertNull(Pairing.cleanCode("482913751"))
+        assertNull(Pairing.cleanCode("4829137a"))
+        assertNull(Pairing.cleanCode("48291375; drop"))
     }
 
     @Test
