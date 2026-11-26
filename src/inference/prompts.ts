@@ -97,6 +97,7 @@ const TRIGGER_CONTEXT: Record<Trigger, string> = {
   phone_call: 'The reader is being urged to call a phone number shown here.',
   gift_card: 'The reader is being asked to buy gift cards.',
   crypto_wire: 'The reader is being asked to send crypto or a wire transfer.',
+  live_call: 'The reader is on a phone call and checking what the caller asks for.',
 };
 
 export interface PromptContext {

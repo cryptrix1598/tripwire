@@ -10,13 +10,13 @@
  * whole long page.
  */
 const MONEY =
-  /[$£€]\s?\d|\b(?:pay(?:ment|ing)?|fees?|charges?|deposit|transfer|wire|refund(?:ed|s)?|bail|cash|gift\s?cards?|prepaid|vouchers?|money\s?order|bitcoin|usdt|crypto(?:currency)?|western union|moneypak|zelle|savings|balance|invoice)\b/i;
+  /[$£€]\s?\d|\b(?:pay(?:ment|ing)?|fees?|charges?|deposit|transfer|wire|refund(?:ed|s)?|bail|cash|gift\s?cards?|prepaid|vouchers?|money\s?order|bitcoin|usdt|crypto(?:currency)?|western union|moneypak|zelle|savings|balance|invoice|pagar|pago|tarifa|transferencia|giro|tarjetas? de regalo|efectivo|fianza|ahorros|saldo|factura|reembolso|payer|paiement|frais|virement|cartes? cadeaux?|esp[eè]ces|amende|remboursement)\b/i;
 const PRESSURE =
-  /\b(?:today|right now|immediately|urgent(?:ly)?|as soon as possible|asap|hurry|quickly|final (?:notice|warning|courtesy)|within \d+\s*(?:minutes?|hours?|days?)|before \d|expires?|deadline|act now|last chance|suspended|disconnect(?:ed|ion)?|forfeited|inactive|locked|frozen|arrest|warrant)\b/i;
+  /\b(?:today|right now|immediately|urgent(?:ly)?|as soon as possible|asap|hurry|quickly|final (?:notice|warning|courtesy)|within \d+\s*(?:minutes?|hours?|days?)|before \d|expires?|deadline|act now|last chance|suspended|disconnect(?:ed|ion)?|forfeited|inactive|locked|frozen|arrest|warrant|hoy|ahora mismo|inmediatamente|de inmediato|urgente|en \d+\s*horas?|bloquead[ao]|suspendid[ao]|congelad[ao]|arresto|aujourd.hui|imm[eé]diatement|tout de suite|dans \d+\s*heures?|bloqu[eé]e?|suspendue?|gel[eé]e?|arrestation|dernier avis)\b/i;
 const SECRECY =
-  /\b(?:do(?:n't| not) (?:tell|mention|discuss|contact|visit|telephone)|keep (?:this|it|the [a-z ]{0,24}?) ?(?:confidential|private|secret|quiet|between us|inside)|(?:stay|remain) on the line|confidential|just say it is|say it is for)\b/i;
+  /\b(?:do(?:n't| not) (?:tell|mention|discuss|contact|visit|telephone)|keep (?:this|it|the [a-z ]{0,24}?) ?(?:confidential|private|secret|quiet|between us|inside)|(?:stay|remain) on the line|confidential|just say it is|say it is for|no (?:se )?(?:lo |le )?diga|no hable con|mant[eé]ngalo en secreto|confidencial|no cuelgue|ne (?:le )?dites|n.en parlez|gardez (?:cela|le|ceci) secret|confidentiel(?:le)?|restez en ligne|ne raccrochez pas)\b/i;
 const CREDENTIAL =
-  /\b(?:card number|security code|cvv|cvc|verification code|one-time (?:code|passcode|password)|passcode|password|pin\b|social security|medicare number|date of birth|bank account|online banking|remote (?:access|session|support)|screen.?share|support session|read (?:me |him |her |them )?the (?:numbers|codes))\b/i;
+  /\b(?:card number|security code|cvv|cvc|verification code|one-time (?:code|passcode|password)|passcode|password|pin\b|social security|medicare number|date of birth|bank account|online banking|remote (?:access|session|support)|screen.?share|support session|read (?:me |him |her |them )?the (?:numbers|codes)|n[uú]mero de (?:su )?tarjeta|c[oó]digo de (?:seguridad|verificaci[oó]n)|contrase[nñ]a|seguro social|fecha de nacimiento|cuenta bancaria|acceso remoto|banca en l[ií]nea|num[eé]ro de carte|code de (?:s[eé]curit[eé]|v[eé]rification)|mot de passe|s[eé]curit[eé] sociale|date de naissance|compte bancaire|acc[eè]s [aà] distance|prise en main [aà] distance)\b/i;
 const PHONE = /(?:\+?\d[\d\s().-]{8,}\d)/;
 
 /**
@@ -25,7 +25,7 @@ const PHONE = /(?:\+?\d[\d\s().-]{8,}\d)/;
  * or a look at your screen. (A corpus run paused an ordinary checkout before this distinction.)
  */
 const SENSITIVE =
-  /\b(?:social security|medicare number|online banking|remote (?:access|session|support)|screen.?share|support session|verification code|one-time (?:code|passcode|password)|passcode|password|date of birth|read (?:me |him |her |them )?the (?:numbers|codes)|voucher numbers|card numbers and pins)\b/i;
+  /\b(?:social security|medicare number|online banking|remote (?:access|session|support)|screen.?share|support session|verification code|one-time (?:code|passcode|password)|passcode|password|date of birth|read (?:me |him |her |them )?the (?:numbers|codes)|voucher numbers|card numbers and pins|seguro social|c[oó]digo de verificaci[oó]n|contrase[nñ]a|banca en l[ií]nea|acceso remoto|fecha de nacimiento|s[eé]curit[eé] sociale|code de v[eé]rification|mot de passe|acc[eè]s [aà] distance|date de naissance)\b/i;
 
 export interface Shape {
   /** An ask a real shop would not make (see SENSITIVE). */

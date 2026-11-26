@@ -133,6 +133,8 @@ export const TRIGGERS = [
   'phone_call',
   'gift_card',
   'crypto_wire',
+  // The person checked a phone call they are on (the call page).
+  'live_call',
 ] as const;
 export type Trigger = (typeof TRIGGERS)[number];
 

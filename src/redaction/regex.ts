@@ -92,9 +92,19 @@ const GREETING_RE = new RegExp(
 );
 const TITLED_NAME_RE = new RegExp(String.raw`\b${TITLE}\s+${NAME_WORD}(?:\s+${NAME_WORD})?`, 'g');
 const LABELED_NAME_RE = new RegExp(
-  String.raw`\b(Name|Full name|Account holder|Account name|Cardholder name|Cardholder|Customer name|Recipient|Beneficiary name|Signed|Sincerely|Regards|Best regards|Kind regards|Thank you|Thanks|Love|Yours truly|From)(\s*[:,]?\s+)(${NAME_WORD}(?:\s+${NAME_WORD}){1,2})(?=[\s,.;!]|$)`,
+  String.raw`\b(Name|Full name|Account holder|Account name|Cardholder name|Cardholder|Customer name|Recipient|Beneficiary name|Signed|Sincerely|Regards|Best regards|Kind regards|Thank you|Thanks|Love|Yours truly|From)(\s*[:,]?\s+)(${NAME_WORD}(?:[ \t]+${NAME_WORD}){1,2})(?=[\s,.;!]|$)`,
   'g',
 );
+/**
+ * A single name on its own after a sign-off ("Regards, Tom"), and a full name after a
+ * self-introduction ("This is Tom Baker"). Off the device, these were the commonest way an
+ * unusual name got past redaction.
+ */
+const SIGNOFF_NAME_RE = new RegExp(
+  String.raw`\b(Sincerely|Regards|Best regards|Kind regards|Warm regards|Best wishes|Thanks|Thank you|Cheers|Love|Warmly|Yours truly|Yours sincerely|Yours faithfully)(,[ \t]*\n?[ \t]*|[ \t]*\n[ \t]*)(${NAME_WORD})(?=[\s,.;!]|$)`,
+  'g',
+);
+const INTRO_NAME_RE = new RegExp(String.raw`\b(This is|My name is|I am|I'm)(\s+)(${NAME_WORD}\s+${NAME_WORD})(?=[\s,.;!]|$)`, 'g');
 /** A common given name (capitalised), with up to two surname words after it. */
 const SURNAME_WORD = String.raw`(?:O'[A-Z][a-z]+|Mc[A-Z][a-z]+|${NAME_WORD})`;
 const GIVEN_NAME_RE = new RegExp(
@@ -243,6 +253,15 @@ export function regexRedact(input: string): RegexRedaction {
     hit('NAME', name);
     return `${label}${gap}${TAG('NAME')}`;
   });
+
+  for (const re of [SIGNOFF_NAME_RE, INTRO_NAME_RE]) {
+    text = text.replace(re, (m, label: string, gap: string, name: string) => {
+      const first = name.split(/\s+/)[0]?.toLowerCase() ?? '';
+      if (NOT_A_NAME.has(first) || NAME_LIKE_BRANDS.has(first)) return m;
+      hit('NAME', name);
+      return `${label}${gap}${TAG('NAME')}`;
+    });
+  }
 
   text = text.replace(TITLED_NAME_RE, (m) => {
     hit('NAME', m);

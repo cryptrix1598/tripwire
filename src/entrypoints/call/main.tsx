@@ -39,7 +39,7 @@ function CallCheck() {
       const reply = await send<AssessReply>({
         target: 'background',
         type: 'assess',
-        input: { text: describeCall({ ...answers, notes: text.trim().slice(0, 3000) }), hostname: 'phone call', trigger: 'phone_call', source: 'call', neverSafe: neverSafe(answers), nothingAskedYet: nothingAskedYet(answers), language: navigator.language },
+        input: { text: describeCall({ ...answers, notes: text.trim().slice(0, 3000) }), hostname: 'phone call', trigger: 'live_call', source: 'call', neverSafe: neverSafe(answers), nothingAskedYet: nothingAskedYet(answers), language: navigator.language },
       });
       if (reply?.verdict) setVerdict(reply.verdict);
       else setFailed(true);
@@ -52,7 +52,7 @@ function CallCheck() {
 
   const hungUp = () => {
     if (verdict && verdict.state !== 'safe') {
-      void send({ target: 'background', type: 'outcome', scamType: verdict.scamType, trigger: 'phone_call', outcome: 'stopped', hostname: 'phone call' });
+      void send({ target: 'background', type: 'outcome', scamType: verdict.scamType, trigger: 'live_call', outcome: 'stopped', hostname: 'phone call' });
     }
     setDone(true);
   };

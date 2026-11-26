@@ -83,7 +83,7 @@ if (summary.falsePositives > 0) {
   for (const c of set.calls) {
     const answers = { who: c.who, want: c.want, how: c.how, notes: c.notes };
     const v = await assess(
-      { text: describeCall(answers), hostname: 'phone call', trigger: 'phone_call', source: 'call', neverSafe: neverSafe(answers), nothingAskedYet: nothingAskedYet(answers) },
+      { text: describeCall(answers), hostname: 'phone call', trigger: 'live_call', source: 'call', neverSafe: neverSafe(answers), nothingAskedYet: nothingAskedYet(answers) },
       { engine: noModelEngine, config: DEFAULT_CONFIG },
     );
     const flagged = v.state !== 'safe';

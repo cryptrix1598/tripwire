@@ -90,6 +90,7 @@
     <string name="action_card_entry">Started typing a card number</string>
     <string name="action_remote_download">Started downloading a remote-access program</string>
     <string name="action_phone_call">Was urged to call a number</string>
+    <string name="action_live_call">Checked a phone call that asked for money or details</string>
     <string name="action_gift_card">Was asked to pay with gift cards</string>
     <string name="action_crypto_wire">Was asked to send crypto or a wire</string>
 </resources>

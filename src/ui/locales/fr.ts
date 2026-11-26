@@ -63,6 +63,7 @@ export const FR: LocaleBundle = {
     phone_call: 'Cette page vous pousse à appeler un numéro de téléphone tout de suite.',
     gift_card: 'Ce message vous demande de payer avec des cartes cadeaux. Seuls les escrocs demandent cela.',
     crypto_wire: 'Ce message vous demande d’envoyer de l’argent d’une façon qui ne peut pas être annulée.',
+    live_call: 'Un interlocuteur demande ce que demandent les escrocs.',
   },
   INTERSTITIAL: {
     dialogLabel: 'Tripwire a mis cette page en pause',
@@ -279,7 +280,7 @@ export const FR: LocaleBundle = {
     other: 'Page suspecte',
   },
   ALERT_SUMMARY_SHOWN: {
-    none: 'Une page montrait plusieurs signes d’arnaque.',
+    none: 'Tripwire a vu plusieurs signes d’arnaque.',
     tech_support: 'Une page affirmait que l’ordinateur avait un problème et poussait à appeler ou à donner un accès à distance.',
     gift_card: 'Un message demandait un paiement en cartes cadeaux.',
     bank_impersonation: 'Un message se faisant passer pour une banque demandait des données de compte ou de carte.',
@@ -291,7 +292,7 @@ export const FR: LocaleBundle = {
     romance: 'Quelqu’un a demandé d’envoyer de l’argent d’une façon impossible à annuler.',
     payment_request: 'Une page demandait un paiement inattendu ou un numéro de carte.',
     phishing_login: 'Une page qui ressemblait à une page de connexion demandait un mot de passe.',
-    other: 'Une page montrait plusieurs signes d’arnaque.',
+    other: 'Tripwire a vu plusieurs signes d’arnaque.',
   },
   TRIGGER_LABEL: {
     passive: 'A ouvert une page suspecte',
@@ -300,6 +301,7 @@ export const FR: LocaleBundle = {
     phone_call: 'A été poussé à appeler un numéro',
     gift_card: 'On lui a demandé de payer en cartes cadeaux',
     crypto_wire: 'On lui a demandé d’envoyer de la crypto ou un virement',
+    live_call: 'A vérifié un appel qui demandait de l’argent ou des données',
   },
   DASHBOARD: {
     title: 'Page famille de Tripwire',

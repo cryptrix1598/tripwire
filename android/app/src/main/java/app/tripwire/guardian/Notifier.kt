@@ -74,6 +74,7 @@ object Labels {
         "phone_call" -> R.string.action_phone_call
         "gift_card" -> R.string.action_gift_card
         "crypto_wire" -> R.string.action_crypto_wire
+        "live_call" -> R.string.action_live_call
         else -> R.string.action_passive
     }
 }

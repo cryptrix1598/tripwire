@@ -48,6 +48,22 @@ export function buildAlert(scamType: ScamType, trigger: Trigger, outcome: Outcom
 }
 
 /** Six random digits from the platform CSPRNG. */
+/**
+ * Which waiting links the person's "Yes, allow" applies to: only one made with the code that is
+ * on screen now (or, if Tripwire restarted and forgot it, one made within that code's lifetime).
+ * Every other waiting link, such as one left over from an older code, is removed.
+ */
+export function choosePending(
+  links: ReadonlyArray<{ id: string; code?: string; pairedAtMs?: number; approved?: boolean }>,
+  liveCode: string | null,
+  nowMs: number,
+): { approve: string[]; remove: string[] } {
+  const waiting = links.filter((l) => l.approved !== true);
+  const current = (l: (typeof waiting)[number]) =>
+    liveCode ? l.code === liveCode : l.pairedAtMs !== undefined && nowMs - l.pairedAtMs <= PAIRING_TTL_MS;
+  return { approve: waiting.filter(current).map((l) => l.id), remove: waiting.filter((l) => !current(l)).map((l) => l.id) };
+}
+
 export function generatePairingCode(): string {
   const buf = new Uint32Array(1);
   crypto.getRandomValues(buf);

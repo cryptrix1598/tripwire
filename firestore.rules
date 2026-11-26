@@ -46,7 +46,7 @@ service cloud.firestore {
     // exactly this sentence, an alert cannot carry free text of any kind.
     function summaryFor(scamType) {
       return {
-        'none': 'A page showed several warning signs of a scam.',
+        'none': 'Tripwire saw several warning signs of a scam.',
         'tech_support': 'A page claimed the computer had a problem and pushed for a call or remote access.',
         'gift_card': 'A message asked for payment in gift cards.',
         'bank_impersonation': 'A message posing as a bank asked for account or card details.',
@@ -58,7 +58,7 @@ service cloud.firestore {
         'romance': 'Someone asked for money to be sent in a way that cannot be undone.',
         'payment_request': 'A page asked for an unexpected payment or card number.',
         'phishing_login': 'A page that looked like a sign-in screen asked for a password.',
-        'other': 'A page showed several warning signs of a scam.'
+        'other': 'Tripwire saw several warning signs of a scam.'
       }[scamType];
     }
 
@@ -133,7 +133,7 @@ service cloud.firestore {
              ]
           && request.resource.data.summary == summaryFor(request.resource.data.scamType)
           && request.resource.data.action in [
-               'passive', 'card_entry', 'remote_download', 'phone_call', 'gift_card', 'crypto_wire'
+               'passive', 'card_entry', 'remote_download', 'phone_call', 'gift_card', 'crypto_wire', 'live_call'
              ]
           && request.resource.data.outcome in ['stopped', 'continued'];
         // Alerts are an immutable record.

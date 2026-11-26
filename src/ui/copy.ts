@@ -96,6 +96,7 @@ export const TRIP_LEAD: Record<Trigger, string> = {
   phone_call: 'This page is pushing you to call a phone number right away.',
   gift_card: 'This message asks you to pay with gift cards. Only scammers ask for that.',
   crypto_wire: 'This message asks you to send money in a way that cannot be undone.',
+  live_call: 'A caller is asking for something scammers ask for.',
 };
 
 export const INTERSTITIAL = {
@@ -416,7 +417,7 @@ export const SCAM_TYPE_LABEL: Record<ScamType, string> = {
  * scam type, so it is impossible for page or email content to end up in it.
  */
 export const ALERT_SUMMARY: Record<ScamType, string> = {
-  none: 'A page showed several warning signs of a scam.',
+  none: 'Tripwire saw several warning signs of a scam.',
   tech_support: 'A page claimed the computer had a problem and pushed for a call or remote access.',
   gift_card: 'A message asked for payment in gift cards.',
   bank_impersonation: 'A message posing as a bank asked for account or card details.',
@@ -428,7 +429,7 @@ export const ALERT_SUMMARY: Record<ScamType, string> = {
   romance: 'Someone asked for money to be sent in a way that cannot be undone.',
   payment_request: 'A page asked for an unexpected payment or card number.',
   phishing_login: 'A page that looked like a sign-in screen asked for a password.',
-  other: 'A page showed several warning signs of a scam.',
+  other: 'Tripwire saw several warning signs of a scam.',
 };
 
 /** The same sentences, for showing on the family page in the reader's language. Never stored. */
@@ -441,6 +442,7 @@ export const TRIGGER_LABEL: Record<Trigger, string> = {
   phone_call: 'Was urged to call a number',
   gift_card: 'Was asked to pay with gift cards',
   crypto_wire: 'Was asked to send crypto or a wire',
+  live_call: 'Checked a phone call that asked for money or details',
 };
 
 export const OUTCOME_LABEL = {

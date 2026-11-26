@@ -284,3 +284,18 @@ describe('names in ordinary prose, with no on-device model', () => {
     expect(once).not.toMatch(/Susan|Patel|James/);
   });
 });
+
+describe('names after sign-offs and introductions', () => {
+  it('removes a lone unusual name after a sign-off, and a full name after "This is"', async () => {
+    const { regexRedact: r } = await import('../src/redaction/regex');
+    const out = r('Please call back today.\nRegards,\nThaddeus\n\nThis is Ignatius Okonkwo from the fraud team.').text;
+    expect(out).not.toContain('Thaddeus');
+    expect(out).not.toContain('Ignatius');
+    expect(out).not.toContain('Okonkwo');
+  });
+  it('leaves ordinary words and brands after those phrases alone', async () => {
+    const { regexRedact: r } = await import('../src/redaction/regex');
+    const out = r('Thanks, Team. This is Amazon Customer Service.').text;
+    expect(out).toContain('Team');
+  });
+});

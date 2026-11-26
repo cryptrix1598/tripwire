@@ -22,7 +22,7 @@ import {
 import { getFirebaseApp } from '../firebase/app';
 import type { ScamType, Trigger } from '../inference/schemas';
 import type { Outcome } from '../ui/copy';
-import { buildAlert, generatePairingCode, PAIRING_TTL_MS } from './model';
+import { buildAlert, choosePending, generatePairingCode, PAIRING_TTL_MS } from './model';
 
 let userPromise: Promise<User> | null = null;
 
@@ -66,7 +66,7 @@ export async function retirePairingCode(): Promise<void> {
   try {
     await deleteDoc(doc(getFirestore(getFirebaseApp()), 'pairingCodes', code));
   } catch {
-    // It expires on its own within 15 minutes.
+    // It expires on its own within 5 minutes.
   }
 }
 
@@ -127,10 +127,18 @@ export async function decidePending(allow: boolean): Promise<number> {
   const user = await ensureSignedIn();
   const db = getFirestore(getFirebaseApp());
   const links = await getDocs(collection(db, 'devices', user.uid, 'guardians'));
-  const waiting = links.docs.filter((d) => d.data().approved !== true);
-  await Promise.all(waiting.map((d) => (allow ? updateDoc(d.ref, { approved: true }) : deleteDoc(d.ref))));
+  const rows = links.docs.map((d) => {
+    const data = d.data() as { code?: string; approved?: boolean; pairedAt?: Timestamp };
+    return { id: d.id, code: data.code, approved: data.approved, pairedAtMs: data.pairedAt?.toMillis() };
+  });
+  const { approve, remove } = choosePending(rows, liveCode, Date.now());
+  const byId = new Map(links.docs.map((d) => [d.id, d.ref]));
+  await Promise.all([
+    ...(allow ? approve : [...approve, ...remove]).map((id) => (allow && approve.includes(id) ? updateDoc(byId.get(id)!, { approved: true }) : deleteDoc(byId.get(id)!))),
+    ...(allow ? remove.map((id) => deleteDoc(byId.get(id)!)) : []),
+  ]);
   await retirePairingCode();
-  return waiting.length;
+  return allow ? approve.length : 0;
 }
 
 /**

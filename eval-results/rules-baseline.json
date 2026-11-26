@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-11-26T15:35:20.912Z",
+  "ranAt": "2026-11-26T15:54:11.766Z",
   "mode": "rules-only baseline (Node, no AI)",
   "promptVersion": "v1",
   "scams": 25,
@@ -25,7 +25,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 27,
+      "elapsedMs": 22,
       "correct": true
     },
     {
@@ -38,7 +38,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 6,
+      "elapsedMs": 10,
       "correct": true
     },
     {
@@ -51,7 +51,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 0,
+      "elapsedMs": 1,
       "correct": false
     },
     {
@@ -77,7 +77,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 0,
+      "elapsedMs": 1,
       "correct": true
     },
     {
@@ -90,7 +90,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 1,
+      "elapsedMs": 2,
       "correct": true
     },
     {
@@ -103,7 +103,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 0,
+      "elapsedMs": 1,
       "correct": true
     },
     {
@@ -116,7 +116,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 1,
+      "elapsedMs": 0,
       "correct": false
     },
     {
@@ -129,7 +129,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 0,
+      "elapsedMs": 1,
       "correct": true
     },
     {
@@ -155,7 +155,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 1,
+      "elapsedMs": 0,
       "correct": true
     },
     {
@@ -207,7 +207,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 0,
+      "elapsedMs": 1,
       "correct": true
     },
     {
@@ -220,7 +220,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 1,
+      "elapsedMs": 0,
       "correct": true
     },
     {
@@ -246,7 +246,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 0,
+      "elapsedMs": 1,
       "correct": true
     },
     {
@@ -259,7 +259,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 1,
+      "elapsedMs": 0,
       "correct": true
     },
     {
@@ -285,7 +285,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 1,
+      "elapsedMs": 0,
       "correct": true
     },
     {
@@ -298,7 +298,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 0,
+      "elapsedMs": 1,
       "correct": true
     },
     {
@@ -324,7 +324,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 1,
+      "elapsedMs": 0,
       "correct": true
     },
     {
@@ -337,7 +337,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 0,
+      "elapsedMs": 1,
       "correct": true
     },
     {
@@ -376,7 +376,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 0,
+      "elapsedMs": 1,
       "correct": true
     },
     {
@@ -415,7 +415,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 1,
+      "elapsedMs": 0,
       "correct": true
     },
     {
@@ -454,7 +454,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 0,
+      "elapsedMs": 1,
       "correct": true
     },
     {
@@ -493,7 +493,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 1,
+      "elapsedMs": 0,
       "correct": true
     },
     {
@@ -506,7 +506,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 0,
+      "elapsedMs": 1,
       "correct": true
     },
     {
@@ -558,7 +558,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 0,
+      "elapsedMs": 1,
       "correct": true
     },
     {
@@ -571,7 +571,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 1,
+      "elapsedMs": 0,
       "correct": true
     },
     {
@@ -636,7 +636,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 0,
+      "elapsedMs": 1,
       "correct": true
     },
     {

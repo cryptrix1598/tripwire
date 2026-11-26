@@ -179,3 +179,23 @@ describe('interface language', () => {
     }
   });
 });
+
+import { choosePending } from '../src/guardian/model';
+describe('"Yes, allow" applies only to the code on screen', () => {
+  const now = 1_000_000_000;
+  const links = [
+    { id: 'sam', code: '111111', pairedAtMs: now - 60_000 },
+    { id: 'stale', code: '222222', pairedAtMs: now - 60 * 60_000 },
+    { id: 'kept', code: '333333', approved: true },
+  ];
+  it('approves the link made with the live code and removes other waiting links', () => {
+    expect(choosePending(links, '111111', now)).toEqual({ approve: ['sam'], remove: ['stale'] });
+  });
+  it('after a restart, approves only a link made within one code lifetime', () => {
+    expect(choosePending(links, null, now)).toEqual({ approve: ['sam'], remove: ['stale'] });
+  });
+  it('never touches a link the person already allowed', () => {
+    const { approve, remove } = choosePending(links, '999999', now);
+    expect([...approve, ...remove]).not.toContain('kept');
+  });
+});
