@@ -5,7 +5,9 @@
 // remote-access vendors, gift card and crypto explainers, news). Page text is
 // read the way the extension reads it (visible text) and is not stored.
 // Results, with latency, are saved to eval-results/holdout/.
+import { spawn } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { createInterface } from 'node:readline';
 import { resolve } from 'node:path';
 import { chromium } from 'playwright';
 import { createServer } from 'vite';
@@ -16,6 +18,14 @@ const disabled = (/disabledFeatures = \[([\s\S]*?)\];/.exec(bundle)?.[1] ?? '').
 
 const server = await createServer({ configFile: resolve('dashboard/vite.config.ts'), logLevel: 'error', server: { hmr: false, watch: null } });
 await server.listen();
+// --rules: the same held-out set judged by the built-in rules alone (no model), as a baseline.
+const rulesOnly = process.argv.includes('--rules');
+const rulesChild = rulesOnly ? spawn(process.platform === 'win32' ? 'npx.cmd' : 'npx', ['tsx', 'scripts/rules-verdict.ts'], { stdio: ['pipe', 'pipe', 'inherit'], shell: process.platform === 'win32' }) : null;
+const rulesAnswers = rulesChild ? createInterface({ input: rulesChild.stdout })[Symbol.asyncIterator]() : null;
+const rulesCheck = async (text) => {
+  rulesChild.stdin.write(`${JSON.stringify(text)}\n`);
+  return JSON.parse((await rulesAnswers.next()).value);
+};
 const context = await chromium.launchPersistentContext(resolve('.nano-profile'), {
   channel: 'chrome',
   headless: true,
@@ -35,7 +45,7 @@ try {
   const harness = context.pages()[0] ?? (await context.newPage());
   await harness.goto('http://localhost:5174/preview.html?page=checks');
   const section = harness.locator('section.tw-card', { has: harness.locator('#sample') });
-  const check = async (text) => {
+  const check = rulesOnly ? rulesCheck : async (text) => {
     await harness.locator('#sample').fill(text);
     await harness.getByRole('button', { name: 'Check this text' }).click();
     await harness.waitForTimeout(300);
@@ -51,11 +61,13 @@ try {
   console.log(`Chrome ${context.browser()?.version() ?? ''} | on-device model: ${model}\n`);
 
   const onlyRound3 = process.argv.includes('--round3');
-  const scamSet = onlyRound3 ? set.scamsRound3 ?? [] : [...set.scams, ...(set.scamsRound2 ?? []), ...(set.scamsRound3 ?? [])];
+  // --round4: only the fresh set written after every change, run once.
+  const onlyRound4 = process.argv.includes('--round4');
+  const scamSet = onlyRound4 ? set.scamsRound4 ?? [] : onlyRound3 ? set.scamsRound3 ?? [] : [...set.scams, ...(set.scamsRound2 ?? []), ...(set.scamsRound3 ?? [])];
   for (const sample of scamSet) record(sample.id, 'scam', sample.text.length, await check(sample.text));
-  for (const sample of set.benignMessagesRound3 ?? []) record(sample.id, 'benign', sample.text.length, await check(sample.text));
+  for (const sample of onlyRound4 ? set.benignMessagesRound4 ?? [] : set.benignMessagesRound3 ?? []) record(sample.id, 'benign', sample.text.length, await check(sample.text));
 
-  for (const url of onlyRound3 ? [] : set.benignPages) {
+  for (const url of onlyRound3 || onlyRound4 ? [] : set.benignPages) {
     const tab = await context.newPage();
     try {
       await tab.goto(url, { waitUntil: 'domcontentloaded', timeout: 30_000 });
@@ -78,7 +90,7 @@ try {
   const modelRows = rows.filter((r) => r.route !== 'not_checked');
   const summary = {
     ranAt: new Date().toISOString(),
-    mode: `held-out, live-web-harness (Chrome ${context.browser()?.version() ?? ''}), on-device model ${model}`,
+    mode: rulesOnly ? 'held-out, built-in rules only (no model), the no-AI baseline' : `held-out, live-web-harness (Chrome ${context.browser()?.version() ?? ''}), on-device model ${model}`,
     scams: scams.length,
     detected: scams.filter((r) => r.correct).length,
     roundThree: {
@@ -103,7 +115,7 @@ try {
     rows,
   };
   mkdirSync('eval-results/holdout', { recursive: true });
-  const out = `eval-results/holdout/${summary.ranAt.replace(/[:.]/g, '-')}.json`;
+  const out = `eval-results/holdout/${rulesOnly ? 'rules-only-' : ''}${onlyRound4 ? 'round4-' : ''}${summary.ranAt.replace(/[:.]/g, '-')}.json`;
   writeFileSync(out, JSON.stringify(summary, null, 2));
   console.log(`\nscams flagged ${summary.detected}/${summary.scams} (${summary.paused} paused) | false alarms on real pages ${summary.falseAlarms}/${summary.benignPages}`);
   console.log(`routes ${JSON.stringify(summary.routes)} | bytes to cloud ${summary.totalBytesSentToCloud} | average text ${summary.averageChars} chars`);
@@ -114,6 +126,7 @@ try {
 } catch (err) {
   console.log('HOLDOUT_FAILED', String(err.message ?? err).split('\n')[0].slice(0, 300));
 } finally {
+  rulesChild?.stdin.end();
   await context.close();
   await server.close();
 }

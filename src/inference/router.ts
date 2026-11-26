@@ -29,6 +29,7 @@ import type { TripwireConfig } from '../config/defaults';
 import { redactForCloud, type ModelRedactor } from '../redaction/pipeline';
 import { EXPLANATION, RULE_FLAG } from '../ui/copy';
 import { PrivacyInvariantError, withTimeout, type AiEngine, type OnDeviceStatus } from './engine';
+import { DEFAULT_TIMEOUTS } from './timeouts';
 import {
   buildCloudPrompt,
   buildRedactPrompt,
@@ -93,7 +94,7 @@ export interface RouterDeps {
   timeouts?: { onDeviceMs: number; cloudMs: number };
 }
 
-const DEFAULT_TIMEOUTS = { onDeviceMs: 15_000, cloudMs: 20_000 };
+
 /** How much of the sent text is kept on the verdict for the "what was sent" receipt. */
 const utf8Bytes = (s: string) => new TextEncoder().encode(s).length;
 

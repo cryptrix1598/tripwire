@@ -246,5 +246,90 @@
       "hostname": "mail.example.test",
       "text": "We received a request to reset the password for your account. If you made this request, use the link in this email within 30 minutes. If you did not, you can ignore this email: your password will not change. For your security, never share this email or any code with anyone."
     }
+  ],
+  "round4About": "Written on 26 Nov 2026 after every change in this repo, and run once with no change afterwards. Ten scams of kinds the earlier rounds do not have, and ten ordinary messages that use the same words (codes, fraud alerts, payments, deliveries).",
+  "scamsRound4": [
+    {
+      "id": "round4-01-hearing-aid-refund",
+      "text": "Hello, this is Rebecca from the hearing aid company. Our system overcharged your card and we owe you a refund of $480. To process it, I need you to log into your bank while I stay on the line, so I can see the deposit arrive. Please do not hang up or the refund is cancelled."
+    },
+    {
+      "id": "round4-02-grandson-lawyer",
+      "text": "Mrs. Patterson, I am the attorney representing your grandson. He was in an accident and is being held. A court bond of $6,500 must be paid in cash today; a courier will come to your house to collect it. The judge has issued a gag order, so you cannot discuss this with any family members."
+    },
+    {
+      "id": "round4-03-pension-update",
+      "text": "NOTICE: Your pension payments will stop on Friday because your records are out of date. Reply to this message with your full date of birth, Social Security number and bank account number to keep receiving your payments without interruption."
+    },
+    {
+      "id": "round4-04-church-gift-cards",
+      "text": "Hi, it is Pastor Mike. I am in a meeting and cannot talk, but I need a quick favour for a sick member of our church. Could you pick up four $100 Apple gift cards at the pharmacy and text me photos of the backs? I will pay you back on Sunday. Please keep this between us for now."
+    },
+    {
+      "id": "round4-05-solar-grant",
+      "text": "Congratulations! Your home has been selected for the free government solar program. To lock in your spot before the deadline tonight, a one-time activation fee of $199 is required. Pay now by Zelle to the number below and our installer will contact you."
+    },
+    {
+      "id": "round4-06-printer-virus",
+      "text": "Your printer driver has been corrupted by a virus and your personal files are at risk. Do not turn off your computer. Download the HP Support Assistant from the link below and enter access code 7731 so a certified technician can repair it remotely."
+    },
+    {
+      "id": "round4-07-wrong-number-crypto",
+      "text": "Sorry, wrong number! But since we are talking, I made a lot of money last month with a crypto trading app my uncle uses. Do you want me to show you? You only need to start with $500 and you can double it in a week. I can help you set up your wallet."
+    },
+    {
+      "id": "round4-08-utility-rebate-es",
+      "text": "Aviso de su compañía eléctrica: tiene un reembolso pendiente de 120 dólares. Para recibirlo, confirme hoy el número de su tarjeta y el código de seguridad respondiendo a este mensaje. Si no responde en 24 horas, perderá el reembolso."
+    },
+    {
+      "id": "round4-09-medicare-card-fr",
+      "text": "Bonjour, ici le service des cartes de l’Assurance maladie. Votre nouvelle carte est prête mais nous devons vérifier votre identité. Je vais vous envoyer un code par SMS : lisez-le-moi tout de suite pour que nous puissions l’expédier."
+    },
+    {
+      "id": "round4-10-ticket-resale",
+      "text": "I have two front-row tickets for the concert you wanted, $150 each, which is face value. I am out of town so I can only take payment by Venmo Friends and Family or a Steam card. Once paid, I will email the tickets right away. Lots of people want them so let me know in the next hour."
+    }
+  ],
+  "benignMessagesRound4": [
+    {
+      "id": "round4-ok-01-bank-fraud-alert",
+      "text": "Northbridge Bank: Did you attempt a $62.18 purchase at Corner Grocery? Reply YES or NO. We will never ask for your PIN or online banking password by text."
+    },
+    {
+      "id": "round4-ok-02-real-2fa",
+      "text": "Your sign-in code is 448120. It expires in 10 minutes. If you did not try to sign in, you can ignore this message. Never share this code with anyone, including us."
+    },
+    {
+      "id": "round4-ok-03-grandson-visit",
+      "text": "Hi Grandma, it is Jake. I will be in town next weekend for a friend’s wedding. Can I come by on Sunday for lunch? I will bring the photos from the trip. Love you!"
+    },
+    {
+      "id": "round4-ok-04-pharmacy-ready",
+      "text": "Your prescription is ready for pickup at Elm Street Pharmacy. Our hours are 9am to 7pm. Please bring your insurance card. Reply STOP to opt out of text reminders."
+    },
+    {
+      "id": "round4-ok-05-church-bulletin",
+      "text": "This Sunday after the service we are collecting gift cards and canned food for the food bank drive. Drop them in the basket by the entrance. Thank you for your generosity, everyone!"
+    },
+    {
+      "id": "round4-ok-06-utility-bill",
+      "text": "Your electricity bill for November is $84.20 and is due on December 12. You can pay online at your account page, by mail, or at any of our customer centres. Thank you for being a customer."
+    },
+    {
+      "id": "round4-ok-07-delivery-window",
+      "text": "Your parcel from Garden Supplies will arrive tomorrow between 1pm and 3pm. No signature is needed. You can track it in the app you used to order."
+    },
+    {
+      "id": "round4-ok-08-doctor-reminder-es",
+      "text": "Recordatorio: tiene una cita con la doctora Ruiz el martes a las 10:30. Si necesita cambiarla, llame a la clínica. No hace falta traer nada."
+    },
+    {
+      "id": "round4-ok-09-neighbour-fr",
+      "text": "Bonjour Madame, c’est votre voisine Claire. J’ai reçu un colis à votre nom par erreur, je vous l’apporte ce soir vers 18 h. Bonne journée !"
+    },
+    {
+      "id": "round4-ok-10-tax-season",
+      "text": "Tax season reminder from the senior centre: free tax help is available on Tuesdays in January. Bring last year’s return and any forms you received. No appointment needed."
+    }
   ]
 }

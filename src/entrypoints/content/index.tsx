@@ -19,6 +19,7 @@ import { createShadowRootUi, defineContentScript, type ContentScriptContext } fr
 import { createScanScheduler, isGmail, isWebmail, readVisibleText } from '../../content/scan';
 import { demoUrl } from '../../firebase/config';
 import type { Trigger, Verdict } from '../../inference/schemas';
+import { MAX_CHECK_MS } from '../../inference/timeouts';
 import { send, type AssessReply, type ToContent } from '../../messaging';
 import { describeField, isCardField, mayInspectValue, valueIsCardNumber } from '../../tripwires/cardField';
 import { Banner } from '../../ui/Banner';
@@ -365,7 +366,8 @@ function startTopFrame(ctx: ContentScriptContext): void {
           const release = () => {
             if (hold) el.readOnly = false;
           };
-          const limit = setTimeout(release, 40_000);
+          // Released only after the slowest possible check could have answered, plus a margin.
+          const limit = setTimeout(release, MAX_CHECK_MS + 5_000);
           const check = onAction(trigger);
           void (hold ? whileChecking(what, check) : check).finally(() => {
             clearTimeout(limit);

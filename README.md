@@ -26,8 +26,10 @@ page, email or phone call
 | Gemini Nano in the built extension, 50 messages | 25 / 25 | 0 / 25 | 4,207 bytes, all redacted first |
 | Cloud only (no on-device model) | 25 / 25 | 0 / 25 | 22,018 bytes, all redacted first |
 | Phone-call check, Gemini Nano, 20 calls (latest run) | 12 / 12 | 0 / 8 | |
+| Held-out scams and 39 real pages, Gemini Nano first | 28 / 28 | 0 / 39 | |
+| The same held-out set, built-in rules only (no AI) | 3 / 28 | 0 / 39 | 0 |
 
-208 unit tests (plus 23 on Android), 32 security-rules tests, a 14-step end-to-end run with 0 accessibility problems, a live run against the real Firebase project. Details are in [Test results](#test-results).
+211 unit tests (plus 27 on Android), 32 security-rules tests, a 14-step end-to-end run with 0 accessibility problems, a live run against the real Firebase project. Details are in [Test results](#test-results).
 
 ## Why this matters
 
@@ -239,12 +241,14 @@ Gemini Nano needs Chrome 139+ on a desktop with about 22 GB of free disk and eit
 - If the phone model is there but does not answer, or cannot list the details, nothing is sent: the built-in warning signs answer. With no phone model, the redacted cloud check; offline, the built-in signs.
 - A caller who wants gift cards, crypto, a code, bank or Social Security details, access to the phone or computer, or money moved to a "safe" account gets **Hang up now** at once, with no model at all (the same list as the extension). A calm caller who has asked for nothing gets no check.
 - The cloud model answers to a JSON schema (`responseSchema`) and every call is retried once if its answer does not parse; the listing step has its own output budget and must end with END, or nothing is sent. Reasons are written in the phone's language. The answer thresholds are the extension's (caution from 30, "hang up" from 80).
-- The rules, redaction, leak check, answer parsing, call sentences and decisions are plain Kotlin with 17 unit tests ([ScamCheckTest.kt](android/app/src/test/java/app/tripwire/guardian/check/ScamCheckTest.kt)). Its screens are in English, Spanish and French, and what the person typed and the answer survive turning the phone.
+- The rules, redaction, leak check, answer parsing, call sentences and decisions are plain Kotlin with 18 unit tests, plus 3 that keep its alert sentences in step with firestore.rules ([ScamCheckTest.kt](android/app/src/test/java/app/tripwire/guardian/check/ScamCheckTest.kt)). Every screen of the app, both icons, is in English, Spanish and French, and what the person typed and the answer survive turning the phone.
+
+**Family on the phone too.** The protected person's phone can be the device a family member links to: "Show a pairing code" in **Is this a scam?** uses the same eight-digit code, "Yes, allow" approval and security rules as the extension. When a call check says to hang up and the person taps **I hung up**, the family is told (the alert carries one fixed sentence, as everywhere else). Thresholds and the cloud model are read from the same Remote Config parameter as the extension (`tripwire_config`).
 
 **Tripwire Guardian** is for the family member:
 
 - Pair with the same eight-digit code, then see the same live alert feed as the web family page.
-- A notification when a new alert arrives: at once while the app is open, and from a background check about every 15 minutes while it is closed ([AlertWorker.kt](android/app/src/main/java/app/tripwire/guardian/AlertWorker.kt), WorkManager; no server, the same security rules).
+- A notification when a new alert arrives: at once while the app is open; within seconds while it is closed if the family member turns on **Instant alerts** (a foreground service keeps a live Firestore listener open, with a small silent notification); otherwise from a background check about every 15 minutes ([AlertWorker.kt](android/app/src/main/java/app/tripwire/guardian/AlertWorker.kt), WorkManager; no server, the same security rules).
 - **"What should I say to them?"** writes three kind sentences for a phone call. This is the app's AI feature and it goes through **Firebase AI Logic hybrid inference** (`InferenceMode.PREFER_ON_DEVICE`): Gemini Nano on the phone when it has one, the cloud model otherwise. The prompt is built only from the kind of scam and whether they stopped, so nothing personal can reach a model. Under every suggestion the app says where it was written: "Written on this phone · nothing was sent" or "Written online · only the kind of scam was sent". If neither can answer, it shows built-in advice and says so.
 - App Check: the debug provider in debug builds, Play Integrity in release builds.
 
@@ -254,7 +258,7 @@ Build it (JDK 17 and the Android SDK needed):
 2. Register an App Check debug token for it and put it in `android/local.properties` as `appcheck.debugToken=<uuid>`. Neither file is committed.
 3. Run `./gradlew assembleDebug` in `android/`. The APK lands in `android/app/build/outputs/apk/debug/`.
 
-Status: the app compiles against firebase-ai 18.2.0 and firebase-ai-ondevice 16.0.0-beta08, its 23 unit tests pass and the debug APK builds. **It has not been run on a phone or emulator yet** (see "Not verified yet"). While the app is closed, a background check looks for new alerts about every 15 minutes (the shortest period Android allows); there is no push.
+Status: the app compiles against firebase-ai 18.2.0 and firebase-ai-ondevice 16.0.0-beta08, its 27 unit tests pass and the debug APK builds. **It has not been run on a phone or emulator yet** (see "Not verified yet"). While the app is closed, a background check looks for new alerts about every 15 minutes (the shortest period Android allows); there is no push.
 
 ## Commands
 
@@ -298,7 +302,19 @@ In the built extension (the headline run, 26 Nov), 34 of the 50 samples were dec
 | --- | --- | --- | --- |
 | First run, original design | 6 / 10 | 0 / 16 | median 51 s |
 | After the fixes below | **16 / 16** | **0 / 28** | **median 3.7 s, 90th percentile 7.4 s** |
-| Latest run, all three rounds (26 Nov, [eval-results/holdout/](eval-results/holdout)) | **28 / 28** | **0 / 39** | median 3.1 s, 90th percentile 5.6 s |
+| Latest run, all three rounds (26 Nov, [eval-results/holdout/](eval-results/holdout)) | **28 / 28** | **0 / 39** | median 3.2 s, 90th percentile 6.7 s |
+| **The same set, built-in rules only, no AI** (`node scripts/holdout.mjs --rules`) | **3 / 28** | 0 / 39 | |
+
+**What the AI adds.** On the same held-out messages and real pages, the built-in rules alone catch 3 of 28 scams; with Gemini Nano first (and the redacted cloud check when the device is unsure), Tripwire catches 28 of 28, with no false alarms either way. The keyword rules are a safety net for when no model can be reached, not the detector.
+
+**Round four** (26 Nov, [corpus/holdout.json](corpus/holdout.json) `scamsRound4` and `benignMessagesRound4`): ten new scams of kinds no earlier round had (a hearing-aid "refund" that needs your bank open, a grandson's "lawyer" with a cash courier, a pastor asking for gift cards, a solar "grant" fee, a printer "virus", a wrong-number crypto pitch, a ticket resale for a Steam card, and three in Spanish and French) and ten ordinary messages that use the same words. Written after every other change and run once:
+
+| Round four | Scams flagged | False alarms |
+| --- | --- | --- |
+| Gemini Nano first, run once (`--round4`) | **8 / 10** | **0 / 10** |
+| Built-in rules only (`--round4 --rules`) | 0 / 10 | 0 / 10 |
+
+The two misses never reached a model: a "printer virus" message that asks for an access code so a technician can "repair it remotely", and a French call asking the person to read out a code sent by SMS. The request-shape rules now cover both, with regression tests in [tests/multilingual.test.ts](tests/multilingual.test.ts); because that fix came after seeing the result, round four is no longer unseen. The full held-out set was run again after the fix: still 28 of 28, with 0 false alarms on 39 real pages.
 
 Read the second row with care: the fixes were made after seeing the first run, so only 6 of the 16 scams and 11 of the 28 pages were still unseen when they were run. Details below the list.
 
@@ -330,7 +346,7 @@ The latest run told people to hang up on one ordinary call: a delivery driver sa
 
 ### Everything else
 
-- Unit tests: 208 passing (extension), 23 (Android). Security-rules tests: 30 against the emulator plus 2 that keep the rules and the app copy in step, 32 passing ([eval-results/rules-tests.json](eval-results/rules-tests.json)). Typecheck, unit tests, the rules-only corpus, the build and the rules tests also run in CI on every push ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
+- Unit tests: 211 passing (extension), 27 (Android). Security-rules tests: 30 against the emulator plus 2 that keep the rules and the app copy in step, 32 passing ([eval-results/rules-tests.json](eval-results/rules-tests.json)). Typecheck, unit tests, the rules-only corpus, the build and the rules tests also run in CI on every push ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
 - End-to-end in Chromium (`npm run e2e`): 14 of 14 steps, including the phone-call check, settings, the paused download, and a page that keeps deleting the warning. Result file: [eval-results/e2e.json](eval-results/e2e.json).
 - Live against the real project (`npm run live`): App Check token, hybrid call, Spanish explanations, pairing, single-use code, family alert. Result file: [eval-results/live-checks.json](eval-results/live-checks.json).
 - **App Check refuses robots, including ours.** On 16 Nov the hosted site began rejecting the automated test browser ("App attestation failed" from reCAPTCHA Enterprise), so pairing failed and the hosted demo fell back to built-in rules, with the badge saying so. The hosted demo was checked in an ordinary browser the same day and got its cloud answer. The automated runs of the hosted site now present the project's App Check debug token (read from `.env`, set only inside the test browser, never deployed); `--recaptcha` runs them as a robot. `node scripts/hosted-appcheck.mjs` shows the refusal, and the family page now says the browser could not be confirmed instead of blaming the internet.

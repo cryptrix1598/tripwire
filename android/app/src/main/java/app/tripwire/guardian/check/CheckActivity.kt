@@ -50,6 +50,8 @@ import androidx.lifecycle.viewModelScope
 import app.tripwire.guardian.R
 import app.tripwire.guardian.ui.TripwireTheme
 import app.tripwire.guardian.ui.Tw
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -74,6 +76,59 @@ enum class Mode { MESSAGE, CALL }
 /** Kept across rotation and while the check runs: the person never loses what they typed or the answer. */
 class CheckViewModel : ViewModel() {
     private val checker = ScamChecker()
+    private val device = ProtectedDevice()
+
+    // Family: this phone as the protected device.
+    var code by mutableStateOf<String?>(null)
+        private set
+    var waiting by mutableStateOf<List<String>>(emptyList())
+        private set
+    var allowed by mutableStateOf(0)
+        private set
+    var familyFailed by mutableStateOf(false)
+        private set
+    var hungUp by mutableStateOf(false)
+        private set
+    var familyTold by mutableStateOf(false)
+        private set
+    private var watch: Job? = null
+
+    init {
+        viewModelScope.launch { runCatching { device.family() }.onSuccess { allowed = it.second } }
+    }
+
+    fun showCode() {
+        familyFailed = false
+        watch?.cancel()
+        watch = viewModelScope.launch {
+            code = runCatching { device.showCode() }.getOrElse { familyFailed = true; null } ?: return@launch
+            // Watch for someone typing it, for as long as the code lives.
+            repeat(100) {
+                delay(3_000)
+                runCatching { device.family() }.onSuccess { (names, n) -> waiting = names; allowed = n }
+            }
+            code = null
+        }
+    }
+
+    fun decide(allow: Boolean) {
+        viewModelScope.launch {
+            runCatching { device.decide(allow) }.onFailure { familyFailed = true }
+            watch?.cancel()
+            code = null
+            waiting = emptyList()
+            runCatching { device.family() }.onSuccess { allowed = it.second }
+        }
+    }
+
+    /** The person hung up on a call Tripwire warned about: well done, and the family is told. */
+    fun hangUp() {
+        val r = result ?: return
+        hungUp = true
+        viewModelScope.launch {
+            familyTold = runCatching { device.sendCallAlert(r, call.who); allowed > 0 }.getOrDefault(false)
+        }
+    }
     var mode by mutableStateOf(Mode.MESSAGE)
     var text by mutableStateOf("")
     var call by mutableStateOf(CallAnswers())
@@ -82,10 +137,12 @@ class CheckViewModel : ViewModel() {
     var result by mutableStateOf<CheckResult?>(null)
         private set
 
-    fun edited() { result = null }
+    fun edited() { result = null; hungUp = false; familyTold = false }
 
     fun run() {
         result = null
+        hungUp = false
+        familyTold = false
         val answers = call.copy(notes = text)
         if (mode == Mode.CALL) CallCheck.instant(answers)?.let { result = it; return }
         val input = if (mode == Mode.CALL) CallCheck.describe(answers) else text
@@ -142,8 +199,60 @@ private fun CheckScreen(m: CheckViewModel) {
             colors = ButtonDefaults.buttonColors(containerColor = Tw.Deep),
         ) { Text(stringResource(if (m.busy) R.string.check_busy else R.string.check_go), fontSize = 20.sp) }
         m.result?.let { ResultCard(it, isCall = m.mode == Mode.CALL) }
+        if (m.mode == Mode.CALL && m.result != null && m.result!!.verdict != Verdict.NO_SIGNS) {
+            if (!m.hungUp) {
+                Button(onClick = m::hangUp, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp), colors = ButtonDefaults.buttonColors(containerColor = Tw.Deep)) {
+                    Text(stringResource(R.string.check_hung_up), fontSize = 20.sp)
+                }
+            } else {
+                Text(
+                    stringResource(if (m.familyTold) R.string.check_hung_up_told else R.string.check_hung_up_done),
+                    style = MaterialTheme.typography.bodyLarge, color = Tw.Ok,
+                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                )
+            }
+        }
+        FamilyCard(m)
     }
 }
+
+/** Optional: let a family member be told when the person hangs up on a scam call. */
+@Composable
+private fun FamilyCard(m: CheckViewModel) {
+    Column(
+        Modifier.fillMaxWidth().background(Tw.Surface, RoundedCornerShape(16.dp)).padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(stringResource(R.string.family_title), style = MaterialTheme.typography.titleMedium, color = Tw.Ink, modifier = Modifier.semantics { heading() })
+        Text(stringResource(R.string.family_body), style = MaterialTheme.typography.bodyLarge, color = Tw.Text2)
+        if (m.allowed > 0) Text(pluralLine(m.allowed), style = MaterialTheme.typography.bodyLarge, color = Tw.Ok)
+        val asker = m.waiting.firstOrNull()
+        when {
+            asker != null -> {
+                Text(
+                    if (asker.isNotBlank()) stringResource(R.string.family_asker_named, asker) else stringResource(R.string.family_asker),
+                    style = MaterialTheme.typography.titleMedium, color = Tw.Ink,
+                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Assertive },
+                )
+                Text(stringResource(R.string.family_asker_body), style = MaterialTheme.typography.bodyLarge, color = Tw.Text2)
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Button(onClick = { m.decide(true) }, colors = ButtonDefaults.buttonColors(containerColor = Tw.Deep)) { Text(stringResource(R.string.family_allow), fontSize = 18.sp) }
+                    TextButton(onClick = { m.decide(false) }) { Text(stringResource(R.string.family_deny), fontSize = 18.sp) }
+                }
+            }
+            m.code != null -> {
+                val c = m.code!!
+                Text("${c.take(4)} ${c.drop(4)}", style = MaterialTheme.typography.headlineLarge, color = Tw.Ink)
+                Text(stringResource(R.string.family_code_body), style = MaterialTheme.typography.bodyLarge, color = Tw.Text2)
+            }
+            else -> TextButton(onClick = m::showCode) { Text(stringResource(R.string.family_show_code), fontSize = 18.sp) }
+        }
+        if (m.familyFailed) Text(stringResource(R.string.family_error), style = MaterialTheme.typography.bodyMedium, color = Tw.Error)
+    }
+}
+
+@Composable
+private fun pluralLine(n: Int) = androidx.compose.ui.res.pluralStringResource(R.plurals.family_connected, n, n)
 
 @Composable
 private fun Question(text: Int) = Text(stringResource(text), style = MaterialTheme.typography.titleMedium, color = Tw.Ink)

@@ -56,7 +56,8 @@ fun dayLabel(thenMillis: Long, nowMillis: Long, zone: ZoneId): DayLabel {
  * reach a model, on the phone or in the cloud.
  */
 object AdvicePrompt {
-    fun build(scamLabel: String, continued: Boolean): String = listOf(
+    /** `language`: the phone's language, in English ("Spanish"), so the sentences are written in it. */
+    fun build(scamLabel: String, continued: Boolean, language: String = "English"): String = listOf(
         "You help a family member talk kindly with an older relative.",
         "A scam-protection tool on the relative's computer just stepped in.",
         "Kind of scam: $scamLabel.",
@@ -69,5 +70,6 @@ object AdvicePrompt {
             "Praise them for stopping, and remind them a real company will always let them take their time."
         },
         "Plain text only. No lists, no headings, no quotation marks.",
+        "Write the sentences in $language.",
     ).joinToString("\n")
 }

@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_CONFIG } from '../src/config/defaults';
 import type { AiEngine } from '../src/inference/engine';
@@ -44,5 +45,18 @@ describe('Spanish and French with no model at all (the built-in rules)', () => {
   it.each(ORDINARY)('an ordinary message stays silent: %s', async (text) => {
     const v = await assess({ text, hostname: 'mail.example.test', trigger: 'passive' }, { engine: noModel, config: DEFAULT_CONFIG });
     expect(v.state).toBe('safe');
+  });
+});
+
+describe('found by the round-four held-out run, fixed after seeing it (26 Nov)', () => {
+  const h = JSON.parse(readFileSync('corpus/holdout.json', 'utf8')) as { scamsRound4: { id: string; text: string }[]; benignMessagesRound4: { id: string; text: string }[] };
+  it.each(['round4-06-printer-virus', 'round4-09-medicare-card-fr'])('%s now reaches the on-device model', (id) => {
+    expect(worthALocalLook(detectShape(h.scamsRound4.find((s) => s.id === id)!.text))).toBe(true);
+  });
+  it('the round-four ordinary messages still come out safe on the built-in rules', async () => {
+    for (const m of h.benignMessagesRound4) {
+      const v = await assess({ text: m.text, hostname: 'mail.example.test', trigger: 'passive' }, { engine: noModel, config: DEFAULT_CONFIG });
+      expect(v.state, m.id).toBe('safe');
+    }
   });
 });

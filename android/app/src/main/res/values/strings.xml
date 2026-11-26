@@ -149,4 +149,26 @@
     <string name="how_secret">Telling me to keep it secret</string>
     <string name="how_stay">Telling me to stay on the line</string>
     <string name="how_patient">Calm, and said I can call back</string>
+    <string name="check_hung_up">I hung up</string>
+    <string name="check_hung_up_done">Well done. Hanging up was exactly the right thing to do.</string>
+    <string name="check_hung_up_told">Well done. Hanging up was exactly the right thing to do. Your family has been told.</string>
+    <string name="family_title">Family (optional)</string>
+    <string name="family_body">A family member can be told when you hang up on a scam call. They never see what you typed or what was said.</string>
+    <string name="family_show_code">Show a pairing code</string>
+    <string name="family_code_body">Ask them to type this on the Tripwire family page or in Tripwire Guardian. It works for 5 minutes.</string>
+    <string name="family_asker">Someone just typed your code.</string>
+    <string name="family_asker_named">%1$s just typed your code.</string>
+    <string name="family_asker_body">Only allow this if you know them and gave them the code yourself.</string>
+    <string name="family_allow">Yes, allow</string>
+    <string name="family_deny">No</string>
+    <string name="family_error">That did not work. Check your internet and try again.</string>
+    <plurals name="family_connected">
+        <item quantity="one">Connected to %d family member.</item>
+        <item quantity="other">Connected to %d family members.</item>
+    </plurals>
+    <string name="watch_title">Instant alerts</string>
+    <string name="watch_off_body">Off: while the app is closed, new alerts are checked about every 15 minutes.</string>
+    <string name="watch_on_body">On: alerts arrive within seconds, even while the app is closed. A small notification stays while this is on.</string>
+    <string name="watch_channel">Watching for alerts</string>
+    <string name="watch_running">Tripwire Guardian is watching for alerts</string>
 </resources>

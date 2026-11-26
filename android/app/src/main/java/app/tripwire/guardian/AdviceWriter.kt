@@ -41,7 +41,7 @@ class AdviceWriter {
 
     /** Throws if neither the phone nor the cloud could answer. */
     suspend fun write(scamLabel: String, continued: Boolean): Advice {
-        val response = model.generateContent(AdvicePrompt.build(scamLabel, continued))
+        val response = model.generateContent(AdvicePrompt.build(scamLabel, continued, java.util.Locale.getDefault().getDisplayLanguage(java.util.Locale.ENGLISH)))
         val text = response.text?.trim().orEmpty()
         check(text.isNotEmpty()) { "The model returned no text" }
         val route = if (response.inferenceSource == InferenceSource.ON_DEVICE) Route.ON_DEVICE else Route.IN_CLOUD

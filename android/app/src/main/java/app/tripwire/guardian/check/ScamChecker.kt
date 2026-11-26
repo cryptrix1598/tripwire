@@ -28,17 +28,20 @@ import kotlinx.coroutines.withTimeoutOrNull
 @OptIn(PublicPreviewAPI::class)
 class ScamChecker {
     private val ai by lazy { Firebase.ai(backend = GenerativeBackend.googleAI()) }
+    /** Thresholds and the cloud model come from Remote Config, as in the extension; read once per check screen. */
+    private var config = CheckConfig()
+    private var configLoaded = false
     private val onPhone by lazy {
-        ai.generativeModel(modelName = CLOUD_MODEL, onDeviceConfig = OnDeviceConfig(InferenceMode.ONLY_ON_DEVICE, 160, 0f))
+        ai.generativeModel(modelName = config.cloudModel, onDeviceConfig = OnDeviceConfig(InferenceMode.ONLY_ON_DEVICE, 160, 0f))
     }
     /** Listing personal details can need more room than a verdict, so it has its own output budget. */
     private val lister by lazy {
-        ai.generativeModel(modelName = CLOUD_MODEL, onDeviceConfig = OnDeviceConfig(InferenceMode.ONLY_ON_DEVICE, 512, 0f))
+        ai.generativeModel(modelName = config.cloudModel, onDeviceConfig = OnDeviceConfig(InferenceMode.ONLY_ON_DEVICE, 512, 0f))
     }
     /** The cloud answers to a schema, like the extension's cloud call. */
     private val inCloud by lazy {
         ai.generativeModel(
-            modelName = CLOUD_MODEL,
+            modelName = config.cloudModel,
             generationConfig = generationConfig {
                 responseMimeType = "application/json"
                 responseSchema = Schema.obj(mapOf("risk" to Schema.integer(), "reasons" to Schema.array(Schema.string())))
@@ -50,6 +53,10 @@ class ScamChecker {
     private val language: String = Locale.getDefault().getDisplayLanguage(Locale.ENGLISH)
 
     suspend fun check(text: String): CheckResult {
+        if (!configLoaded) {
+            config = RemoteSettings.load()
+            configLoaded = true
+        }
         val signs = Rules.signs(text)
         val rules = CheckResult(Rules.verdict(signs), Route.RULES, signs)
 
@@ -60,7 +67,7 @@ class ScamChecker {
                 local is Reply.WrongSide -> return rules.copy(wrongSide = true)
                 local is Reply.Text -> {
                     val answer = Answers.parse(local.text) ?: return rules
-                    Decide.onPhone(answer.risk, signs)?.let { return CheckResult(it, Route.ON_PHONE, signs, answer.reasons) }
+                    Decide.onPhone(answer.risk, signs, config)?.let { return CheckResult(it, Route.ON_PHONE, signs, answer.reasons) }
                 }
                 // The phone was meant to look and could not: keep the answer on the phone.
                 else -> return rules
@@ -90,7 +97,7 @@ class ScamChecker {
         if (!Redactor.clean(candidate, first.found + Redactor.usable(listedItems))) return null
         val reply = ask(inCloud, Answers.prompt(candidate, language), InferenceSource.IN_CLOUD, IN_CLOUD_MS, Answers::parseJson) as? Reply.Text ?: return null
         val answer = Answers.parseJson(reply.text) ?: return null
-        return CheckResult(Decide.fromCloud(answer.risk, signs), Route.REDACTED_CLOUD, signs, answer.reasons, sent = candidate)
+        return CheckResult(Decide.fromCloud(answer.risk, signs, config), Route.REDACTED_CLOUD, signs, answer.reasons, sent = candidate)
     }
 
     private sealed interface Reply {
@@ -132,7 +139,6 @@ class ScamChecker {
     }
 
     private companion object {
-        const val CLOUD_MODEL = "gemini-3.5-flash-lite"
         const val ON_PHONE_MS = 20_000L
         const val IN_CLOUD_MS = 25_000L
     }

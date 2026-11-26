@@ -49,6 +49,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -225,12 +226,37 @@ private fun FeedScreen(
             }
             else -> items(alerts, key = { it.id }) { alert -> AlertCard(alert, state.advice[alert.id], onAdvice) }
         }
+        item(key = "instant") { InstantAlerts() }
         item(key = "model") { ModelStatus(state.model, onDownloadModel) }
         item(key = "privacy") { Text(stringResource(R.string.feed_privacy), style = MaterialTheme.typography.bodyMedium, color = Tw.Text2) }
         item(key = "add") {
             OutlinedButton(onClick = onAdd, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp), shape = RoundedCornerShape(14.dp)) {
                 Text(stringResource(R.string.feed_add_another), style = MaterialTheme.typography.labelLarge)
             }
+        }
+    }
+}
+
+/** Opt-in: alerts within seconds while the app is closed, with a small ongoing notification. */
+@Composable
+private fun InstantAlerts() {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var on by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(app.tripwire.guardian.AlertWatchService.isOn(context)) }
+    Surface(shape = RoundedCornerShape(16.dp), color = Tw.Surface, modifier = Modifier.fillMaxWidth()) {
+        androidx.compose.foundation.layout.Row(
+            Modifier.padding(20.dp),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(stringResource(R.string.watch_title), style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(if (on) R.string.watch_on_body else R.string.watch_off_body), color = Tw.Text2)
+            }
+            androidx.compose.material3.Switch(
+                checked = on,
+                onCheckedChange = { on = it; app.tripwire.guardian.AlertWatchService.set(context, it) },
+                modifier = Modifier.semantics { contentDescription = context.getString(R.string.watch_title) },
+            )
         }
     }
 }

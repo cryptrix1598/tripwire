@@ -1,0 +1,261 @@
+{
+  "ranAt": "2026-11-26T21:51:02.214Z",
+  "mode": "held-out, live-web-harness (Chrome 158.0.8127.88), on-device model available",
+  "scams": 10,
+  "detected": 8,
+  "roundThree": {
+    "scams": 0,
+    "detected": 0,
+    "ordinaryMessages": 0,
+    "falseAlarms": 0
+  },
+  "roundTwo": {
+    "scams": 0,
+    "detected": 0
+  },
+  "paused": 8,
+  "benignPages": 10,
+  "falseAlarms": 0,
+  "pagesSkipped": [],
+  "routes": {
+    "device_then_cloud": 7,
+    "on_device": 3,
+    "not_checked": 10
+  },
+  "totalBytesSentToCloud": 2800,
+  "averageChars": 209,
+  "latencyMs": {
+    "whenAModelRan": {
+      "median": 5961,
+      "p90": 11496
+    },
+    "onDeviceOnly": {
+      "median": 2887
+    },
+    "deviceThenCloud": {
+      "median": 6121
+    }
+  },
+  "rows": [
+    {
+      "id": "round4-01-hearing-aid-refund",
+      "label": "scam",
+      "chars": 275,
+      "state": "tripped",
+      "riskScore": 94,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 431,
+      "elapsedMs": 11496,
+      "correct": true
+    },
+    {
+      "id": "round4-02-grandson-lawyer",
+      "label": "scam",
+      "chars": 288,
+      "state": "tripped",
+      "riskScore": 98,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 434,
+      "elapsedMs": 5961,
+      "correct": true
+    },
+    {
+      "id": "round4-03-pension-update",
+      "label": "scam",
+      "chars": 240,
+      "state": "tripped",
+      "riskScore": 95,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 386,
+      "elapsedMs": 6121,
+      "correct": true
+    },
+    {
+      "id": "round4-04-church-gift-cards",
+      "label": "scam",
+      "chars": 278,
+      "state": "tripped",
+      "riskScore": 95,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 2887,
+      "correct": true
+    },
+    {
+      "id": "round4-05-solar-grant",
+      "label": "scam",
+      "chars": 253,
+      "state": "tripped",
+      "riskScore": 93,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 409,
+      "elapsedMs": 6130,
+      "correct": true
+    },
+    {
+      "id": "round4-06-printer-virus",
+      "label": "scam",
+      "chars": 248,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 1,
+      "correct": false
+    },
+    {
+      "id": "round4-07-wrong-number-crypto",
+      "label": "scam",
+      "chars": 249,
+      "state": "tripped",
+      "riskScore": 95,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 422,
+      "elapsedMs": 5431,
+      "correct": true
+    },
+    {
+      "id": "round4-08-utility-rebate-es",
+      "label": "scam",
+      "chars": 233,
+      "state": "tripped",
+      "riskScore": 95,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 397,
+      "elapsedMs": 7951,
+      "correct": true
+    },
+    {
+      "id": "round4-09-medicare-card-fr",
+      "label": "scam",
+      "chars": 233,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 0,
+      "correct": false
+    },
+    {
+      "id": "round4-10-ticket-resale",
+      "label": "scam",
+      "chars": 283,
+      "state": "tripped",
+      "riskScore": 85,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 2941,
+      "correct": true
+    },
+    {
+      "id": "round4-ok-01-bank-fraud-alert",
+      "label": "benign",
+      "chars": 154,
+      "state": "safe",
+      "riskScore": 15,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 321,
+      "elapsedMs": 4876,
+      "correct": true
+    },
+    {
+      "id": "round4-ok-02-real-2fa",
+      "label": "benign",
+      "chars": 163,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 0,
+      "correct": true
+    },
+    {
+      "id": "round4-ok-03-grandson-visit",
+      "label": "benign",
+      "chars": 162,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 0,
+      "correct": true
+    },
+    {
+      "id": "round4-ok-04-pharmacy-ready",
+      "label": "benign",
+      "chars": 162,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 1,
+      "correct": true
+    },
+    {
+      "id": "round4-ok-05-church-bulletin",
+      "label": "benign",
+      "chars": 181,
+      "state": "safe",
+      "riskScore": 10,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 2769,
+      "correct": true
+    },
+    {
+      "id": "round4-ok-06-utility-bill",
+      "label": "benign",
+      "chars": 188,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 0,
+      "correct": true
+    },
+    {
+      "id": "round4-ok-07-delivery-window",
+      "label": "benign",
+      "chars": 145,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 0,
+      "correct": true
+    },
+    {
+      "id": "round4-ok-08-doctor-reminder-es",
+      "label": "benign",
+      "chars": 140,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 1,
+      "correct": true
+    },
+    {
+      "id": "round4-ok-09-neighbour-fr",
+      "label": "benign",
+      "chars": 139,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 0,
+      "correct": true
+    },
+    {
+      "id": "round4-ok-10-tax-season",
+      "label": "benign",
+      "chars": 170,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 0,
+      "correct": true
+    }
+  ]
+}

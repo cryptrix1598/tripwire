@@ -151,4 +151,14 @@ class ScamCheckTest {
         assertEquals(Verdict.CAREFUL, Decide.fromCloud(30, emptyList()))
         assertEquals(Verdict.NO_SIGNS, Decide.fromCloud(29, emptyList()))
     }
+
+    @Test
+    fun `thresholds and the cloud model come from the extension's Remote Config, with safe defaults`() {
+        val c = CheckConfig.parse("""{"thresholds": {"low": 35, "high": 85}, "cloudModel": "gemini-4-flash"}""")
+        assertEquals(CheckConfig(35, 85, "gemini-4-flash"), c)
+        assertEquals(CheckConfig(), CheckConfig.parse(null))
+        assertEquals(CheckConfig(), CheckConfig.parse("""{"thresholds": {"low": 90, "high": 10}}"""))
+        assertEquals("gemini-3.5-flash-lite", CheckConfig.parse("""{"cloudModel": "not a gemini model"}""").cloudModel)
+        assertEquals(Verdict.CAREFUL, Decide.fromCloud(84, emptyList(), c))
+    }
 }

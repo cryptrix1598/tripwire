@@ -2,7 +2,7 @@
 
 Copy for the #BuildHybridAI 2026 submission form, plus a script for the demo video (3 minutes at most).
 
-- **Tracks:** Web / Chrome (primary). An Android companion app is included in the repo; it builds and is unit-tested but had not been run on a device when this was written, so only claim Android if you have run it on a phone.
+- **Tracks:** Web / Chrome. The repo also has an Android app ("Is this a scam?" for the person, and the family viewer); it builds and its unit tests pass, but it has not been run on a phone yet.
 - **Repository:** https://github.com/cryptrix1598/tripwire (Apache-2.0)
 - **Hosted family page:** https://tripwire-buildhybridai.web.app
 - **Install the extension without building:** https://github.com/cryptrix1598/tripwire/blob/main/release/tripwire-chrome.zip (unzip, then Load unpacked in chrome://extensions)
@@ -36,7 +36,7 @@ It trips on actions: a card number field (checked locally), a gift-card code fie
 
 **On the phone too.** The Android app adds **Is this a scam?** for the person being protected: share a text or an email to it, or tap what a caller wants. Gemini Nano reads it on the phone first (`ONLY_ON_DEVICE`, with `inferenceSource` checked); only an unsure case goes to the cloud (`ONLY_IN_CLOUD`), redacted and leak-checked. A caller who wants gift cards, crypto, a code, access or a "safe account" move gets "Hang up now" at once.
 
-**Family Guardian** is optional, and a guessed code is useless: nothing is shared until the person taps "Yes, allow" on their own computer. The person shows a eight-digit code, a relative types it on the family page, and from then on sees that Tripwire stepped in: the time, the kind of scam, the action, and whether they stopped. Never the page, the email, or anything typed.
+**Family Guardian** is optional, and a guessed code is useless: nothing is shared until the person taps "Yes, allow" on their own computer. The person shows an eight-digit code, a relative types it on the family page, and from then on sees that Tripwire stepped in: the time, the kind of scam, the action, and whether they stopped. Never the page, the email, or anything typed.
 
 ## How we used Firebase AI Logic
 
@@ -67,12 +67,14 @@ TypeScript (strict), Manifest V3 with WXT, React, Shadow DOM for the in-page UI,
 - **Main corpus (25 scams, 25 ordinary messages), Gemini Nano inside the built extension (26 Nov):** 25 of 25 flagged, 0 false alarms. 34 of the 50 were decided on the device, 8 needed no model and 8 reached the cloud.
 - **The privacy gate, measured:** 4,207 redacted bytes left the device, against 22,018 when the same corpus runs with no on-device model. About 81 percent less, with the same detection.
 - **Held-out test:** scam messages never used for tuning plus 36 real public pages fetched live (IRS, SSA and Apple pages about scams, Wikipedia, bank and payment sign-in pages, a remote-access vendor, news). Final result: 16 of 16 scams flagged (14 of them on the device, nothing sent), 0 false alarms on the 28 pages that loaded, median check 3.7 seconds.
+- **What the AI adds:** on the held-out set, the built-in rules alone catch 3 of 28 scams; with Gemini Nano first, 28 of 28, with 0 false alarms on 39 real pages either way.
+- **A fresh round, run once:** ten new scams and ten ordinary messages written after every other change. Gemini Nano first: 8 of 10 caught, 0 false alarms; rules alone: 0 of 10. The two misses are published, then fixed with regression tests.
 - **We publish the bad first run too.** Before the fixes it caught 6 of 10 and took 51 seconds on long pages. See "Challenges".
 - **A third held-out round, written after all tuning and run once:** 12 of 12 new kinds of scam paused, 0 false alarms on 12 ordinary messages chosen to look like scams.
 - **The built extension itself is what was measured above**, loaded over the DevTools protocol with Gemini Nano running in its offscreen document.
 - Every screen in English, Spanish and French; explanations run live in Spanish and French with nothing sent.
 - Fourteen hostile-page tests: a page that tells the model what to answer, repeats "scam" (or "this is not a scam") to look like advice, hides the ask under filler, or deletes the warning. None gets through quietly.
-- 208 unit tests (plus 23 for the Android app), 32 security-rules tests (including a limit of one family alert every 15 seconds, a pairing code that cannot be used up without creating a family link, and a family name that cannot carry a phone number), a 14-step end-to-end run, a live run against the real project, a test of the hosted demo with no extension, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems).
+- 211 unit tests (plus 27 for the Android app), 32 security-rules tests (including a limit of one family alert every 15 seconds, a pairing code that cannot be used up without creating a family link, and a family name that cannot carry a phone number), a 14-step end-to-end run, a live run against the real project, a test of the hosted demo with no extension, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems).
 
 ## Challenges
 

@@ -38,6 +38,7 @@ class MainActivity : ComponentActivity() {
         if (savedInstanceState == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !Notifier.canNotify(this)) {
             askNotifications.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
+        AlertWatchService.resume(this)
         setContent {
             val state by viewModel.state.collectAsStateWithLifecycle()
             TripwireTheme {

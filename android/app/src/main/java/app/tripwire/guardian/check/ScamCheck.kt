@@ -212,22 +212,39 @@ object Answers {
     """.trimIndent()
 }
 
-/** How a model's number becomes an answer. Thresholds match the extension (defaults.ts: low 30, high 80). */
+/**
+ * The tunable values, from the same Remote Config parameter as the extension
+ * (`tripwire_config`): the thresholds and the cloud model. Anything missing or
+ * out of range keeps the extension's defaults (defaults.ts: low 30, high 80).
+ */
+data class CheckConfig(val low: Int = 30, val high: Int = 80, val cloudModel: String = "gemini-3.5-flash-lite") {
+    companion object {
+        fun parse(json: String?): CheckConfig {
+            val d = CheckConfig()
+            if (json.isNullOrBlank()) return d
+            fun int(key: String) = Regex(""""$key"\s*:\s*(\d{1,3})""").find(json)?.groupValues?.get(1)?.toIntOrNull()
+            val low = int("low")?.takeIf { it in 0..100 } ?: d.low
+            val high = int("high")?.takeIf { it in 0..100 } ?: d.high
+            val model = Regex(""""cloudModel"\s*:\s*"(gemini-[\w.-]{1,60})"""").find(json)?.groupValues?.get(1) ?: d.cloudModel
+            return if (low < high) CheckConfig(low, high, model) else d.copy(cloudModel = model)
+        }
+    }
+}
+
+/** How a model's number becomes an answer, with the same thresholds as the extension. */
 object Decide {
-    const val LOW = 30
-    const val HIGH = 80
 
     /** The phone may decide alone only when it is sure and the rules agree. */
-    fun onPhone(risk: Int, signs: List<Sign>): Verdict? = when {
-        risk >= HIGH && Rules.score(signs) >= 30 -> Verdict.HANG_UP
+    fun onPhone(risk: Int, signs: List<Sign>, c: CheckConfig = CheckConfig()): Verdict? = when {
+        risk >= c.high && Rules.score(signs) >= 30 -> Verdict.HANG_UP
         risk <= 20 && signs.isEmpty() -> Verdict.NO_SIGNS
         else -> null
     }
 
-    fun fromCloud(risk: Int, signs: List<Sign>): Verdict {
+    fun fromCloud(risk: Int, signs: List<Sign>, c: CheckConfig = CheckConfig()): Verdict {
         val v = when {
-            risk >= HIGH -> Verdict.HANG_UP
-            risk >= LOW -> Verdict.CAREFUL
+            risk >= c.high -> Verdict.HANG_UP
+            risk >= c.low -> Verdict.CAREFUL
             else -> Verdict.NO_SIGNS
         }
         // An ask that is never safe is never waved through.
