@@ -395,3 +395,21 @@ describe('router: a call with an ask that is never safe', () => {
     expect(v.state).toBe('safe');
   });
 });
+
+describe('router: no second opinion on a page full of scam words', () => {
+  it('the device alone never trips a page that talks about scams while telling the reader what to do', async () => {
+    const text =
+      'Scam alert from the fraud team. Scammers and fraudsters target victims with phishing and scams every day. ' +
+      'You must call us now at 1-855-555-0101. Pay now with gift cards so your account is protected. Do not tell anyone.';
+    const engine = fakeEngine({
+      triage: async () => triageJson(97, 0.95, 'bank_impersonation'),
+      cloud: async () => {
+        throw new TypeError('Failed to fetch');
+      },
+    });
+    const v = await run(text, engine);
+    expect(v.state).not.toBe('tripped');
+    expect(v.state).toBe('caution');
+    expect(v.bytesSentToCloud).toBe(0);
+  });
+});

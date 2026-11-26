@@ -529,7 +529,8 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
       route: 'on_device',
       cloudUnreachable: cloud.kind === 'unreachable',
       failSafe: cloud.kind === 'invalid',
-      allowTrip: corroborated,
+      // Same rule as stage 4: a page full of scam words plus asks is never tripped by the device alone.
+      allowTrip: corroborated && !scamWordsPlusAsks,
     }),
   );
 }

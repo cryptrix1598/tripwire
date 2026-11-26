@@ -52,6 +52,18 @@ import { CLOUD_JSON_SCHEMA, REDACTION_JSON_SCHEMA, TRANSLATION_JSON_SCHEMA, TRIA
 
 const TEXT_EN = [{ type: 'text' as const, languages: ['en'] }];
 
+/**
+ * What the pages are written in. The browser's language is the best guess: a
+ * Spanish or French browser mostly shows Spanish or French pages, so those are
+ * declared alongside English. English browsers declare English only, so the
+ * model's availability is not narrowed for them.
+ */
+function inputLanguages(lang = globalThis.navigator?.language ?? 'en'): string[] {
+  const base = lang.slice(0, 2).toLowerCase();
+  return base === 'es' || base === 'fr' ? ['en', base] : ['en'];
+}
+const TEXT_IN = [{ type: 'text' as const, languages: inputLanguages() }];
+
 /** The slice of Chrome's Prompt API used for the availability check. */
 interface LanguageModelStatic {
   availability(options?: unknown): Promise<string>;
@@ -74,7 +86,7 @@ function onDeviceModel(system: string, schema: object, outputLanguage = 'en'): G
       mode: InferenceMode.ONLY_ON_DEVICE,
       onDeviceParams: {
         createOptions: {
-          expectedInputs: TEXT_EN,
+          expectedInputs: TEXT_IN,
           // The Prompt API rejects output languages the on-device model cannot write.
           expectedOutputs: [{ type: 'text' as const, languages: [outputLanguage] }],
           initialPrompts: [{ role: 'system', content: [{ type: 'text', value: system }] }],
@@ -123,7 +135,7 @@ export async function onDeviceStatus(): Promise<OnDeviceStatus> {
   const LanguageModel = (globalThis as { LanguageModel?: LanguageModelStatic }).LanguageModel;
   if (!LanguageModel) return 'unavailable';
   try {
-    const state = await LanguageModel.availability({ expectedInputs: TEXT_EN, expectedOutputs: TEXT_EN });
+    const state = await LanguageModel.availability({ expectedInputs: TEXT_IN, expectedOutputs: TEXT_EN });
     if (state === 'available' || state === 'downloadable' || state === 'downloading') return state;
     return 'unavailable';
   } catch {
@@ -159,7 +171,7 @@ export const firebaseEngine: AiEngine = {
 export async function prepareOnDeviceModel(onProgress?: (fraction: number) => void): Promise<void> {
   const model = getGenerativeModel(getAi(), {
     mode: InferenceMode.ONLY_ON_DEVICE,
-    onDeviceParams: { createOptions: { expectedInputs: TEXT_EN, expectedOutputs: TEXT_EN } },
+    onDeviceParams: { createOptions: { expectedInputs: TEXT_IN, expectedOutputs: TEXT_EN } },
   });
   await model.initializeDeviceModel(onProgress);
 }
@@ -171,7 +183,7 @@ export async function prepareOnDeviceModel(onProgress?: (fraction: number) => vo
 export async function hybridProbe(prompt: string): Promise<{ text: string; source: string }> {
   const model = getGenerativeModel(getAi(), {
     mode: InferenceMode.PREFER_ON_DEVICE,
-    onDeviceParams: { createOptions: { expectedInputs: TEXT_EN, expectedOutputs: TEXT_EN } },
+    onDeviceParams: { createOptions: { expectedInputs: TEXT_IN, expectedOutputs: TEXT_EN } },
   });
   const result = await model.generateContent(prompt);
   return { text: result.response.text(), source: result.response.inferenceSource ?? 'unknown' };

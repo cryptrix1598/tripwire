@@ -8,7 +8,7 @@
  */
 import { getAuth, onAuthStateChanged, signInAnonymously, type User } from 'firebase/auth/web-extension';
 import {
-  addDoc,
+  writeBatch,
   collection,
   deleteDoc,
   doc,
@@ -148,12 +148,17 @@ export async function decidePending(allow: boolean): Promise<number> {
 /**
  * Tell paired family members that Tripwire stepped in. The payload is built by
  * buildAlert(), which accepts only enums: no page or email content can reach it.
+ * The device's alert clock is moved in the same write; the security rules allow
+ * one alert every 15 seconds, so a looping client cannot flood the family feed.
  */
 export async function sendAlert(scamType: ScamType, trigger: Trigger, outcome: Outcome): Promise<void> {
   const user = await ensureSignedIn();
   const db = getFirestore(getFirebaseApp());
-  await addDoc(collection(db, 'devices', user.uid, 'alerts'), {
+  const batch = writeBatch(db);
+  batch.set(doc(db, 'devices', user.uid), { lastAlertAt: serverTimestamp() }, { merge: true });
+  batch.set(doc(collection(db, 'devices', user.uid, 'alerts')), {
     ...buildAlert(scamType, trigger, outcome),
     createdAt: serverTimestamp(),
   });
+  await batch.commit();
 }

@@ -104,40 +104,60 @@ describe('guardian links', () => {
 
 describe('alerts', () => {
   const alertRef = (uid: string, id = 'new') => doc(as(uid), 'devices', DEVICE, 'alerts', id);
+  // An alert is written together with the device's alert clock, as sendAlert() does.
+  const post = (ref: ReturnType<typeof alertRef>, data: object) =>
+    writeBatch(ref.firestore).set(doc(ref.firestore, 'devices', DEVICE), { lastAlertAt: serverTimestamp() }, { merge: true }).set(ref, data).commit();
+  const resetClock = () => env.withSecurityRulesDisabled((ctx) => deleteDoc(doc(ctx.firestore(), 'devices', DEVICE)));
+
+  it('one alert every 15 seconds: a second one straight away is refused', async () => {
+    await assertSucceeds(post(alertRef(DEVICE, 'first'), validAlert()));
+    await assertFails(post(alertRef(DEVICE, 'second'), validAlert()));
+  });
+  it('an alert without the alert clock is refused', async () => {
+    await assertFails(setDoc(alertRef(DEVICE), validAlert()));
+  });
+  it('the alert clock cannot be removed or set to another time', async () => {
+    await assertSucceeds(post(alertRef(DEVICE, 'first'), validAlert()));
+    const device = doc(as(DEVICE), 'devices', DEVICE);
+    await assertFails(setDoc(device, { createdAt: serverTimestamp() }));
+    await assertFails(updateDoc(device, { lastAlertAt: Timestamp.fromMillis(0) }));
+    await assertSucceeds(setDoc(device, { createdAt: serverTimestamp() }, { merge: true }));
+  });
 
   it('accepts the fixed five-field alert from the device', async () => {
-    await assertSucceeds(setDoc(alertRef(DEVICE), validAlert()));
+    await assertSucceeds(post(alertRef(DEVICE), validAlert()));
   });
   it('rejects any extra field, so page or email text cannot be stored', async () => {
-    await assertFails(setDoc(alertRef(DEVICE), { ...validAlert(), pageText: 'Dear Margaret, your card 4111 1111 1111 1111' }));
-    await assertFails(setDoc(alertRef(DEVICE), { ...validAlert(), url: 'https://example.com/inbox/123' }));
+    await assertFails(post(alertRef(DEVICE), { ...validAlert(), pageText: 'Dear Margaret, your card 4111 1111 1111 1111' }));
+    await assertFails(post(alertRef(DEVICE), { ...validAlert(), url: 'https://example.com/inbox/123' }));
   });
   it('rejects any summary that is not the fixed sentence for that kind of scam', async () => {
-    await assertFails(setDoc(alertRef(DEVICE), { ...validAlert(), summary: 'Dear Margaret, your card 4111 1111 1111 1111 was charged.' }));
-    await assertFails(setDoc(alertRef(DEVICE), { ...validAlert(), summary: 'ok' }));
+    await assertFails(post(alertRef(DEVICE), { ...validAlert(), summary: 'Dear Margaret, your card 4111 1111 1111 1111 was charged.' }));
+    await assertFails(post(alertRef(DEVICE), { ...validAlert(), summary: 'ok' }));
     // A real sentence, but for a different kind of scam.
-    await assertFails(setDoc(alertRef(DEVICE), { ...validAlert(), summary: buildAlert('gift_card', 'card_entry', 'stopped').summary }));
+    await assertFails(post(alertRef(DEVICE), { ...validAlert(), summary: buildAlert('gift_card', 'card_entry', 'stopped').summary }));
   });
 
   it('accepts the fixed sentence for every kind of scam', async () => {
     for (const type of SCAM_TYPES) {
-      await assertSucceeds(setDoc(alertRef(DEVICE, `ok-${type}`), { ...buildAlert(type, 'passive', 'stopped'), createdAt: serverTimestamp() }));
+      await resetClock();
+      await assertSucceeds(post(alertRef(DEVICE, `ok-${type}`), { ...buildAlert(type, 'passive', 'stopped'), createdAt: serverTimestamp() }));
     }
   });
 
   it('rejects long summaries, unknown enums, a backdated time and missing fields', async () => {
-    await assertFails(setDoc(alertRef(DEVICE), { ...validAlert(), summary: 'x'.repeat(201) }));
-    await assertFails(setDoc(alertRef(DEVICE), { ...validAlert(), scamType: 'whatever' }));
-    await assertFails(setDoc(alertRef(DEVICE), { ...validAlert(), action: 'read_email' }));
-    await assertFails(setDoc(alertRef(DEVICE), { ...validAlert(), outcome: 'maybe' }));
-    await assertFails(setDoc(alertRef(DEVICE), { ...validAlert(), createdAt: Timestamp.fromMillis(0) }));
+    await assertFails(post(alertRef(DEVICE), { ...validAlert(), summary: 'x'.repeat(201) }));
+    await assertFails(post(alertRef(DEVICE), { ...validAlert(), scamType: 'whatever' }));
+    await assertFails(post(alertRef(DEVICE), { ...validAlert(), action: 'read_email' }));
+    await assertFails(post(alertRef(DEVICE), { ...validAlert(), outcome: 'maybe' }));
+    await assertFails(post(alertRef(DEVICE), { ...validAlert(), createdAt: Timestamp.fromMillis(0) }));
     const { summary: _dropped, ...missing } = validAlert();
-    await assertFails(setDoc(alertRef(DEVICE), missing));
+    await assertFails(post(alertRef(DEVICE), missing));
   });
   it('only the device can write; alerts cannot be changed or deleted', async () => {
     await seedLink();
-    await assertFails(setDoc(alertRef(GUARDIAN), validAlert()));
-    await assertFails(setDoc(alertRef(STRANGER), validAlert()));
+    await assertFails(post(alertRef(GUARDIAN), validAlert()));
+    await assertFails(post(alertRef(STRANGER), validAlert()));
     await assertFails(updateDoc(alertRef(DEVICE, 'a1'), { outcome: 'stopped' }));
     await assertFails(deleteDoc(alertRef(DEVICE, 'a1')));
   });

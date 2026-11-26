@@ -8,6 +8,27 @@ Scams do not take your money when you read them. They take it when you act: when
 
 **Try it now, with nothing to install:** https://tripwire-buildhybridai.web.app/demo/ runs Tripwire's real checks and screens in your browser, through Firebase AI Logic. If your Chrome has its on-device model the check runs on your device; otherwise personal details are removed first and the cloud model is asked.
 
+## At a glance
+
+```
+page, email or phone call
+  │
+  ├─ built-in warning signs (no AI) ── nothing suspicious ──► silent, nothing sent
+  │
+  └─ Gemini Nano on the device (Firebase AI Logic, ONLY_ON_DEVICE)
+        ├─ clearly safe or clearly a scam ────────────────────► decided here, nothing sent
+        └─ unsure ── names, numbers, addresses removed on the device ──► cloud model (ONLY_IN_CLOUD)
+                     (leak check fails → nothing is sent, the device decides)
+```
+
+| Result (26 Nov) | Scams caught | False alarms | Sent to the cloud |
+| --- | --- | --- | --- |
+| Gemini Nano in the built extension, 50 messages | 25 / 25 | 0 / 25 | 4,207 bytes, all redacted first |
+| Cloud only (no on-device model) | 25 / 25 | 0 / 25 | 22,018 bytes, all redacted first |
+| Phone-call check, Gemini Nano, 20 calls | 12 / 12 | 0 / 8 | |
+
+191 unit tests, 29 security-rules tests, a 14-step end-to-end run with 0 accessibility problems, a live run against the real Firebase project. Details are in [Test results](#test-results).
+
 ## Why this matters
 
 Figures from the US Federal Trade Commission, read in November 2026:
@@ -52,7 +73,7 @@ The first picture was captured in desktop Chrome 157 with Gemini Nano answering,
 
 | On the device, nothing sent | With no on-device model: the route, and the receipt of what was sent |
 | --- | --- |
-| ![Pause with "Checked on your device, 0 bytes sent"](docs/screenshots/on-device-pause.png) | ![Cloud path on the hosted demo, with "what was sent" opened](docs/screenshots/web-demo-pause.png) |
+| ![Pause with "Checked on your device, nothing left your computer"](docs/screenshots/on-device-pause.png) | ![Cloud path on the hosted demo, with "what was sent" opened](docs/screenshots/web-demo-pause.png) |
 
 | Caution | Tripped |
 | --- | --- |
@@ -80,12 +101,12 @@ The on-device model is used as a **privacy gate in front of the cloud**:
 page text
    │
    ▼
-built-in warning signs (rules, no AI) ── nothing suspicious ──► not checked, 0 bytes sent
+built-in warning signs (rules, no AI) ── nothing suspicious ──► not checked, nothing sent
    │
    ▼
 Gemini Nano on the device (InferenceMode.ONLY_ON_DEVICE)
-   │  low risk ────────────────────────────────────────────────► safe, 0 bytes sent
-   │  high risk, confident, rules agree ───────────────────────► TRIPPED, 0 bytes sent
+   │  low risk ────────────────────────────────────────────────► safe, nothing sent
+   │  high risk, confident, rules agree ───────────────────────► TRIPPED, nothing sent
    ▼  unsure
 regex redaction → on-device model redaction → regex again → leak check (fails closed)
    │
@@ -252,7 +273,7 @@ Status: the app compiles against firebase-ai 18.2.0 and firebase-ai-ondevice 16.
 | --- | --- | --- | --- |
 | Built-in rules only (`npm run eval`) | 23 / 25 | **0 / 25** | 0 |
 | Cloud path, no on-device model (`npm run live`) | **25 / 25** | **0 / 25** | 22,018, all redacted first |
-| Gemini Nano inside the built extension (`node scripts/extension-nano.mjs --corpus`, 26 Nov) | **25 / 25** | **0 / 25** | 3,084, all redacted first |
+| Gemini Nano inside the built extension (`node scripts/extension-nano.mjs --corpus`, 26 Nov) | **25 / 25** | **0 / 25** | 4,207, all redacted first |
 | Gemini Nano on the device first (`node scripts/nano-probe.mjs --checks --corpus`) | **25 / 25** | **0 / 25** | 3,096, all redacted first |
 
 With the on-device model, 36 of the 50 samples were decided on the device, 8 needed no model and 6 went to the cloud: about 86 percent less sent than the cloud-only path, with the same detection. The on-device model varies a little between runs (earlier runs sent between 2,554 and 3,766 bytes). Seven on-device runs are committed in [eval-results/on-device/](eval-results/on-device): three from 14 Nov, which counted only the page text as "bytes sent" (so their byte figures are lower and not comparable), two from 15 Nov and two from 16 Nov. Six are 25/25 with zero false alarms. **One of the 16 Nov runs paused an ordinary checkout page**: a rule added that day let the device decide alone when a page asked for money and card details under pressure, which a real checkout also does. The rule now needs an ask no real shop makes (a Social Security number, a one-time code, online banking, a look at your screen); a regression test covers it and the run after it was clean. Three more were run on 14 Nov and not kept: two matched, and the first one produced a borderline false alarm on a gift-card shop page, which led to a router fix and a regression test. Results files record where they were run; the on-device runs use the Developer checks page served as a web page, because Chrome will not load an unpacked extension under automation.
@@ -292,14 +313,14 @@ The first run told people to hang up on two calls that had asked for nothing, a 
 
 ### Everything else
 
-- Unit tests: 179 passing (extension), 6 (Android). Security-rules tests: 24 against the emulator plus 2 that keep the rules and the app copy in step, 26 passing ([eval-results/rules-tests.json](eval-results/rules-tests.json)). Typecheck, unit tests, the rules-only corpus, the build and the rules tests also run in CI on every push ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
+- Unit tests: 191 passing (extension), 6 (Android). Security-rules tests: 27 against the emulator plus 2 that keep the rules and the app copy in step, 29 passing ([eval-results/rules-tests.json](eval-results/rules-tests.json)). Typecheck, unit tests, the rules-only corpus, the build and the rules tests also run in CI on every push ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
 - End-to-end in Chromium (`npm run e2e`): 14 of 14 steps, including the phone-call check, settings, the paused download, and a page that keeps deleting the warning. Result file: [eval-results/e2e.json](eval-results/e2e.json).
 - Live against the real project (`npm run live`): App Check token, hybrid call, Spanish explanations, pairing, single-use code, family alert. Result file: [eval-results/live-checks.json](eval-results/live-checks.json).
 - **App Check refuses robots, including ours.** On 16 Nov the hosted site began rejecting the automated test browser ("App attestation failed" from reCAPTCHA Enterprise), so pairing failed and the hosted demo fell back to built-in rules, with the badge saying so. The hosted demo was checked in an ordinary browser the same day and got its cloud answer. The automated runs of the hosted site now present the project's App Check debug token (read from `.env`, set only inside the test browser, never deployed); `--recaptcha` runs them as a robot. `node scripts/hosted-appcheck.mjs` shows the refusal, and the family page now says the browser could not be confirmed instead of blaming the internet.
 - Hosted demo with no extension (`npm run hosted`): the practice pages are flagged in a plain browser, the phone number on the page is absent from what was sent, the ordinary checkout stays silent, and a phone link clicked before the check has answered is held with a "checking this page" notice. Result file: [eval-results/hosted-demo.json](eval-results/hosted-demo.json).
 - Accessibility: axe-core on every screen in the end-to-end run. WCAG 2.2 A/AA: 0 problems. All text meets AAA contrast.
-- Languages: every screen is in English, Spanish and French, following the browser. Model-written reasons were run live in Spanish and French on the device (0 bytes sent) and Spanish through the cloud.
-- **The built extension with Gemini Nano, by automation** (`node scripts/extension-nano.mjs --corpus`): Chrome no longer takes `--load-extension`, so the script loads the built extension over the DevTools protocol, headless. The offscreen document found the model, the practice bank page was paused with "Checked on your device · 0 bytes sent", the ordinary shop page stayed silent, and the corpus ran 25/25 with 0 false alarms (34 of 50 decided on the device). Result file: [eval-results/extension-on-device.json](eval-results/extension-on-device.json). It was also checked by hand in desktop Chrome 157 with Wi-Fi off.
+- Languages: every screen is in English, Spanish and French, following the browser. Model-written reasons were run live in Spanish and French on the device (nothing sent) and Spanish through the cloud.
+- **The built extension with Gemini Nano, by automation** (`node scripts/extension-nano.mjs --corpus`): Chrome no longer takes `--load-extension`, so the script loads the built extension over the DevTools protocol, headless. The offscreen document found the model, the practice bank page was paused with "Checked on your device · nothing left your computer", the ordinary shop page stayed silent, and the corpus ran 25/25 with 0 false alarms (34 of 50 decided on the device). Result file: [eval-results/extension-on-device.json](eval-results/extension-on-device.json). It was also checked by hand in desktop Chrome 157 with Wi-Fi off.
 
 ## Not verified yet
 

@@ -30,7 +30,7 @@ Tripwire is a Chrome extension with three states.
 
 It trips on actions: a card number field (checked locally), a gift-card code field, a crypto wallet field, a phone link on a suspicious page, and the download of a remote-access tool shortly after a suspicious page was open.
 
-**Settings** give a three-step warning level and a list of trusted sites, with a warning aimed at the exact way a scammer would try to abuse that list. **Explanations follow the browser's language**: a verdict that stayed on the device is translated on the device, so "0 bytes sent" stays true.
+**Settings** give a three-step warning level and a list of trusted sites, with a warning aimed at the exact way a scammer would try to abuse that list. **Explanations follow the browser's language**: a verdict that stayed on the device is translated on the device, so "nothing left your computer" stays true.
 
 **Someone on the phone?** Most scams on older people start with a call, which no browser can see. From the Tripwire menu, "Someone is on the phone with me" opens a page where the person answers three questions by tapping big buttons, with no typing: who the caller says they are, what they want (money, gift cards, crypto, a code from the phone, personal details, access to the computer) and how they are acting (rushing, secrecy, "stay on the line"). Tripwire turns the taps into a plain English description, plus anything the person chooses to type, so the model reads clear English whatever language the screen is in. Gemini Nano checks it on the computer first (a redacted second opinion only if it is unsure), and the answer is plain: "Hang up now.", "Be careful." or "Nothing here sounds like a scam", always with "call back on a number you already know". "I hung up" sends the family alert.
 
@@ -45,11 +45,11 @@ The on-device model is not a cheaper copy of the cloud model. It is a **privacy 
 3. Only when the device is unsure does anything leave: the text is redacted by regular expressions, then by the on-device model, then by regular expressions again, and checked for leaks. If the check fails, nothing is sent.
 4. **Gemini in the cloud**, called through Firebase AI Logic with `InferenceMode.ONLY_IN_CLOUD`, sees redacted text only and returns a structured verdict.
 
-The person can open "See exactly what was sent" and read the redacted text for themselves. Every verdict carries its route, and the person sees it in plain words: "Checked on your device · 0 bytes sent", or "Personal info removed · sent for a deeper check". We pin the inference mode for each call instead of using `PREFER_ON_DEVICE`, and check `response.inferenceSource`: if a call that must stay local was answered by the cloud, the result is thrown away.
+The person can open "See exactly what was sent" and read the redacted text for themselves. Every verdict carries its route, and the person sees it in plain words: "Checked on your device · nothing left your computer", or "Personal info removed · sent for a deeper check". We pin the inference mode for each call instead of using `PREFER_ON_DEVICE`, and check `response.inferenceSource`: if a call that must stay local was answered by the cloud, the result is thrown away.
 
 Other Firebase pieces:
 
-- **App Check**, enforced on both AI Logic and Firestore. reCAPTCHA cannot load on a `chrome-extension://` origin under Manifest V3, so the extension uses a custom provider with a debug token. The hosted family page attests with reCAPTCHA Enterprise. We tested enforcement from outside: an AI Logic request without a token gets HTTP 401 and a Firestore read without a token is refused.
+- **App Check**, enforced on both AI Logic and Firestore. reCAPTCHA cannot load on a `chrome-extension://` origin under Manifest V3, so the release build uses a custom provider whose tokens come from Tripwire's own hosted page: a hidden frame on `/attest.html` passes a real reCAPTCHA Enterprise check and hands back an App Check token. The page answers only Tripwire's fixed extension ID, and the release build contains no debug token (the build script checks). Development and automated test builds use a debug token, because reCAPTCHA refuses automated browsers. The hosted family page attests with reCAPTCHA Enterprise. We tested enforcement from outside: an AI Logic request without a token gets HTTP 401 and a Firestore read without a token is refused.
 - **Remote Config** holds thresholds, the prompt version and keyword lists, with local defaults.
 - **Auth** (anonymous) is the device identity; **Firestore** holds pairing codes and alerts. The security rules reject any alert that is not exactly five fixed fields, so page or email text cannot be stored even by a modified client. The rules have their own test suite.
 - **Hosting** serves the family page.
@@ -68,9 +68,9 @@ TypeScript (strict), Manifest V3 with WXT, React, Shadow DOM for the in-page UI,
 - **We publish the bad first run too.** Before the fixes it caught 6 of 10 and took 51 seconds on long pages. See "Challenges".
 - **A third held-out round, written after all tuning and run once:** 12 of 12 new kinds of scam paused, 0 false alarms on 12 ordinary messages chosen to look like scams.
 - **The built extension itself, with Gemini Nano, by automation:** 25/25 scams, 0/25 false alarms, 34 of 50 decided on the device.
-- Every screen in English, Spanish and French; explanations run live in Spanish and French with 0 bytes sent.
+- Every screen in English, Spanish and French; explanations run live in Spanish and French with nothing sent.
 - Twelve adversarial tests: a page that tells the model what to answer, repeats "scam" to look like advice, hides the ask under filler, or deletes the warning. None gets through quietly.
-- 179 unit tests, 26 security-rules tests, a 14-step end-to-end run, a live run against the real project, a test of the hosted demo with no extension, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems).
+- 191 unit tests, 29 security-rules tests (including a limit of one family alert every 15 seconds), a 14-step end-to-end run, a live run against the real project, a test of the hosted demo with no extension, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems).
 
 ## Challenges
 

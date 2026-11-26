@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-11-26T17:10:13.231Z",
+  "ranAt": "2026-11-26T19:52:53.227Z",
   "where": "the built extension in Chrome/158.0.8127.88, headless, Gemini Nano on the device",
   "steps": [
     {
@@ -14,8 +14,8 @@
     },
     {
       "state": "pass",
-      "name": "the practice bank page is paused: \"Checked on your device · 0 bytes sent\"",
-      "note": "Checked on your device · 0 bytes sent"
+      "name": "the practice bank page is paused: \"Checked on your device · nothing left your computer\"",
+      "note": "Checked on your device · nothing left your computer"
     },
     {
       "state": "pass",
@@ -29,13 +29,8 @@
     },
     {
       "state": "pass",
-      "name": "phone-call test set (corpus/calls.json), tapped on the call page",
-      "note": "scams 12/12, false alarms 0/8, decided on the device 7/20"
-    },
-    {
-      "state": "pass",
       "name": "corpus: 50 samples through the router inside the extension",
-      "note": "scams 25/25, false alarms 0/25, routes {\"on_device\":36,\"device_then_cloud\":6,\"not_checked\":8}, bytes 3084"
+      "note": "scams 25/25, false alarms 0/25, routes {\"on_device\":34,\"device_then_cloud\":8,\"not_checked\":8}, bytes 4207"
     }
   ]
 }

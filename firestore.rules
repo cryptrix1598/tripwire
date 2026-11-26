@@ -44,6 +44,16 @@ service cloud.firestore {
     // The one sentence an alert may carry for each kind of scam. Mirrors ALERT_SUMMARY
     // in src/ui/copy (a unit test keeps the two in step). Because the summary must be
     // exactly this sentence, an alert cannot carry free text of any kind.
+    // The clock may stay as it is, or move to now if the last alert was over 15 seconds ago.
+    // Once set it can never be removed or set to any other time.
+    function alertClockOk(before, after) {
+      return ('lastAlertAt' in after || !('lastAlertAt' in before))
+        && (!('lastAlertAt' in after)
+          || ('lastAlertAt' in before && after.lastAlertAt == before.lastAlertAt)
+          || (after.lastAlertAt == request.time
+            && (!('lastAlertAt' in before) || request.time > before.lastAlertAt + duration.value(15, 's'))));
+    }
+
     function summaryFor(scamType) {
       return {
         'none': 'Tripwire saw several warning signs of a scam.',
@@ -90,8 +100,14 @@ service cloud.firestore {
     match /devices/{deviceId} {
       allow get: if isDevice(deviceId) || isGuardianOf(deviceId);
       allow list: if false;
-      allow create, update: if isDevice(deviceId)
-        && request.resource.data.keys().hasOnly(['createdAt']);
+      // lastAlertAt is the device's alert clock: each alert must move it to now, and it can move
+      // at most once every 15 seconds, so a broken or looping client cannot flood the family feed.
+      allow create: if isDevice(deviceId)
+        && request.resource.data.keys().hasOnly(['createdAt', 'lastAlertAt'])
+        && (!('lastAlertAt' in request.resource.data) || request.resource.data.lastAlertAt == request.time);
+      allow update: if isDevice(deviceId)
+        && request.resource.data.keys().hasOnly(['createdAt', 'lastAlertAt'])
+        && alertClockOk(resource.data, request.resource.data);
       allow delete: if false;
 
       // A guardian link is created by the guardian, proving knowledge of a
@@ -137,7 +153,9 @@ service cloud.firestore {
           && request.resource.data.action in [
                'passive', 'card_entry', 'remote_download', 'phone_call', 'gift_card', 'crypto_wire', 'live_call'
              ]
-          && request.resource.data.outcome in ['stopped', 'continued'];
+          && request.resource.data.outcome in ['stopped', 'continued']
+          // Written together with the device's alert clock (see above).
+          && getAfter(/databases/$(database)/documents/devices/$(deviceId)).data.get('lastAlertAt', null) == request.time;
         // Alerts are an immutable record.
         allow update, delete: if false;
       }
