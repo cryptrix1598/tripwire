@@ -27,6 +27,7 @@ page, email or phone call
 | Cloud only (no on-device model) | 25 / 25 | 0 / 25 | 22,018 bytes, all redacted first |
 | Phone-call check, Gemini Nano, 20 calls (latest run) | 12 / 12 | 0 / 8 | |
 | Held-out scams and 39 real pages, Gemini Nano first | 28 / 28 | 0 / 39 | |
+| The same held-out set, no Gemini Nano (cloud-only path) | 19 / 28 | 0 / 38 | |
 | The same held-out set, built-in rules only (no AI) | 3 / 28 | 0 / 39 | 0 |
 
 212 unit tests (plus 28 on Android), 32 security-rules tests, a 14-step end-to-end run with 0 accessibility problems, a live run against the real Firebase project. Details are in [Test results](#test-results).
@@ -304,8 +305,9 @@ In the built extension (the headline run, 26 Nov), 34 of the 50 samples were dec
 | After the fixes below | **16 / 16** | **0 / 28** | **median 3.7 s, 90th percentile 7.4 s** |
 | Latest run, all three rounds (26 Nov, [eval-results/holdout/](eval-results/holdout)) | **28 / 28** | **0 / 39** | median 3.2 s, 90th percentile 6.7 s |
 | **The same set, built-in rules only, no AI** (`node scripts/holdout.mjs --rules`) | **3 / 28** | 0 / 39 | |
+| The same set on a computer **without** Gemini Nano (`--cloud-only`, plain Chromium: the stricter gate, then the redacted cloud check) | **19 / 28** | **0 / 38** | |
 
-**What the AI adds.** On the same held-out messages and real pages, the built-in rules alone catch 3 of 28 scams; with Gemini Nano first (and the redacted cloud check when the device is unsure), Tripwire catches 28 of 28, with no false alarms either way. The keyword rules are a safety net for when no model can be reached, not the detector.
+**What the AI adds.** On the same held-out messages and real pages, the built-in rules alone catch 3 of 28 scams; with Gemini Nano first (and the redacted cloud check when the device is unsure), Tripwire catches 28 of 28, with no false alarms either way. The keyword rules are a safety net for when no model can be reached, not the detector. **Without Gemini Nano the protection is weaker, and we say so:** the cloud-only path caught 19 of 28. Of the nine it missed, six reached the cloud but got no usable answer back in that run (the run does not record why; the free-tier quota is one possibility), and three never passed the stricter gate that decides whether anything is sent at all. That gate is strict on purpose, because on this path the text has to leave the computer.
 
 **Round four** (26 Nov, [corpus/holdout.json](corpus/holdout.json) `scamsRound4` and `benignMessagesRound4`): ten new scams of kinds no earlier round had (a hearing-aid "refund" that needs your bank open, a grandson's "lawyer" with a cash courier, a pastor asking for gift cards, a solar "grant" fee, a printer "virus", a wrong-number crypto pitch, a ticket resale for a Steam card, and three in Spanish and French) and ten ordinary messages that use the same words. Written after every other change and run once:
 

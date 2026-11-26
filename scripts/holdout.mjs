@@ -26,8 +26,11 @@ const rulesCheck = async (text) => {
   rulesChild.stdin.write(`${JSON.stringify(text)}\n`);
   return JSON.parse((await rulesAnswers.next()).value);
 };
-const context = await chromium.launchPersistentContext(resolve('.nano-profile'), {
-  channel: 'chrome',
+// --cloud-only: plain Chromium, which has no on-device model, so every check takes the path a computer
+// without Gemini Nano takes (the stricter gate, then the redacted cloud check).
+const cloudOnly = process.argv.includes('--cloud-only');
+const context = await chromium.launchPersistentContext(cloudOnly ? resolve('.output/cloud-only-profile') : resolve('.nano-profile'), {
+  ...(cloudOnly ? {} : { channel: 'chrome' }),
   headless: true,
   ignoreDefaultArgs: ['--disable-background-networking', '--disable-component-update', `--disable-features=${disabled.join(',')}`],
   args: [`--disable-features=${disabled.filter((f) => f !== 'OptimizationHints').join(',')}`, '--enable-features=AIPromptAPI,AIPromptAPIMultimodalInput,OptimizationGuideOnDeviceModel'],
@@ -90,7 +93,7 @@ try {
   const modelRows = rows.filter((r) => r.route !== 'not_checked');
   const summary = {
     ranAt: new Date().toISOString(),
-    mode: rulesOnly ? 'held-out, built-in rules only (no model), the no-AI baseline' : `held-out, live-web-harness (Chrome ${context.browser()?.version() ?? ''}), on-device model ${model}`,
+    mode: rulesOnly ? 'held-out, built-in rules only (no model), the no-AI baseline' : cloudOnly ? 'held-out, no on-device model (Chromium): the stricter gate and the redacted cloud check' : `held-out, live-web-harness (Chrome ${context.browser()?.version() ?? ''}), on-device model ${model}`,
     scams: scams.length,
     detected: scams.filter((r) => r.correct).length,
     roundThree: {
@@ -115,7 +118,7 @@ try {
     rows,
   };
   mkdirSync('eval-results/holdout', { recursive: true });
-  const out = `eval-results/holdout/${rulesOnly ? 'rules-only-' : ''}${onlyRound4 ? 'round4-' : ''}${summary.ranAt.replace(/[:.]/g, '-')}.json`;
+  const out = `eval-results/holdout/${rulesOnly ? 'rules-only-' : cloudOnly ? 'cloud-only-' : ''}${onlyRound4 ? 'round4-' : ''}${summary.ranAt.replace(/[:.]/g, '-')}.json`;
   writeFileSync(out, JSON.stringify(summary, null, 2));
   console.log(`\nscams flagged ${summary.detected}/${summary.scams} (${summary.paused} paused) | false alarms on real pages ${summary.falseAlarms}/${summary.benignPages}`);
   console.log(`routes ${JSON.stringify(summary.routes)} | bytes to cloud ${summary.totalBytesSentToCloud} | average text ${summary.averageChars} chars`);

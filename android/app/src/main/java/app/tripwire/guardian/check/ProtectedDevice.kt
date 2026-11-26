@@ -31,16 +31,28 @@ class ProtectedDevice {
     suspend fun showCode(): String {
         val me = uid()
         db.collection("devices").document(me).set(mapOf("createdAt" to FieldValue.serverTimestamp()), SetOptions.merge()).await()
-        val code = FamilyAlerts.newCode(SecureRandom())
-        db.collection("pairingCodes").document(code).set(
-            mapOf(
-                "deviceId" to me,
-                "createdAt" to FieldValue.serverTimestamp(),
-                "expiresAt" to Timestamp(Date(System.currentTimeMillis() + 5 * 60_000)),
-            ),
-        ).await()
-        liveCode = code
-        return code
+        // Only one live code at a time, as in the extension: the previous one stops working.
+        liveCode?.let { old -> runCatching { db.collection("pairingCodes").document(old).delete().await() } }
+        liveCode = null
+        val random = SecureRandom()
+        // A number someone else is still using is refused by the rules; try a few others.
+        repeat(5) {
+            val code = FamilyAlerts.newCode(random)
+            val written = runCatching {
+                db.collection("pairingCodes").document(code).set(
+                    mapOf(
+                        "deviceId" to me,
+                        "createdAt" to FieldValue.serverTimestamp(),
+                        "expiresAt" to Timestamp(Date(System.currentTimeMillis() + 5 * 60_000)),
+                    ),
+                ).await()
+            }.isSuccess
+            if (written) {
+                liveCode = code
+                return code
+            }
+        }
+        error("Could not create a pairing code")
     }
 
     /** Who is waiting for "Yes, allow" (their first names), and how many are already allowed. */
