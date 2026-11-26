@@ -1,0 +1,63 @@
+{
+  "about": "Shared by tests/redaction-fixtures.test.ts (extension) and RedactionFixturesTest.kt (Android): each text must lose every \"remove\" value and keep every \"keep\" value.",
+  "cases": [
+    {
+      "id": "greeting-card-phone",
+      "text": "Dear Margaret Ellison, your card 4111 1111 1111 1111 was charged. Call 1-855-555-0119.",
+      "remove": [
+        "Margaret",
+        "Ellison",
+        "4111",
+        "555-0119"
+      ],
+      "keep": [
+        "charged"
+      ]
+    },
+    {
+      "id": "address-directional-apt",
+      "text": "The courier will come to 120 N Main Street, Apt 4B, Springfield, IL 62704 tonight.",
+      "remove": [
+        "120 N Main",
+        "Apt 4B",
+        "62704"
+      ],
+      "keep": [
+        "courier",
+        "tonight"
+      ]
+    },
+    {
+      "id": "email-ssn",
+      "text": "Send your SSN 123-45-6789 to help@refund-desk.example today.",
+      "remove": [
+        "123-45-6789",
+        "help@refund-desk.example"
+      ],
+      "keep": [
+        "today"
+      ]
+    },
+    {
+      "id": "code-signoff",
+      "text": "Your code is 482913. Read it to me now.\nRegards,\nThaddeus Crumb",
+      "remove": [
+        "482913",
+        "Thaddeus"
+      ],
+      "keep": [
+        "Read it to me now"
+      ]
+    },
+    {
+      "id": "brand-kept",
+      "text": "Your Charles Schwab account is locked. My name is Tom Baker.",
+      "remove": [
+        "Tom Baker"
+      ],
+      "keep": [
+        "Charles Schwab"
+      ]
+    }
+  ]
+}

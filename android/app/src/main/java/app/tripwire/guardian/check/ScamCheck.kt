@@ -89,7 +89,13 @@ object Redactor {
     private val ENDING = Regex("""\b(ending(?:\s+in)?|last\s+(?:four|4)(?:\s+digits)?(?:\s+(?:are|of|is))?)(\s+)(\d{3,6})\b""", RegexOption.IGNORE_CASE)
     private val LONG_DIGITS = Regex("""(?<![\w$.,])\d{7,}(?![\w%])""")
     private val ID = Regex("""\b(?=[A-Za-z0-9]*[A-Za-z])(?=(?:[A-Za-z]*\d){5})[A-Za-z0-9]{10,}\b""")
-    private val ADDRESS = Regex("""\b\d{1,6}\s+(?:[A-Z][a-z]+\s+){1,3}(?:Street|St|Avenue|Ave|Road|Rd|Lane|Ln|Drive|Dr|Court|Ct|Boulevard|Blvd|Way|Place|Pl|Terrace|Close|Crescent)\b\.?""")
+    private const val STREET = "Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Lane|Ln|Drive|Dr|Court|Ct|Way|Place|Pl|Terrace|Ter|Circle|Cir|Highway|Hwy|Parkway|Pkwy|Trail|Trl|Square|Sq|Crescent|Cres|Close"
+    /** The extension's address rule (src/redaction/regex.ts): directionals, apartment or suite, city and state. */
+    private val ADDRESS = Regex(
+        """\b\d{1,6}[A-Za-z]?\s+(?:(?:N|S|E|W|NE|NW|SE|SW|North|South|East|West)\.?\s+)?(?:[A-Z0-9][A-Za-z0-9'.-]*\s+){1,4}(?:$STREET)\b\.?""" +
+            """(?:,?\s*(?:Apt|Apartment|Suite|Ste|Unit|Flat|#)\.?\s*[A-Za-z0-9-]+)?""" +
+            """(?:,?\s+[A-Z][A-Za-z.'-]*(?:\s[A-Z][A-Za-z.'-]*){0,2},?\s+[A-Z]{2}\b\.?(?:\s+\d{5}(?:-\d{4})?)?)?""",
+    )
     private val PO_BOX = Regex("""\bP\.?\s?O\.?\s*Box\s+\d+\b""", RegexOption.IGNORE_CASE)
     private val CITY_STATE_ZIP = Regex("""\b[A-Z][a-z]+(?:\s[A-Z][a-z]+){0,2},\s*[A-Z]{2}\s+\d{5}(?:-\d{4})?\b""")
     private const val WORD = """[A-ZÀ-Ý][a-zà-ÿ]+(?:['-][A-ZÀ-Ý]?[a-zà-ÿ]+)?"""

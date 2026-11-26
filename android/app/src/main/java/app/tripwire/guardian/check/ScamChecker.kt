@@ -14,34 +14,93 @@ import com.google.firebase.ai.type.generationConfig
 import java.util.Locale
 import kotlinx.coroutines.withTimeoutOrNull
 
+/** Which pinned model a call goes to. */
+enum class ModelKind { PHONE, LISTER, CLOUD }
+
+/** What one model call gave back. */
+sealed interface Reply {
+    data class Text(val text: String) : Reply
+    /** A call meant for one side was answered by the other: final, never retried. */
+    data object WrongSide : Reply
+    data object Nothing : Reply
+}
+
+/** The model calls, behind an interface so the routing is unit tested without Firebase. */
+interface ModelClient {
+    suspend fun phoneReady(): Boolean
+    suspend fun ask(kind: ModelKind, prompt: String): Reply
+    suspend fun config(): CheckConfig = CheckConfig()
+}
+
 /**
- * The AI half of "Is this a scam?" on the phone. Firebase AI Logic hybrid
- * inference, with the mode pinned per call (API checked against
- * firebase-ai 18.2.0 and firebase-ai-ondevice 16.0.0-beta08 on 2026-11-26):
- *
- *   1. Gemini Nano on the phone, ONLY_ON_DEVICE, reads the text as it is.
- *      `inferenceSource` must say ON_DEVICE, or Tripwire stops.
- *   2. Only if the phone is unsure: the redacted text, after a leak check that
- *      fails closed, goes to the cloud model with ONLY_IN_CLOUD.
+ * The AI half of "Is this a scam?" on the phone: the routing.
+ *   1. Gemini Nano on the phone (ONLY_ON_DEVICE) reads the text as it is.
+ *   2. Only if the phone is unsure: redacted, listed by the phone, redacted again and
+ *      leak-checked, then the cloud (ONLY_IN_CLOUD). Any failure on the way sends nothing.
  *   3. No phone model: the redacted cloud check. Offline: the built-in rules.
  */
+class ScamChecker(private val client: ModelClient = FirebaseModelClient()) {
+    private val language: String = Locale.getDefault().getDisplayLanguage(Locale.ENGLISH)
+    private var config: CheckConfig? = null
+
+    suspend fun check(text: String): CheckResult {
+        val c = config ?: client.config().also { config = it }
+        val signs = Rules.signs(text)
+        val rules = CheckResult(Rules.verdict(signs), Route.RULES, signs)
+        val phone = client.phoneReady()
+        if (phone) {
+            when (val local = askParsed(ModelKind.PHONE, Answers.prompt(text, language), Answers::parse)) {
+                is Reply.WrongSide -> return rules.copy(wrongSide = true)
+                is Reply.Text -> {
+                    val answer = Answers.parse(local.text) ?: return rules
+                    Decide.onPhone(answer.risk, signs, c)?.let { return CheckResult(it, Route.ON_PHONE, signs, answer.reasons) }
+                }
+                // The phone was meant to look and could not: keep the answer on the phone.
+                Reply.Nothing -> return rules
+            }
+        }
+        return cloud(text, signs, phone, c) ?: rules
+    }
+
+    private suspend fun cloud(text: String, signs: List<Sign>, phone: Boolean, c: CheckConfig): CheckResult? {
+        val first = Redactor.redact(text)
+        var candidate = first.text
+        var listedItems = emptyList<String>()
+        if (phone) {
+            val listed = askParsed(ModelKind.LISTER, Answers.listPrompt(candidate), Answers::parseItems)
+            if (listed is Reply.WrongSide) return CheckResult(Rules.verdict(signs), Route.RULES, signs, wrongSide = true)
+            listedItems = (listed as? Reply.Text)?.let { Answers.parseItems(it.text) } ?: return null
+            candidate = Redactor.redact(Redactor.replaceItems(candidate, listedItems)).text
+        }
+        // Nothing the patterns removed, and nothing the phone listed, may still be there in any case.
+        if (!Redactor.clean(candidate, first.found + Redactor.usable(listedItems))) return null
+        val reply = askParsed(ModelKind.CLOUD, Answers.prompt(candidate, language), Answers::parseJson) as? Reply.Text ?: return null
+        val answer = Answers.parseJson(reply.text) ?: return null
+        return CheckResult(Decide.fromCloud(answer.risk, signs, c), Route.REDACTED_CLOUD, signs, answer.reasons, sent = candidate)
+    }
+
+    /** One call, retried once if the answer does not parse (never after a wrong-side answer or no answer). */
+    private suspend fun askParsed(kind: ModelKind, prompt: String, parses: (String?) -> Any?): Reply {
+        repeat(2) {
+            val reply = client.ask(kind, prompt)
+            if (reply !is Reply.Text || parses(reply.text) != null) return reply
+        }
+        return Reply.Nothing
+    }
+}
+
+/** The real calls: Firebase AI Logic hybrid inference, mode pinned per model (firebase-ai 18.2.0). */
 @OptIn(PublicPreviewAPI::class)
-class ScamChecker {
+class FirebaseModelClient : ModelClient {
     private val ai by lazy { Firebase.ai(backend = GenerativeBackend.googleAI()) }
-    /** Thresholds and the cloud model come from Remote Config, as in the extension; read once per check screen. */
-    private var config = CheckConfig()
-    private var configLoaded = false
-    private val onPhone by lazy {
-        ai.generativeModel(modelName = config.cloudModel, onDeviceConfig = OnDeviceConfig(InferenceMode.ONLY_ON_DEVICE, 160, 0f))
-    }
+    private var model = CheckConfig().cloudModel
+    private val phone by lazy { ai.generativeModel(modelName = model, onDeviceConfig = OnDeviceConfig(InferenceMode.ONLY_ON_DEVICE, 160, 0f)) }
     /** Listing personal details can need more room than a verdict, so it has its own output budget. */
-    private val lister by lazy {
-        ai.generativeModel(modelName = config.cloudModel, onDeviceConfig = OnDeviceConfig(InferenceMode.ONLY_ON_DEVICE, 512, 0f))
-    }
+    private val lister by lazy { ai.generativeModel(modelName = model, onDeviceConfig = OnDeviceConfig(InferenceMode.ONLY_ON_DEVICE, 512, 0f)) }
     /** The cloud answers to a schema, like the extension's cloud call. */
-    private val inCloud by lazy {
+    private val cloud by lazy {
         ai.generativeModel(
-            modelName = config.cloudModel,
+            modelName = model,
             generationConfig = generationConfig {
                 responseMimeType = "application/json"
                 responseSchema = Schema.obj(mapOf("risk" to Schema.integer(), "reasons" to Schema.array(Schema.string())))
@@ -49,97 +108,30 @@ class ScamChecker {
             onDeviceConfig = OnDeviceConfig(InferenceMode.ONLY_IN_CLOUD),
         )
     }
-    /** Reasons are written in the phone's language (English, Spanish or French screens). */
-    private val language: String = Locale.getDefault().getDisplayLanguage(Locale.ENGLISH)
 
-    suspend fun check(text: String): CheckResult {
-        if (!configLoaded) {
-            config = RemoteSettings.load()
-            configLoaded = true
-        }
-        val signs = Rules.signs(text)
-        val rules = CheckResult(Rules.verdict(signs), Route.RULES, signs)
+    override suspend fun config(): CheckConfig = RemoteSettings.load().also { model = it.cloudModel }
 
-        val phone = phoneModelReady()
-        if (phone) {
-            val local = ask(onPhone, Answers.prompt(text, language), InferenceSource.ON_DEVICE, ON_PHONE_MS, Answers::parse)
-            when {
-                local is Reply.WrongSide -> return rules.copy(wrongSide = true)
-                local is Reply.Text -> {
-                    val answer = Answers.parse(local.text) ?: return rules
-                    Decide.onPhone(answer.risk, signs, config)?.let { return CheckResult(it, Route.ON_PHONE, signs, answer.reasons) }
-                }
-                // The phone was meant to look and could not: keep the answer on the phone.
-                else -> return rules
-            }
-        }
-        return when (val c = cloud(text, signs, phone)) {
-            null -> rules
-            else -> c
-        }
-    }
-
-    /**
-     * Redact, then (when the phone has a model) let it point at what the patterns missed, then
-     * redact again and check for leaks. Any failure on the way means nothing is sent.
-     */
-    private suspend fun cloud(text: String, signs: List<Sign>, phone: Boolean): CheckResult? {
-        val first = Redactor.redact(text)
-        var candidate = first.text
-        var listedItems = emptyList<String>()
-        if (phone) {
-            val listed = ask(lister, Answers.listPrompt(candidate), InferenceSource.ON_DEVICE, ON_PHONE_MS, Answers::parseItems)
-            if (listed is Reply.WrongSide) return CheckResult(Rules.verdict(signs), Route.RULES, signs, wrongSide = true)
-            listedItems = (listed as? Reply.Text)?.let { Answers.parseItems(it.text) } ?: return null
-            candidate = Redactor.redact(Redactor.replaceItems(candidate, listedItems)).text
-        }
-        // Nothing the patterns removed, and nothing the phone listed, may still be there in any case.
-        if (!Redactor.clean(candidate, first.found + Redactor.usable(listedItems))) return null
-        val reply = ask(inCloud, Answers.prompt(candidate, language), InferenceSource.IN_CLOUD, IN_CLOUD_MS, Answers::parseJson) as? Reply.Text ?: return null
-        val answer = Answers.parseJson(reply.text) ?: return null
-        return CheckResult(Decide.fromCloud(answer.risk, signs, config), Route.REDACTED_CLOUD, signs, answer.reasons, sent = candidate)
-    }
-
-    private sealed interface Reply {
-        data class Text(val text: String) : Reply
-        data object WrongSide : Reply
-        data object Nothing : Reply
-    }
-
-    /** One call, retried once if the answer does not parse (never after a timeout or a wrong-side answer). */
-    private suspend fun ask(
-        model: com.google.firebase.ai.GenerativeModel,
-        prompt: String,
-        expected: InferenceSource,
-        timeoutMs: Long,
-        parses: (String?) -> Any?,
-    ): Reply {
-        repeat(2) {
-            val reply = try {
-                withTimeoutOrNull(timeoutMs) {
-                    val response = model.generateContent(prompt)
-                    when {
-                        response.inferenceSource != expected -> Reply.WrongSide
-                        response.text.isNullOrBlank() -> Reply.Nothing
-                        else -> Reply.Text(response.text!!)
-                    }
-                } ?: return Reply.Nothing
-            } catch (_: Exception) {
-                Reply.Nothing
-            }
-            if (reply is Reply.WrongSide || (reply is Reply.Text && parses(reply.text) != null)) return reply
-        }
-        return Reply.Nothing
-    }
-
-    private suspend fun phoneModelReady(): Boolean = try {
+    override suspend fun phoneReady(): Boolean = try {
         FirebaseAIOnDevice.checkStatus() == OnDeviceModelStatus.AVAILABLE
     } catch (_: Exception) {
         false
     }
 
-    private companion object {
-        const val ON_PHONE_MS = 20_000L
-        const val IN_CLOUD_MS = 25_000L
+    override suspend fun ask(kind: ModelKind, prompt: String): Reply = try {
+        val (m, expected, timeout) = when (kind) {
+            ModelKind.PHONE -> Triple(phone, InferenceSource.ON_DEVICE, 20_000L)
+            ModelKind.LISTER -> Triple(lister, InferenceSource.ON_DEVICE, 20_000L)
+            ModelKind.CLOUD -> Triple(cloud, InferenceSource.IN_CLOUD, 25_000L)
+        }
+        withTimeoutOrNull(timeout) {
+            val response = m.generateContent(prompt)
+            when {
+                response.inferenceSource != expected -> Reply.WrongSide
+                response.text.isNullOrBlank() -> Reply.Nothing
+                else -> Reply.Text(response.text!!)
+            }
+        } ?: Reply.Nothing
+    } catch (_: Exception) {
+        Reply.Nothing
     }
 }
