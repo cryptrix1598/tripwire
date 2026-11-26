@@ -128,6 +128,8 @@ export const WHY = {
   cloudUnreachable: 'A deeper check was not possible because this computer is offline.',
   attemptedDetail: 'personal info removed, then it may have been sent',
   wrongSideDetail: 'a private check ran online by mistake, so Tripwire stopped',
+  downloadingLabel: 'The private on-device check is still downloading',
+  downloading: 'This computer can run the private on-device check, but it is still downloading. Until it is ready, Tripwire removes the names, numbers and addresses it can recognise before checking online.',
   wrongSide: 'Chrome reported that a check meant to run on this computer was answered online instead. Tripwire stopped at once, sent nothing more, and used its built-in warning signs. The text that check was given may have left your computer.',
   attempted: 'Tripwire tried a deeper check: it removed personal info and sent the rest, but no usable answer came back. "See exactly what was sent" shows what it sent.',
   sentShow: 'See exactly what was sent',
@@ -316,7 +318,7 @@ export const CALL = {
     want: {
       legend: 'What do they want you to do?',
       hint: 'Tap all that fit.',
-      options: { money: 'Pay or move money', gift_cards: 'Buy gift cards', crypto: 'Send crypto or use a Bitcoin machine', code: 'Read them a code from my phone', details: 'Give my Social Security, Medicare or bank details', computer: 'Let them into my computer', nothing: 'Nothing yet' },
+      options: { money: 'Pay a bill, a fine or a fee', safe_account: 'Move my money to a “safe” account', gift_cards: 'Buy gift cards', crypto: 'Send crypto or use a Bitcoin machine', code: 'Read them a code from my phone', details: 'Give my Social Security, Medicare or bank details', computer: 'Let them into my computer', nothing: 'Nothing yet' },
     },
     how: {
       legend: 'How are they acting?',

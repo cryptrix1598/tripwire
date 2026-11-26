@@ -308,6 +308,15 @@ async function openCallCheck(): Promise<void> {
   await chrome.tabs.create({ url: chrome.runtime.getURL('/call.html'), active: true });
 }
 
+/** A closed tab's verdict, its entry in the recent-flags list (which holds what was sent) and its "continue" answers all go. */
+async function forgetTab(tabId: number): Promise<void> {
+  const all = await chrome.storage.session.get(null);
+  const keys = Object.keys(all).filter((k) => k === TAB_KEY(tabId) || k.startsWith(`ack:${tabId}:`));
+  if (keys.length) await chrome.storage.session.remove(keys);
+  const flagged = (all[FLAGGED_KEY] as FlaggedEntry[] | undefined) ?? [];
+  if (flagged.some((e) => e.tabId === tabId)) await chrome.storage.session.set({ [FLAGGED_KEY]: flagged.filter((e) => e.tabId !== tabId) });
+}
+
 /* ---------- wiring ---------- */
 
 export function startBackground(): void {
@@ -348,7 +357,5 @@ export function startBackground(): void {
     if (delta.filename?.current) void inspectDownload(delta.id, delta.filename.current);
   });
 
-  chrome.tabs.onRemoved.addListener((tabId) => {
-    void chrome.storage.session.remove(TAB_KEY(tabId));
-  });
+  chrome.tabs.onRemoved.addListener((tabId) => void forgetTab(tabId));
 }

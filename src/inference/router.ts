@@ -191,6 +191,7 @@ interface Draft {
   failSafe?: boolean;
   cloudUnreachable?: boolean;
   wrongSide?: boolean;
+  modelDownloading?: boolean;
   /** Passive trips need corroboration; this says whether it was present. */
   allowTrip?: boolean;
   /** Set when redFlags and explanation are written in a language other than English. */
@@ -335,6 +336,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
       failSafe: d.failSafe ?? false,
       cloudUnreachable: d.cloudUnreachable ?? false,
       ...(d.wrongSide ? { wrongSide: true } : {}),
+      ...(d.modelDownloading ? { modelDownloading: true } : {}),
       promptVersion: config.promptVersion,
       elapsedMs: now() - started,
       ...(d.language && finalState !== 'safe' ? { explanationLanguage: d.language } : {}),
@@ -424,9 +426,19 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
   };
 
   /** The cloud alone decides (no on-device model, or it failed); rules if the cloud cannot. */
-  const cloudOnly = async (failSafeIfUnreachable: boolean): Promise<Verdict> => {
-    const cloud = await runCloud(null, null);
-    if (cloud.kind !== 'ok') return rulesVerdict(failSafeIfUnreachable || cloud.kind === 'invalid', cloud.kind === 'gate_closed' ? undefined : cloud.attempt);
+  const cloudOnly = async (
+    failSafeIfUnreachable: boolean,
+    redactor: ModelRedactor | null = null,
+    route: 'cloud_fallback' | 'device_then_cloud' = 'cloud_fallback',
+  ): Promise<Verdict> => {
+    const cloud = await runCloud(redactor, null);
+    if (cloud.kind !== 'ok') {
+      return rulesVerdict(
+        failSafeIfUnreachable || cloud.kind === 'invalid',
+        cloud.kind === 'gate_closed' ? undefined : cloud.attempt,
+        cloud.kind === 'gate_closed' && cloud.wrongSide === true,
+      );
+    }
     const a = cloud.analysis;
     return finish({
       score: a.riskScore,
@@ -434,12 +446,13 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
       redFlags: a.redFlags,
       explanation: a.plainEnglishExplanation,
       confidence: a.confidence,
-      route: 'cloud_fallback',
+      route,
       bytesSentToCloud: cloud.bytes,
       redactionCount: cloud.redactionCount,
       sent: cloud.sent,
       allowTrip: a.confidence >= config.thresholds.minTripConfidence,
       language: language?.code,
+      ...(route === 'cloud_fallback' && (status === 'downloadable' || status === 'downloading') ? { modelDownloading: true } : {}),
     });
   };
 
@@ -471,9 +484,11 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
     return rulesVerdict(true, undefined, true);
   }
   if (!triage.ok) {
-    // The on-device model let us down. Try the redacted cloud path; if that
-    // fails too, fall back to rules with the fail-safe floor.
-    return cloudOnly(true);
+    // The on-device model is here but did not answer (busy, timed out, invalid). Only past the
+    // stricter gate, and only with the on-device redaction (which closes the gate if the device
+    // fails again), may a copy go to the cloud. Otherwise the built-in rules, with the fail-safe floor.
+    if (!cloudLook) return rulesVerdict(true);
+    return cloudOnly(true, onDeviceRedactor(engine, prompts.redactSystem, timeouts.onDeviceMs), 'device_then_cloud');
   }
 
   const t = triage.value;

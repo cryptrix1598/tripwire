@@ -50,8 +50,9 @@ export function byPerson(handler: () => void) {
 }
 
 /** What left this device, said the same way everywhere. */
-export function RouteLine({ route, sent = false, wrongSide = false }: { route: Route; sent?: boolean; wrongSide?: boolean }) {
+export function RouteLine({ route, sent = false, wrongSide = false, downloading = false }: { route: Route; sent?: boolean; wrongSide?: boolean; downloading?: boolean }) {
   const badge = ROUTE_BADGE[route];
+  const label = downloading && route === 'cloud_fallback' ? WHY.downloadingLabel : badge.label;
   // A deeper check was tried and got no usable answer: the redacted text did leave (or may have).
   const detail = wrongSide
     ? WHY.wrongSideDetail
@@ -62,7 +63,7 @@ export function RouteLine({ route, sent = false, wrongSide = false }: { route: R
     <p className="tw-route">
       <span className={`tw-dot tw-dot--${badge.tone}`} aria-hidden="true" />
       <span>
-        <strong>{badge.label}</strong> · {detail}
+        <strong>{label}</strong> · {detail}
       </span>
     </p>
   );
@@ -71,7 +72,7 @@ export function RouteLine({ route, sent = false, wrongSide = false }: { route: R
 /** The longer, plain explanation of how a verdict was reached. */
 export function routeExplanation(verdict: Verdict): string {
   if (verdict.wrongSide) return WHY.wrongSide;
-  const parts = [ROUTE_BADGE[verdict.route].long];
+  const parts = [verdict.modelDownloading && verdict.route === 'cloud_fallback' ? WHY.downloading : ROUTE_BADGE[verdict.route].long];
   if (verdict.bytesSentToCloud > 0 && verdict.redactionCount > 0) parts.push(WHY.redactions(verdict.redactionCount));
   const attempted = verdict.bytesSentToCloud > 0 && (verdict.route === 'on_device' || verdict.route === 'rules_only');
   if (attempted) parts.push(WHY.attempted);

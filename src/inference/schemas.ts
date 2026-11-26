@@ -181,6 +181,8 @@ export interface Verdict {
    * cloud. Tripwire stops using models for that page and says so.
    */
   wrongSide?: boolean;
+  /** The on-device model exists on this computer but is still downloading, so the cloud path was used. */
+  modelDownloading?: boolean;
   promptVersion: string;
   elapsedMs: number;
   /**

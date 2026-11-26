@@ -132,7 +132,7 @@ function CallCheck() {
               {CALL.again}
             </button>
           </div>
-          <RouteLine route={verdict.route} sent={verdict.bytesSentToCloud > 0} wrongSide={verdict.wrongSide} />
+          <RouteLine route={verdict.route} sent={verdict.bytesSentToCloud > 0} wrongSide={verdict.wrongSide} downloading={verdict.modelDownloading} />
           <p className="tw-small">{routeExplanation(verdict)}</p>
           <SentReceipt verdict={verdict} />
         </section>

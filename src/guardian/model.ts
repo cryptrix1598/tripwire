@@ -51,7 +51,6 @@ export function buildAlert(scamType: ScamType, trigger: Trigger, outcome: Outcom
   };
 }
 
-/** Six random digits from the platform CSPRNG. */
 /**
  * Which waiting links the person's "Yes, allow" applies to: only one made with the code that is
  * on screen now (or, if Tripwire restarted and forgot it, one made within that code's lifetime).

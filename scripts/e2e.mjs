@@ -161,6 +161,9 @@ try {
     // Then it tries to remove Tripwire.
     await page.evaluate(() => document.querySelector('tripwire-ui')?.remove());
     await expectVisible(ui(page, '.tw-overlay'), 5000);
+    // Hiding it without removing it (a style sheet that makes it see-through) does not work either.
+    await page.evaluate(() => { const s = document.createElement('style'); s.textContent = 'tripwire-ui { opacity: 0 !important; visibility: hidden !important; }'; document.head.append(s); });
+    await page.waitForFunction(() => { const h = document.querySelector('tripwire-ui'); return !!h && getComputedStyle(h).opacity === '1' && getComputedStyle(h).visibility === 'visible'; }, null, { timeout: 5000 });
     // It keeps trying. Tripwire moves the pause to its own page, which the site cannot touch.
     const fight = page.evaluate(() => new Promise((done) => { let n = 0; const t = setInterval(() => { document.querySelector('tripwire-ui')?.remove(); if (++n > 40) { clearInterval(t); done(true); } }, 150); })).catch(() => undefined);
     await page.waitForURL(/pause.html/, { timeout: 15_000 });

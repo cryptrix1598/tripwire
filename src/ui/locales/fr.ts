@@ -88,6 +88,8 @@ export const FR: LocaleBundle = {
     cloudUnreachable: 'Une vérification plus poussée n’a pas été possible car cet ordinateur est hors ligne.',
     attemptedDetail: 'données personnelles retirées, puis peut-être envoyées',
     wrongSideDetail: 'une vérification privée a eu lieu en ligne par erreur, Tripwire s’est arrêté',
+    downloadingLabel: 'La vérification privée sur l’appareil est encore en téléchargement',
+    downloading: 'Cet ordinateur peut faire la vérification privée sur l’appareil, mais elle est encore en téléchargement. En attendant, Tripwire retire les noms, numéros et adresses qu’il reconnaît avant de vérifier en ligne.',
     wrongSide: 'Chrome a indiqué qu’une vérification prévue sur cet ordinateur a reçu une réponse en ligne. Tripwire s’est arrêté aussitôt, n’a rien envoyé de plus et a utilisé ses signaux d’alerte intégrés. Le texte de cette vérification a peut-être quitté votre ordinateur.',
     attempted: 'Tripwire a tenté une vérification plus poussée : il a retiré les données personnelles et envoyé le reste, mais aucune réponse utilisable n’est arrivée. « Voir exactement ce qui a été envoyé » montre ce qu’il a envoyé.',
     sentShow: 'Voir exactement ce qui a été envoyé',
@@ -381,7 +383,7 @@ export const FR: LocaleBundle = {
       want: {
         legend: 'Que vous demande-t-il ?',
         hint: 'Touchez tout ce qui correspond.',
-        options: { money: 'Payer ou déplacer de l’argent', gift_cards: 'Acheter des cartes cadeaux', crypto: 'Envoyer de la crypto ou utiliser un distributeur Bitcoin', code: 'Lui lire un code reçu sur mon téléphone', details: 'Donner mes numéros de sécurité sociale ou de banque', computer: 'Le laisser accéder à mon ordinateur', nothing: 'Rien pour l’instant' },
+        options: { money: 'Payer une facture, une amende ou des frais', safe_account: 'Déplacer mon argent vers un compte « sûr »', gift_cards: 'Acheter des cartes cadeaux', crypto: 'Envoyer de la crypto ou utiliser un distributeur Bitcoin', code: 'Lui lire un code reçu sur mon téléphone', details: 'Donner mes numéros de sécurité sociale ou de banque', computer: 'Le laisser accéder à mon ordinateur', nothing: 'Rien pour l’instant' },
       },
       how: {
         legend: 'Comment se comporte-t-il ?',

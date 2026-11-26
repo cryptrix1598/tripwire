@@ -34,7 +34,9 @@ It trips on actions: a card number field (checked locally), a gift-card code fie
 
 **Someone on the phone?** Most scams on older people start with a call, which no browser can see. From the Tripwire menu, "Someone is on the phone with me" opens a page where the person answers three questions by tapping big buttons, with no typing: who the caller says they are, what they want (money, gift cards, crypto, a code from the phone, personal details, access to the computer) and how they are acting (rushing, secrecy, "stay on the line"). Tripwire turns the taps into a plain English description, plus anything the person chooses to type, so the model reads clear English whatever language the screen is in. Gemini Nano checks it on the computer first (a redacted second opinion only if it is unsure), and the answer is plain: "Hang up now.", "Be careful." or "Nothing here sounds like a scam", always with "call back on a number you already know". "I hung up" sends the family alert.
 
-**Family Guardian** is optional, and a guessed code is useless: nothing is shared until the person taps "Yes, allow" on their own computer. The person shows a six-digit code, a relative types it on the family page, and from then on sees that Tripwire stepped in: the time, the kind of scam, the action, and whether they stopped. Never the page, the email, or anything typed.
+**On the phone too.** The Android app adds **Is this a scam?** for the person being protected: share a text or an email to it, or tap what a caller wants. Gemini Nano reads it on the phone first (`ONLY_ON_DEVICE`, with `inferenceSource` checked); only an unsure case goes to the cloud (`ONLY_IN_CLOUD`), redacted and leak-checked. A caller who wants gift cards, crypto, a code, access or a "safe account" move gets "Hang up now" at once.
+
+**Family Guardian** is optional, and a guessed code is useless: nothing is shared until the person taps "Yes, allow" on their own computer. The person shows a eight-digit code, a relative types it on the family page, and from then on sees that Tripwire stepped in: the time, the kind of scam, the action, and whether they stopped. Never the page, the email, or anything typed.
 
 ## How we used Firebase AI Logic
 
@@ -70,7 +72,7 @@ TypeScript (strict), Manifest V3 with WXT, React, Shadow DOM for the in-page UI,
 - **The built extension itself is what was measured above**, loaded over the DevTools protocol with Gemini Nano running in its offscreen document.
 - Every screen in English, Spanish and French; explanations run live in Spanish and French with nothing sent.
 - Fourteen hostile-page tests: a page that tells the model what to answer, repeats "scam" (or "this is not a scam") to look like advice, hides the ask under filler, or deletes the warning. None gets through quietly.
-- 200 unit tests, 32 security-rules tests (including a limit of one family alert every 15 seconds, a pairing code that cannot be used up without creating a family link, and a family name that cannot carry a phone number), a 14-step end-to-end run, a live run against the real project, a test of the hosted demo with no extension, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems).
+- 203 unit tests (plus 16 for the Android app), 32 security-rules tests (including a limit of one family alert every 15 seconds, a pairing code that cannot be used up without creating a family link, and a family name that cannot carry a phone number), a 14-step end-to-end run, a live run against the real project, a test of the hosted demo with no extension, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems).
 
 ## Challenges
 
@@ -87,7 +89,7 @@ Test on data you did not write for. And hybrid inference is most interesting whe
 
 ## What's next
 
-Running the Android companion (Tripwire Guardian, in `android/`) on real phones and adding push alerts, more languages than English, Spanish and French, and testing with older users and their families.
+Running the Android app on real phones (its "Is this a scam?" check for texts and calls, and the family viewer), push alerts, Spanish and French on Android, more languages than English, Spanish and French, and testing with older users and their families.
 
 ---
 

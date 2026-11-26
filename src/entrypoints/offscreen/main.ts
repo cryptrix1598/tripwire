@@ -42,6 +42,17 @@ async function refreshConfig(): Promise<void> {
   }
 }
 
+/**
+ * Gemini Nano runs one prompt at a time. Checks from several tabs are queued here, so they
+ * do not run at once and time out (the router's timeouts start when a check leaves the queue).
+ */
+let queue: Promise<unknown> = Promise.resolve();
+function oneAtATime<T>(job: () => Promise<T>): Promise<T> {
+  const run = queue.then(job, job);
+  queue = run.catch(() => undefined);
+  return run;
+}
+
 async function status(): Promise<StatusReply> {
   const config = await loadConfig();
   let count = 0;
@@ -82,8 +93,10 @@ async function pairing(): Promise<PairingReply> {
 
 async function handle(msg: ToOffscreen): Promise<unknown> {
   switch (msg.type) {
-    case 'assess':
-      return assess(msg.input, { engine, config: applySensitivity(await loadConfig(), (await loadSettings()).sensitivity) });
+    case 'assess': {
+      const config = applySensitivity(await loadConfig(), (await loadSettings()).sensitivity);
+      return oneAtATime(() => assess(msg.input, { engine, config }));
+    }
     case 'status':
       return status();
     case 'pairing-code':

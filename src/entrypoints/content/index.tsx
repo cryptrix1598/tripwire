@@ -198,15 +198,34 @@ function startTopFrame(ctx: ContentScriptContext): void {
   // showing, put it back; if the page keeps fighting, hand the pause to an extension
   // page the site cannot touch.
   let tampering = 0;
+  const SHOWN: [string, string][] = [
+    ['display', 'block'], ['visibility', 'visible'], ['opacity', '1'], ['clip-path', 'none'],
+    ['filter', 'none'], ['transform', 'none'], ['content-visibility', 'visible'],
+  ];
+  /** Hidden without being removed: invisible, see-through, clipped, filtered away or shrunk. */
+  const hiddenByPage = (host: HTMLElement): boolean => {
+    const cs = getComputedStyle(host);
+    return (
+      cs.display === 'none' || cs.visibility !== 'visible' || Number(cs.opacity) < 0.9 ||
+      cs.clipPath !== 'none' || (cs.filter !== 'none' && cs.filter !== '') || (cs.transform !== 'none' && cs.transform !== '') ||
+      cs.getPropertyValue('content-visibility') === 'hidden'
+    );
+  };
+  /** The full-screen pause must be the top thing in the middle of the screen, not under something the page put on top. */
+  const coveredByPage = (host: HTMLElement): boolean => {
+    const top = document.elementFromPoint(innerWidth / 2, innerHeight / 2);
+    return top !== null && top !== host && !host.contains(top);
+  };
   const guard = setInterval(() => {
     if (view.kind === 'none' || !uiReady) return;
     void uiReady.then((ui) => {
       const host = ui.shadowHost;
-      const hidden = host.isConnected && getComputedStyle(host).display === 'none';
-      if (!host.isConnected || hidden) {
+      if (!host.isConnected || hiddenByPage(host) || (view.kind === 'pause' && coveredByPage(host))) {
         tampering += 1;
         host.removeAttribute('style');
         host.hidden = false;
+        // Inline !important beats anything the page's own style sheets say.
+        for (const [prop, value] of SHOWN) host.style.setProperty(prop, value, 'important');
         (document.body ?? document.documentElement).append(host);
       }
       if (view.kind === 'pause') {

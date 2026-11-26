@@ -8,7 +8,7 @@
  * on-device model reads best. Anything the person types is added after it.
  */
 export const CALL_WHO = ['bank', 'government', 'company', 'family', 'other'] as const;
-export const CALL_WANT = ['money', 'gift_cards', 'crypto', 'code', 'details', 'computer', 'nothing'] as const;
+export const CALL_WANT = ['money', 'safe_account', 'gift_cards', 'crypto', 'code', 'details', 'computer', 'nothing'] as const;
 export const CALL_HOW = ['rushing', 'secret', 'stay_on_line', 'patient'] as const;
 
 export type CallWho = (typeof CALL_WHO)[number];
@@ -32,7 +32,8 @@ const WHO_TEXT: Record<CallWho, string> = {
 };
 
 const WANT_TEXT: Record<Exclude<CallWant, 'nothing'>, string> = {
-  money: 'pay money or move my money to another account',
+  money: 'pay a bill, a fine or a fee',
+  safe_account: 'move my money to a new "safe" account to protect it',
   gift_cards: 'buy gift cards and read them the numbers',
   crypto: 'send cryptocurrency or put cash into a Bitcoin machine',
   code: 'read them a code that was just sent to my phone',
@@ -52,7 +53,8 @@ const HOW_TEXT: Record<CallHow, string> = {
  * company asks for these. When any is tapped, the answer is at least "be careful", whatever a
  * model says.
  */
-export const NEVER_SAFE_ON_A_CALL: readonly CallWant[] = ['gift_cards', 'crypto', 'code', 'details', 'computer'];
+// Moving money to a "safe account" is the pattern the FTC describes most: a real bank never asks.
+export const NEVER_SAFE_ON_A_CALL: readonly CallWant[] = ['safe_account', 'gift_cards', 'crypto', 'code', 'details', 'computer'];
 
 export function neverSafe(answers: CallAnswers): boolean {
   return answers.want.some((w) => NEVER_SAFE_ON_A_CALL.includes(w));

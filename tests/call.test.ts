@@ -12,7 +12,7 @@ describe('the phone-call check by taps', () => {
 
   it('joins several asks and adds what the person typed last', () => {
     const text = describeCall({ who: 'family', want: ['money', 'gift_cards'], how: [], notes: 'He says he is in jail.' });
-    expect(text).toMatch(/pay money .* and to buy gift cards/);
+    expect(text).toMatch(/pay a bill, a fine or a fee.* and to buy gift cards/);
     expect(text.endsWith('In my own words: He says he is in jail.')).toBe(true);
   });
 
@@ -38,5 +38,13 @@ describe('which calls need a model', () => {
   it('gift cards, crypto, codes, details and computer access are never safe on a call', () => {
     for (const w of ['gift_cards', 'crypto', 'code', 'details', 'computer'] as const) expect(neverSafe({ want: [w], how: [] })).toBe(true);
     expect(neverSafe({ want: ['money'], how: [] })).toBe(false);
+  });
+});
+
+describe('the "safe account" ask', () => {
+  it('is never safe on a call: Hang up now at once', async () => {
+    const { neverSafe } = await import('../src/call/describe');
+    expect(neverSafe({ who: 'bank', want: ['safe_account'], how: [] })).toBe(true);
+    expect(neverSafe({ who: 'company', want: ['money'], how: [] })).toBe(false);
   });
 });

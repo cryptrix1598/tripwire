@@ -272,7 +272,27 @@ describe('router: invalid model output fails safe', () => {
       { text: SCAM.text, hostname: 'x.example', trigger: 'passive' },
       { engine, config: DEFAULT_CONFIG, timeouts: { onDeviceMs: 30, cloudMs: 500 } },
     );
+    // The device is still there, so its redaction runs before anything is sent.
+    expect(v.route).toBe('device_then_cloud');
+    expect(engine.redactOnDevice).toHaveBeenCalledTimes(1);
+  });
+
+  it('a hung model whose redaction also fails sends nothing', async () => {
+    const engine = fakeEngine({ triage: () => new Promise<string>(() => {}), redact: async () => 'nonsense', cloud: async () => cloudJson(85) });
+    const v = await assess(
+      { text: SCAM.text, hostname: 'x.example', trigger: 'passive' },
+      { engine, config: DEFAULT_CONFIG, timeouts: { onDeviceMs: 30, cloudMs: 500 } },
+    );
+    expect(engine.analyzeInCloud).not.toHaveBeenCalled();
+    expect(v.bytesSentToCloud).toBe(0);
+    expect(v.state).not.toBe('safe');
+  });
+
+  it('says the on-device model is still downloading instead of "not supported"', async () => {
+    const engine = fakeEngine({ status: 'downloading' });
+    const v = await run(BANK_EMAIL.text, engine);
     expect(v.route).toBe('cloud_fallback');
+    expect(v.modelDownloading).toBe(true);
   });
 });
 

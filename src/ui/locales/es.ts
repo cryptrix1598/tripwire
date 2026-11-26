@@ -88,6 +88,8 @@ export const ES: LocaleBundle = {
     cloudUnreachable: 'No fue posible una revisión más a fondo porque esta computadora no tiene conexión.',
     attemptedDetail: 'datos personales retirados; luego quizá se envió',
     wrongSideDetail: 'una revisión privada se hizo en línea por error, así que Tripwire se detuvo',
+    downloadingLabel: 'La revisión privada en el dispositivo aún se está descargando',
+    downloading: 'Esta computadora puede hacer la revisión privada en el dispositivo, pero aún se está descargando. Hasta que esté lista, Tripwire retira los nombres, números y direcciones que reconoce antes de revisar en línea.',
     wrongSide: 'Chrome indicó que una revisión que debía hacerse en esta computadora se respondió en línea. Tripwire se detuvo de inmediato, no envió nada más y usó sus señales de alerta incorporadas. Es posible que el texto de esa revisión haya salido de su computadora.',
     attempted: 'Tripwire intentó una revisión más a fondo: retiró los datos personales y envió el resto, pero no llegó una respuesta útil. "Ver exactamente qué se envió" muestra lo que envió.',
     sentShow: 'Ver exactamente lo que se envió',
@@ -381,7 +383,7 @@ export const ES: LocaleBundle = {
       want: {
         legend: '¿Qué quiere que haga?',
         hint: 'Toque todo lo que corresponda.',
-        options: { money: 'Pagar o mover dinero', gift_cards: 'Comprar tarjetas de regalo', crypto: 'Enviar cripto o usar un cajero de Bitcoin', code: 'Leerle un código de mi teléfono', details: 'Dar mis datos del Seguro Social, Medicare o del banco', computer: 'Dejarle entrar en mi computadora', nothing: 'Nada todavía' },
+        options: { money: 'Pagar una factura, una multa o una tarifa', safe_account: 'Mover mi dinero a una cuenta “segura”', gift_cards: 'Comprar tarjetas de regalo', crypto: 'Enviar cripto o usar un cajero de Bitcoin', code: 'Leerle un código de mi teléfono', details: 'Dar mis datos del Seguro Social, Medicare o del banco', computer: 'Dejarle entrar en mi computadora', nothing: 'Nada todavía' },
       },
       how: {
         legend: '¿Cómo se comporta?',

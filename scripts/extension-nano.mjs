@@ -122,7 +122,7 @@ try {
     await step('phone-call test set (corpus/calls.json), tapped on the call page', async () => {
       const LABEL = {
         bank: 'My bank', government: 'The government, Social Security or Medicare', company: 'A company like Amazon or Microsoft', family: 'Family or a friend in trouble', other: 'I don’t know',
-        money: 'Pay or move money', gift_cards: 'Buy gift cards', crypto: 'Send crypto or use a Bitcoin machine', code: 'Read them a code from my phone', details: 'Give my Social Security, Medicare or bank details', computer: 'Let them into my computer', nothing: 'Nothing yet',
+        money: 'Pay a bill, a fine or a fee', safe_account: 'Move my money to a “safe” account', gift_cards: 'Buy gift cards', crypto: 'Send crypto or use a Bitcoin machine', code: 'Read them a code from my phone', details: 'Give my Social Security, Medicare or bank details', computer: 'Let them into my computer', nothing: 'Nothing yet',
         rushing: 'Rushing me or threatening', secret: 'Telling me to keep it secret', stay_on_line: 'Telling me to stay on the line', patient: 'Calm, and said I can call back',
       };
       const set = JSON.parse(readFileSync('corpus/calls.json', 'utf8'));
