@@ -179,6 +179,25 @@ describe('regexRedact: properties', () => {
   });
 });
 
+describe('Spanish and French names with no model', () => {
+  it.each([
+    ['Ayer hablé con Guadalupe Hernández y me pidió el código.', ['Guadalupe', 'Hernández']],
+    ['Mi nieto Alejandro me dijo que pagara con tarjetas de regalo.', ['Alejandro']],
+    ['Votre conseiller François Lefèvre vous demande de rappeler.', ['François', 'Lefèvre']],
+    ['Hélène Dubois a reçu le même message.', ['Hélène', 'Dubois']],
+    ['Francois said to keep it secret.', ['Francois']],
+  ])('%s', (text, names) => {
+    const out = regexRedact(text).text;
+    for (const n of names) expect(out).not.toContain(n);
+    expect(out).toContain('[NAME]');
+  });
+
+  it('leaves ordinary Spanish and French words alone', () => {
+    const text = 'Llame al banco. Appelez votre banque. Gracias, merci.';
+    expect(regexRedact(text).text).toBe(text);
+  });
+});
+
 describe('redactForCloud: the privacy gate', () => {
   const text =
     'Dear Margaret Ellison, your card 4111 1111 1111 1111 was charged. Call 1-855-555-0119 or write to m.ellison@example.com.';
@@ -222,10 +241,24 @@ describe('redactForCloud: the privacy gate', () => {
     expect(out.text).not.toContain('hacker@example.org');
   });
 
-  it('rejects a model that summarises instead of redacting', async () => {
+  it('closes the gate when the model summarises instead of redacting', async () => {
     const out = await redactForCloud(text, async () => 'A scam.');
-    expect(out.usedModel).toBe(false);
+    expect(out.safeToSend).toBe(false);
+    expect(out.text).toBe('');
+  });
+
+  it("keeps the model's names even when the tags make the text much longer", async () => {
+    const many = 'Ask Bob, Ann, Eve, Tom, Joe and Sue to pay today.';
+    const out = await redactForCloud(many, async (pre) => pre.replace(/\b(Bob|Ann|Eve|Tom|Joe|Sue)\b/g, '[NAME]'));
     expect(out.safeToSend).toBe(true);
+    expect(out.usedModel).toBe(true);
+    for (const n of ['Bob', 'Ann', 'Eve', 'Tom', 'Joe', 'Sue']) expect(out.text).not.toContain(n);
+  });
+
+  it('sends the regex text when the model gives no answer at all', async () => {
+    const out = await redactForCloud(text, async () => null);
+    expect(out.safeToSend).toBe(true);
+    expect(out.usedModel).toBe(false);
     expect(out.text).toContain('[CARD]');
   });
 
@@ -237,12 +270,11 @@ describe('redactForCloud: the privacy gate', () => {
     expect(out.usedModel).toBe(false);
   });
 
-  it('falls back to the regex text when the model puts a removed value back', async () => {
+  it('closes the gate when the model puts a removed value back', async () => {
     // "Margaret Ellison" was removed by the greeting rule; the model re-inserts it in a form no pattern catches.
     const out = await redactForCloud(text, async (pre) => pre.replace('[NAME]', 'our client margaret ellison'));
     expect(out.text).not.toContain('Margaret Ellison');
-    expect(out.safeToSend).toBe(true);
-    expect(out.usedModel).toBe(false);
+    expect(out.safeToSend).toBe(false);
   });
 
   it('lets a model rewrite through when the second regex pass cleans up what it re-inserted', async () => {

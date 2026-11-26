@@ -23,7 +23,7 @@ export const ROUTE_BADGE: Record<Route, { tone: RouteTone; label: string; detail
   on_device: {
     tone: 'local',
     label: 'Checked on your device',
-    detail: '0 bytes sent',
+    detail: 'nothing left your computer',
     long: 'This check ran entirely on your computer. Nothing on this page was sent anywhere.',
   },
   device_then_cloud: {
@@ -41,13 +41,13 @@ export const ROUTE_BADGE: Record<Route, { tone: RouteTone; label: string; detail
   rules_only: {
     tone: 'rules',
     label: 'Checked with built-in safety rules',
-    detail: '0 bytes sent',
+    detail: 'nothing left your computer',
     long: 'Tripwire could not reach its AI check just now, so it used its built-in list of warning signs. Nothing was sent anywhere.',
   },
   not_checked: {
     tone: 'local',
     label: 'Nothing to check here',
-    detail: '0 bytes sent',
+    detail: 'nothing left your computer',
     long: 'This page showed no warning signs, so Tripwire stayed out of the way.',
   },
 };

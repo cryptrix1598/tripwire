@@ -64,6 +64,17 @@ export function choosePending(
   return { approve: waiting.filter(current).map((l) => l.id), remove: waiting.filter((l) => !current(l)).map((l) => l.id) };
 }
 
+/**
+ * What the person's answer does to the waiting links. "Yes, allow" approves the
+ * links made with the live code and removes stale ones; "No" removes them all.
+ */
+export function applyDecision(
+  plan: { approve: string[]; remove: string[] },
+  allow: boolean,
+): { approve: string[]; remove: string[] } {
+  return allow ? plan : { approve: [], remove: [...plan.approve, ...plan.remove] };
+}
+
 export function generatePairingCode(): string {
   const buf = new Uint32Array(1);
   crypto.getRandomValues(buf);

@@ -5,7 +5,7 @@ export const ES: LocaleBundle = {
   ROUTE_BADGE: {
     on_device: {
       label: 'Revisado en su computadora',
-      detail: '0 bytes enviados',
+      detail: 'nada salió de su computadora',
       long: 'Esta revisión se hizo por completo en su computadora. No se envió nada de esta página a ningún lugar.',
     },
     device_then_cloud: {
@@ -20,12 +20,12 @@ export const ES: LocaleBundle = {
     },
     rules_only: {
       label: 'Revisado con las reglas de seguridad integradas',
-      detail: '0 bytes enviados',
+      detail: 'nada salió de su computadora',
       long: 'Tripwire no pudo usar su revisión con IA en este momento, así que usó su lista integrada de señales de alerta. No se envió nada a ningún lugar.',
     },
     not_checked: {
       label: 'Nada que revisar aquí',
-      detail: '0 bytes enviados',
+      detail: 'nada salió de su computadora',
       long: 'Esta página no mostró señales de alerta, así que Tripwire no intervino.',
     },
   },

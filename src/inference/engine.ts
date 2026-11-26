@@ -21,7 +21,7 @@ export interface AiEngine {
   analyzeInCloud(systemPrompt: string, userPrompt: string, model: string): Promise<string>;
   /**
    * Optional: put the reasons into another language, on the device. Used only
-   * for verdicts that never left the device, so that "0 bytes sent" stays true.
+   * for verdicts that never left the device, so that "nothing left your computer" stays true.
    * Rejects when the on-device model cannot write that language.
    */
   translateOnDevice?(systemPrompt: string, userPrompt: string, language: string): Promise<string>;

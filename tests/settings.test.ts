@@ -180,7 +180,7 @@ describe('interface language', () => {
   });
 });
 
-import { choosePending } from '../src/guardian/model';
+import { applyDecision, choosePending } from '../src/guardian/model';
 describe('"Yes, allow" applies only to the code on screen', () => {
   const now = 1_000_000_000;
   const links = [
@@ -197,5 +197,19 @@ describe('"Yes, allow" applies only to the code on screen', () => {
   it('never touches a link the person already allowed', () => {
     const { approve, remove } = choosePending(links, '999999', now);
     expect([...approve, ...remove]).not.toContain('kept');
+  });
+});
+
+describe('the answer to "someone just typed your code"', () => {
+  const plan = { approve: ['sam'], remove: ['stale'] };
+  it('"Yes, allow" approves the live link and removes the stale one', () => {
+    expect(applyDecision(plan, true)).toEqual({ approve: ['sam'], remove: ['stale'] });
+  });
+  it('"No" approves nothing and removes every waiting link', () => {
+    expect(applyDecision(plan, false)).toEqual({ approve: [], remove: ['sam', 'stale'] });
+  });
+  it('with nothing waiting, nothing changes', () => {
+    expect(applyDecision({ approve: [], remove: [] }, true)).toEqual({ approve: [], remove: [] });
+    expect(applyDecision({ approve: [], remove: [] }, false)).toEqual({ approve: [], remove: [] });
   });
 });

@@ -5,7 +5,7 @@ export const FR: LocaleBundle = {
   ROUTE_BADGE: {
     on_device: {
       label: 'Vérifié sur votre ordinateur',
-      detail: '0 octet envoyé',
+      detail: 'rien n’a quitté votre ordinateur',
       long: 'Cette vérification s’est faite entièrement sur votre ordinateur. Rien de cette page n’a été envoyé où que ce soit.',
     },
     device_then_cloud: {
@@ -20,12 +20,12 @@ export const FR: LocaleBundle = {
     },
     rules_only: {
       label: 'Vérifié avec les règles de sécurité intégrées',
-      detail: '0 octet envoyé',
+      detail: 'rien n’a quitté votre ordinateur',
       long: 'Tripwire n’a pas pu utiliser sa vérification par IA pour le moment. Il a donc utilisé sa liste intégrée de signes d’alerte. Rien n’a été envoyé où que ce soit.',
     },
     not_checked: {
       label: 'Rien à vérifier ici',
-      detail: '0 octet envoyé',
+      detail: 'rien n’a quitté votre ordinateur',
       long: 'Cette page ne présentait aucun signe d’alerte, Tripwire est donc resté en retrait.',
     },
   },

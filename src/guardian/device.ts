@@ -22,7 +22,7 @@ import {
 import { getFirebaseApp } from '../firebase/app';
 import type { ScamType, Trigger } from '../inference/schemas';
 import type { Outcome } from '../ui/copy';
-import { buildAlert, choosePending, generatePairingCode, PAIRING_TTL_MS } from './model';
+import { buildAlert, applyDecision, choosePending, generatePairingCode, PAIRING_TTL_MS } from './model';
 
 let userPromise: Promise<User> | null = null;
 
@@ -135,14 +135,14 @@ export async function decidePending(allow: boolean): Promise<number> {
     const data = d.data() as { code?: string; approved?: boolean; pairedAt?: Timestamp };
     return { id: d.id, code: data.code, approved: data.approved, pairedAtMs: data.pairedAt?.toMillis() };
   });
-  const { approve, remove } = choosePending(rows, liveCode, Date.now());
+  const { approve, remove } = applyDecision(choosePending(rows, liveCode, Date.now()), allow);
   const byId = new Map(links.docs.map((d) => [d.id, d.ref]));
   await Promise.all([
-    ...(allow ? approve : [...approve, ...remove]).map((id) => (allow && approve.includes(id) ? updateDoc(byId.get(id)!, { approved: true }) : deleteDoc(byId.get(id)!))),
-    ...(allow ? remove.map((id) => deleteDoc(byId.get(id)!)) : []),
+    ...approve.map((id) => updateDoc(byId.get(id)!, { approved: true })),
+    ...remove.map((id) => deleteDoc(byId.get(id)!)),
   ]);
   await retirePairingCode();
-  return allow ? approve.length : 0;
+  return approve.length;
 }
 
 /**

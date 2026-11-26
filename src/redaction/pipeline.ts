@@ -4,12 +4,17 @@
  *   regex pass  ->  on-device model pass (optional)  ->  regex pass again  ->  leak check
  *
  * Running the regex pass FIRST means the on-device model never even has
- * structured personal data (emails, phones, card numbers) in front of it when
- * it rewrites the text, so it cannot reintroduce any. The model's job is the
- * part regex cannot do well: names and addresses written in free prose.
+ * structured personal data (emails, phones, card numbers) in front of it, so it
+ * cannot reintroduce any. The model's job is the part regex cannot do well:
+ * pointing at names and addresses written in free prose, which the router then
+ * replaces with tags (the model never writes the text itself).
  *
- * If anything looks wrong, the gate closes: `safeToSend` is false and the
- * router keeps the verdict local.
+ * Once the on-device model has answered, its findings are never thrown away:
+ * if its output is unusable or does not pass the leak check, the gate closes
+ * (`safeToSend` is false) and the router keeps the verdict local. Sending the
+ * regex-only text instead would send the names the model had just found.
+ * Only when no model is available, or it failed to answer at all, is the
+ * regex-only text sent.
  */
 import { countTags, findLeaks, regexRedact } from './regex';
 
@@ -26,17 +31,21 @@ export interface RedactionOutcome {
 
 /**
  * A model-backed redactor. Receives text that has already been through the
- * regex pass and returns a rewrite with remaining personal details replaced by
- * tags. Returns null when it cannot produce a valid result.
+ * regex pass and returns it with remaining personal details replaced by tags.
+ * Returns null when the model could not give a valid answer at all.
  */
 export type ModelRedactor = (preRedacted: string) => Promise<string | null>;
 
-/** A model rewrite must stay roughly the same size. Anything else is a summary or a ramble. */
-function plausibleRewrite(before: string, after: string): boolean {
-  if (after.trim().length === 0) return false;
-  const ratio = after.length / Math.max(1, before.length);
-  return ratio >= 0.5 && ratio <= 1.3;
+/**
+ * Tags can make the text longer (a short name becomes "[NAME]") or a little
+ * shorter (a long address becomes "[ADDRESS]"), so only a result that lost most
+ * of the text is refused: that is a summary, not a redaction.
+ */
+function usableResult(before: string, after: string): boolean {
+  return after.trim().length > 0 && after.length >= before.length * 0.5;
 }
+
+const CLOSED: RedactionOutcome = { text: '', redactionCount: 0, usedModel: false, safeToSend: false };
 
 export async function redactForCloud(original: string, modelRedactor?: ModelRedactor | null): Promise<RedactionOutcome> {
   const first = regexRedact(original);
@@ -44,15 +53,18 @@ export async function redactForCloud(original: string, modelRedactor?: ModelReda
   let usedModel = false;
 
   if (modelRedactor) {
+    let rewritten: string | null = null;
     try {
-      const rewritten = await modelRedactor(first.text);
-      if (rewritten && plausibleRewrite(first.text, rewritten)) {
-        // Second regex pass over the model's output, in case it produced anything pattern-shaped.
-        candidate = regexRedact(rewritten).text;
-        usedModel = true;
-      }
+      rewritten = await modelRedactor(first.text);
     } catch {
-      // A failed model redaction is not an error: the regex pass already ran.
+      // A model that failed to answer is the same as no model: the regex pass already ran.
+    }
+    if (rewritten !== null) {
+      // The model answered. Its findings must not be dropped, so an unusable answer closes the gate.
+      if (!usableResult(first.text, rewritten)) return CLOSED;
+      // Second regex pass over the model's output, in case it produced anything pattern-shaped.
+      candidate = regexRedact(rewritten).text;
+      usedModel = true;
     }
   }
 
@@ -62,14 +74,6 @@ export async function redactForCloud(original: string, modelRedactor?: ModelReda
     return { text: candidate, redactionCount: countTags(candidate), usedModel, safeToSend: true };
   }
 
-  // The model's rewrite did not pass. Fall back to the regex-only text.
-  if (usedModel) {
-    const regexOnly = regexRedact(first.text).text;
-    if (clean(regexOnly)) {
-      return { text: regexOnly, redactionCount: countTags(regexOnly), usedModel: false, safeToSend: true };
-    }
-  }
-
-  // Still not clean. Close the gate.
-  return { text: '', redactionCount: 0, usedModel: false, safeToSend: false };
+  // Not clean. Close the gate (never fall back to text without the model's findings).
+  return CLOSED;
 }

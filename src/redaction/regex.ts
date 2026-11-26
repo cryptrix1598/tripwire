@@ -84,7 +84,8 @@ const NOT_A_NAME = new Set(
     'the', 'your', 'our', 'this', 'that', 'we', 'you', 'again', 'and',
   ],
 );
-const NAME_WORD = String.raw`[A-Z][a-z]+(?:['-][A-Z]?[a-z]+)?`;
+// Latin letters with accents count too, so a surname such as Hernández or Lefèvre is removed whole.
+const NAME_WORD = String.raw`[A-ZÀ-ÖØ-Þ][a-zà-öø-ÿ]+(?:['-][A-ZÀ-ÖØ-Þ]?[a-zà-öø-ÿ]+)?`;
 const TITLE = String.raw`(?:Mr|Mrs|Ms|Miss|Mx|Dr|Prof)\.?`;
 const GREETING_RE = new RegExp(
   String.raw`\b(Dear|Hi|Hello|Hey|Attention|Greetings|Good\s+(?:morning|afternoon|evening))(,?\s+)((?:${TITLE}\s+)?${NAME_WORD}(?:\s+${NAME_WORD}){0,2})(?=[\s,:;!.]|$)`,

@@ -83,7 +83,7 @@ try {
     return `${v.state} via ${v.route}, ${v.bytesSentToCloud} bytes sent, risk ${v.riskScore}`;
   });
 
-  await step('the practice bank page is paused: "Checked on your device · 0 bytes sent"', async () => {
+  await step('the practice bank page is paused: "Checked on your device · nothing left your computer"', async () => {
     const page = await context.newPage();
     await page.goto('http://localhost:4174/bank.html');
     const ui = (s) => page.locator(`tripwire-ui ${s}`);

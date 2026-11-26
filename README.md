@@ -44,7 +44,7 @@ Action tripwires: typing or focusing a card number field (Luhn checked, locally)
 
 **Settings**: a three-step warning level (fewer warnings, standard, more careful) and a list of trusted sites that Tripwire never checks. The trusted-sites screen carries a warning written for the exact way a scammer would try to abuse it.
 
-**Explanations in your language**: when the browser is not set to English, the reasons are written in the browser's language. A verdict that never left the device is translated on the device, so "0 bytes sent" stays true; a verdict that used the cloud is written in that language by the cloud model. Every screen follows the browser language too, in English, Spanish or French: the banner, the pause, the reasons, the "you stopped" page, setup, the menu, settings and the family page. Detection works in Spanish and French too: the request-shape rules that decide whether a page reaches a model know Spanish and French words for payments, pressure, secrecy and credentials ([tests/multilingual.test.ts](tests/multilingual.test.ts)), and the on-device model reads the text as it is. The keyword lists behind the rules-only fallback have Spanish and French phrases too, tested with no model at all. The one sentence stored with a family alert stays English, because the security rules check it word for word; the family page shows it in the reader's language.
+**Explanations in your language**: when the browser is not set to English, the reasons are written in the browser's language. A verdict that never left the device is translated on the device, so "nothing left your computer" stays true; a verdict that used the cloud is written in that language by the cloud model. Every screen follows the browser language too, in English, Spanish or French: the banner, the pause, the reasons, the "you stopped" page, setup, the menu, settings and the family page. Detection works in Spanish and French too: the request-shape rules that decide whether a page reaches a model know Spanish and French words for payments, pressure, secrecy and credentials ([tests/multilingual.test.ts](tests/multilingual.test.ts)), and the on-device model reads the text as it is. The keyword lists behind the rules-only fallback have Spanish and French phrases too, tested with no model at all. The one sentence stored with a family alert stays English, because the security rules check it word for word; the family page shows it in the reader's language.
 
 ## Screenshots
 
@@ -98,10 +98,10 @@ merged verdict: safe / caution / tripped
 
 Every verdict carries a `route`, shown to the person in plain words:
 
-- **Checked on your device · 0 bytes sent**
+- **Checked on your device · nothing left your computer**
 - **Personal info removed · sent for a deeper check**
 - **Your device doesn't support on-device AI · personal info removed before checking**
-- **Checked with built-in safety rules · 0 bytes sent** (offline, or no model reachable)
+- **Checked with built-in safety rules · nothing left your computer** (offline, or no model reachable)
 
 What decides each step (all of this was changed after a held-out test, see "Test results"):
 
@@ -204,7 +204,7 @@ npm run deploy:dashboard
 
 Gemini Nano needs Chrome 139+ on a desktop with about 22 GB of free disk and either more than 4 GB of VRAM or 16 GB RAM with 4+ cores. Enable `chrome://flags/#prompt-api-for-gemini-nano-multimodal-input`, restart Chrome, then press **Get private checking ready** on Tripwire's setup screen 2 (the download needs a click). The popup's **Developer checks** page runs one on-device call, one hybrid call and the whole test corpus live, and reports which side answered.
 
-**Signature demo:** once the model is downloaded, turn off Wi-Fi and open a practice page. Tripwire still catches it, and the badge reads "Checked on your device · 0 bytes sent".
+**Signature demo:** once the model is downloaded, turn off Wi-Fi and open a practice page. Tripwire still catches it, and the badge reads "Checked on your device · nothing left your computer".
 
 ## Android companion
 
