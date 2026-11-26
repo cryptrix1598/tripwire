@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-11-26T21:02:11.574Z",
+  "ranAt": "2026-11-26T21:23:48.357Z",
   "mode": "rules-only baseline (Node, no AI)",
   "promptVersion": "v1",
   "scams": 25,
@@ -25,7 +25,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 18,
+      "elapsedMs": 19,
       "correct": true
     },
     {
@@ -38,7 +38,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 9,
+      "elapsedMs": 8,
       "correct": true
     },
     {
@@ -584,7 +584,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 1,
+      "elapsedMs": 0,
       "correct": true
     },
     {
@@ -610,7 +610,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 0,
+      "elapsedMs": 1,
       "correct": true
     },
     {

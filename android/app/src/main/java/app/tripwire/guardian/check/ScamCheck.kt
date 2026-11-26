@@ -45,6 +45,9 @@ object Rules {
 
     /** Asks that are never safe from someone who contacted you first. */
     val NEVER_SAFE = setOf(Sign.GIFT_CARDS, Sign.CRYPTO, Sign.CODE, Sign.REMOTE, Sign.MOVE_MONEY)
+
+    /** On a call, being asked for bank, card or Social Security details is never safe either (as in the extension). */
+    val NEVER_SAFE_ON_A_CALL = NEVER_SAFE + Sign.DETAILS
     private val PRESSURE = setOf(Sign.URGENT, Sign.SECRET, Sign.THREAT)
 
     fun signs(text: String): List<Sign> = patterns.filter { (_, re) -> re.containsMatchIn(text) }.map { it.first }
@@ -67,31 +70,83 @@ object Rules {
     }
 }
 
-/** Personal details out before anything leaves the phone. */
-object Redactor {
-    private val EMAIL = Regex("""[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}""")
-    private val CARD = Regex("""\b(?:\d[ -]?){12,18}\d\b""")
-    private val PHONE = Regex("""(?:\+?\d{1,3}[ .-]?)?(?:\(\d{3}\)|\d{3})[ .-]?\d{3}[ .-]?\d{4}\b""")
-    private val LONG_NUMBER = Regex("""\b\d{6,}\b""")
-    private val ADDRESS = Regex("""\b\d{1,5} [A-Z][a-z]+(?: [A-Z][a-z]+)? (?:Street|St|Avenue|Ave|Road|Rd|Lane|Ln|Drive|Dr|Court|Ct|Boulevard|Blvd|Way)\b\.?""")
-    private val GREETING = Regex("""\b(Dear|Hi|Hello|Hey|Hola|Bonjour|Querida|Querido|Cher|Chère)[ \t]+([A-Z][a-zà-ÿ]+(?:[ \t]+[A-Z][a-zà-ÿ]+)?)""")
-    private val INTRO = Regex("""\b((?i:my name is|this is|me llamo|je m'appelle)|I am|I'm)[ \t]+([A-Z][a-zà-ÿ]+(?:[ \t]+[A-Z][a-zà-ÿ]+)?)""")
+/** What redaction removed, so the leak check can make sure none of it is still there. */
+data class Redaction(val text: String, val found: List<String>)
 
-    fun redact(text: String): String {
+/**
+ * Personal details out before anything leaves the phone. The same rules as the
+ * extension (src/redaction/regex.ts): structured details first, then names.
+ */
+object Redactor {
+    private val URL = Regex("""\bhttps?://([^\s/<>"')\]]+)[^\s<>"')\]]*""", RegexOption.IGNORE_CASE)
+    private val EMAIL = Regex("""[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}""")
+    private val SSN = Regex("""(?<![\d-])\d{3}[-\s]\d{2}[-\s]\d{4}(?![\d-])""")
+    private val CARD = Regex("""(?<![\d-])(?:\d[ -]?){12,18}\d(?![\d-])""")
+    private val PHONE = Regex("""(?<![\d.])(?:\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}(?!\d)""")
+    private val PHONE_INTL = Regex("""(?<![\d.])\+\d{1,3}(?:[\s.-]?\(?\d{1,4}\)?){2,5}(?!\d)""")
+    private val WALLET = Regex("""\b(?:bc1[ac-hj-np-z02-9]{20,}|[13][a-km-zA-HJ-NP-Z1-9]{25,34}|0x[a-fA-F0-9]{40})\b""")
+    private val CODE = Regex("""\b((?:verification\s+|security\s+|one-time\s+|access\s+)?(?:code|passcode|pin|otp)(?:\s+is|\s*:)?\s+)(\d{4,8})\b""", RegexOption.IGNORE_CASE)
+    private val ENDING = Regex("""\b(ending(?:\s+in)?|last\s+(?:four|4)(?:\s+digits)?(?:\s+(?:are|of|is))?)(\s+)(\d{3,6})\b""", RegexOption.IGNORE_CASE)
+    private val LONG_DIGITS = Regex("""(?<![\w$.,])\d{7,}(?![\w%])""")
+    private val ID = Regex("""\b(?=[A-Za-z0-9]*[A-Za-z])(?=(?:[A-Za-z]*\d){5})[A-Za-z0-9]{10,}\b""")
+    private val ADDRESS = Regex("""\b\d{1,6}\s+(?:[A-Z][a-z]+\s+){1,3}(?:Street|St|Avenue|Ave|Road|Rd|Lane|Ln|Drive|Dr|Court|Ct|Boulevard|Blvd|Way|Place|Pl|Terrace|Close|Crescent)\b\.?""")
+    private val PO_BOX = Regex("""\bP\.?\s?O\.?\s*Box\s+\d+\b""", RegexOption.IGNORE_CASE)
+    private val CITY_STATE_ZIP = Regex("""\b[A-Z][a-z]+(?:\s[A-Z][a-z]+){0,2},\s*[A-Z]{2}\s+\d{5}(?:-\d{4})?\b""")
+    private const val WORD = """[A-ZÀ-Ý][a-zà-ÿ]+(?:['-][A-ZÀ-Ý]?[a-zà-ÿ]+)?"""
+    private val GREETING = Regex("""\b(Dear|Hi|Hello|Hey|Hola|Bonjour|Querida|Querido|Estimado|Estimada|Cher|Chère)([ \t]+)($WORD(?:[ \t]+$WORD)?)""")
+    private val TITLED = Regex("""\b(?:Mr|Mrs|Ms|Miss|Dr|Sr|Sra|Mme)\.?\s+$WORD(?:\s+$WORD)?""")
+    private val LABELED = Regex("""\b((?:Name|Customer|Account holder|Cardholder|Recipient|Nombre|Nom)\s*:\s*)($WORD(?:[ \t]+$WORD){0,2})""")
+    private val SIGNOFF = Regex("""\b((?:Regards|Kind regards|Best|Thanks|Thank you|Sincerely|Cheers|Love|Saludos|Cordialement|Atentamente),?[ \t]*\r?\n[ \t]*)($WORD(?:[ \t]+$WORD)?)""")
+    private val INTRO = Regex("""\b((?i:my name is|this is|me llamo|je m'appelle)|I am|I'm)([ \t]+)($WORD(?:[ \t]+$WORD)?)""")
+    private val GIVEN = Regex("""\b(?:${Names.GIVEN.joinToString("|") { it.replaceFirstChar(Char::uppercase) }})\b(?: $WORD){0,2}""")
+
+    fun redact(text: String): Redaction {
+        val found = mutableListOf<String>()
         var out = text
-        out = EMAIL.replace(out, "[EMAIL]")
-        out = CARD.replace(out, "[CARD]")
-        out = PHONE.replace(out, "[PHONE]")
-        out = LONG_NUMBER.replace(out, "[NUMBER]")
-        out = ADDRESS.replace(out, "[ADDRESS]")
-        out = GREETING.replace(out) { "${it.groupValues[1]} [NAME]" }
-        out = INTRO.replace(out) { "${it.groupValues[1]} [NAME]" }
-        return out
+        fun swap(re: Regex, tag: String) {
+            out = re.replace(out) { found += it.value; tag }
+        }
+        fun keep(re: Regex, group: Int, tag: String) {
+            out = re.replace(out) { m ->
+                found += m.groupValues[group]
+                m.groupValues.drop(1).mapIndexed { i, g -> if (i + 1 == group) tag else g }.joinToString("")
+            }
+        }
+        // A link keeps only its site name: the site says a lot about a scam, the rest is tracking.
+        out = URL.replace(out) { m -> if (m.value.length > m.groupValues[1].length + 8) found += m.value.substringAfter(m.groupValues[1]); "[LINK to ${m.groupValues[1]}]" }
+        swap(EMAIL, "[EMAIL]")
+        swap(SSN, "[SSN]")
+        swap(CARD, "[CARD]")
+        swap(PHONE_INTL, "[PHONE]")
+        swap(PHONE, "[PHONE]")
+        swap(WALLET, "[WALLET]")
+        keep(CODE, 2, "[CODE]")
+        out = ENDING.replace(out) { m -> found += m.groupValues[3]; "${m.groupValues[1]}${m.groupValues[2]}[NUMBER]" }
+        swap(LONG_DIGITS, "[NUMBER]")
+        swap(ID, "[ID]")
+        swap(ADDRESS, "[ADDRESS]")
+        swap(PO_BOX, "[ADDRESS]")
+        swap(CITY_STATE_ZIP, "[ADDRESS]")
+        keep(GREETING, 3, "[NAME]")
+        keep(LABELED, 2, "[NAME]")
+        keep(SIGNOFF, 2, "[NAME]")
+        keep(INTRO, 3, "[NAME]")
+        out = TITLED.replace(out) { found += it.value; "[NAME]" }
+        out = GIVEN.replace(out) { m -> if (Names.BRANDS.any { m.value.lowercase().startsWith(it) }) m.value else { found += m.value; "[NAME]" } }
+        return Redaction(out, found.filter { it.length >= 3 })
     }
 
-    /** True when nothing pattern-shaped is left. If false, nothing is sent. */
-    fun clean(text: String): Boolean =
-        !EMAIL.containsMatchIn(text) && !Regex("""\d{7,}""").containsMatchIn(text.replace(Regex("""[ .()-]"""), ""))
+    /** Replace what the phone's own model pointed at. The model only points; this code replaces. */
+    fun replaceItems(text: String, items: List<String>): String =
+        items.map { it.trim() }.filter { it.length in 3..80 && !Regex("""^\[[A-Z ]+]$""").matches(it) && text.contains(it) }
+            .fold(text) { acc, item -> acc.replace(item, "[DETAIL]") }
+
+    /** True only when nothing pattern-shaped is left and nothing that was removed has come back. If false, nothing is sent. */
+    fun clean(text: String, found: List<String>): Boolean {
+        val structured = listOf(EMAIL, SSN, CARD, PHONE, PHONE_INTL, WALLET, LONG_DIGITS)
+        if (structured.any { it.containsMatchIn(text) }) return false
+        return found.none { text.contains(it, ignoreCase = true) }
+    }
 }
 
 /** The model answers in three plain lines; anything else is treated as no answer. */
@@ -107,6 +162,23 @@ object Answers {
         val reasons = REASONS.find(raw)?.groupValues?.get(1).orEmpty()
             .split("|").map { it.trim() }.filter { it.length in 3..200 }.take(3)
         return ModelAnswer(risk, reasons)
+    }
+
+    /** The phone's model only points at personal details; code replaces them, so nothing is paraphrased or dropped. */
+    fun listPrompt(text: String): String = """
+        List every personal detail left in the text between triple quotes: names of people, street addresses,
+        account, order or reference numbers, usernames. Copy each one exactly, one per line, as
+        ITEM: <the exact text>
+        If there are none, write NONE. Tags like [NAME] are already removed; do not list them.
+        ""${'"'}${text.take(3000).replace("\"\"\"", "'''")}""${'"'}
+    """.trimIndent()
+
+    /** Null when the answer is not a list at all (then nothing is sent). */
+    fun parseItems(raw: String?): List<String>? {
+        if (raw == null) return null
+        if (Regex("""(?im)^\s*NONE\s*$""").containsMatchIn(raw)) return emptyList()
+        val items = Regex("""(?im)^\s*ITEM:\s*(.+?)\s*$""").findAll(raw).map { it.groupValues[1] }.toList()
+        return items.ifEmpty { null }
     }
 
     fun prompt(text: String): String = """
@@ -140,27 +212,64 @@ object Decide {
     }
 }
 
-/** The tap-only phone-call check: what the caller wants, no typing needed. */
-enum class CallWant(val sign: Sign?) {
-    GIFT_CARDS(Sign.GIFT_CARDS), CRYPTO(Sign.CRYPTO), CODE(Sign.CODE), REMOTE(Sign.REMOTE),
-    MOVE_MONEY(Sign.MOVE_MONEY), DETAILS(Sign.DETAILS), PAYMENT(null), NOTHING(null),
+/**
+ * The tap-only phone-call check, the same questions and sentences as the
+ * extension (src/call/describe.ts): who they say they are, what they want, how they act.
+ */
+enum class CallWho(val sentence: String) {
+    BANK("The caller says they are from my bank."),
+    GOVERNMENT("The caller says they are from the government, such as the IRS, Social Security, Medicare or the police."),
+    COMPANY("The caller says they are from a well-known company, such as Amazon, Microsoft or Apple."),
+    FAMILY("The caller says they are a family member or friend who is in trouble."),
+    OTHER("I do not know who the caller is."),
 }
 
+enum class CallWant(val sign: Sign?, val phrase: String) {
+    PAYMENT(null, "pay a bill, a fine or a fee"),
+    MOVE_MONEY(Sign.MOVE_MONEY, "move my money to a new \"safe\" account to protect it"),
+    GIFT_CARDS(Sign.GIFT_CARDS, "buy gift cards and read them the numbers"),
+    CRYPTO(Sign.CRYPTO, "send cryptocurrency or put cash into a Bitcoin machine"),
+    CODE(Sign.CODE, "read them a code that was just sent to my phone"),
+    DETAILS(Sign.DETAILS, "give my Social Security, Medicare or bank account details"),
+    REMOTE(Sign.REMOTE, "install a program or let them into my phone or computer"),
+    NOTHING(null, ""),
+}
+
+enum class CallHow(val sentence: String) {
+    RUSHING("They are rushing me and say something bad will happen if I do not act right now."),
+    SECRET("They told me to keep this secret and not to tell my bank or my family."),
+    STAY_ON_LINE("They want me to stay on the line while I do it."),
+    PATIENT("They are calm and patient, and said I can call them back."),
+}
+
+data class CallAnswers(
+    val who: CallWho? = null,
+    val wants: Set<CallWant> = emptySet(),
+    val how: Set<CallHow> = emptySet(),
+    val notes: String = "",
+)
+
 object CallCheck {
-    /** Answered at once, with no model, when the caller wants something that is never safe. */
-    fun instant(wants: Set<CallWant>, notes: String): CheckResult? {
-        val signs = wants.mapNotNull { it.sign } + Rules.signs(notes)
-        if (Rules.hasNeverSafeAsk(signs)) return CheckResult(Verdict.HANG_UP, Route.RULES, signs.distinct())
-        if (wants.all { it == CallWant.NOTHING } && notes.isBlank()) return CheckResult(Verdict.NO_SIGNS, Route.NOT_CHECKED, emptyList())
+    /** Answered at once, with no model, when the caller wants something that is never safe on a call. */
+    fun instant(a: CallAnswers): CheckResult? {
+        val signs = (a.wants.mapNotNull { it.sign } + Rules.signs(a.notes)).distinct()
+        if (signs.any { it in Rules.NEVER_SAFE_ON_A_CALL }) return CheckResult(Verdict.HANG_UP, Route.RULES, signs)
+        val askedNothing = a.wants.all { it == CallWant.NOTHING }
+        if (askedNothing && a.notes.isBlank() && CallHow.RUSHING !in a.how && CallHow.SECRET !in a.how) {
+            return CheckResult(Verdict.NO_SIGNS, Route.NOT_CHECKED, emptyList())
+        }
         return null
     }
 
-    fun describe(wants: Set<CallWant>, notes: String): String {
-        val asks = wants.filter { it != CallWant.NOTHING }.joinToString(", ") { it.name.lowercase().replace('_', ' ') }
-        return buildString {
-            append("Someone phoned the person. ")
-            append(if (asks.isEmpty()) "They have not asked for anything yet." else "They want: $asks.")
-            if (notes.isNotBlank()) append(" The person adds: ").append(notes.trim().take(1000))
-        }
+    /** Plain sentences, in the person's voice, for the model to read. */
+    fun describe(a: CallAnswers): String {
+        val lines = mutableListOf<String>()
+        a.who?.let { lines += it.sentence }
+        val wants = a.wants.filter { it != CallWant.NOTHING }.map { it.phrase }
+        if (wants.isNotEmpty()) lines += "They want me to ${wants.joinToString(", and to ")}."
+        else if (CallWant.NOTHING in a.wants) lines += "They have not asked me to do anything yet."
+        a.how.forEach { lines += it.sentence }
+        if (a.notes.isNotBlank()) lines += "In my own words: ${a.notes.trim().take(1000)}"
+        return lines.joinToString(" ")
     }
 }

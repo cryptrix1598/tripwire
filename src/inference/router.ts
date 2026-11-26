@@ -153,9 +153,12 @@ async function callValidated<S extends z.ZodType>(
   return { ok: false, reason: sawAnswer ? 'invalid' : 'unreachable', timedOut };
 }
 
-function stateFor(score: number, trigger: Trigger, config: TripwireConfig, allowTrip: boolean): VerdictState {
+function stateFor(score: number, trigger: Trigger, config: TripwireConfig, allowTrip: boolean, call = false): VerdictState {
   const { low, high } = config.thresholds;
   if (score < low) return 'safe';
+  // A described call is not an action on a page: "Hang up now" is for clear risk (or an ask that
+  // is never safe, handled in finish), and "Be careful" for the middle.
+  if (call) return score >= high ? 'tripped' : 'caution';
   // An action on a page that is already suspicious is the moment to step in.
   if (trigger !== 'passive') return 'tripped';
   if (score >= high && allowTrip) return 'tripped';
@@ -316,10 +319,11 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
   };
 
   const finish = (d: Draft): Verdict => {
-    const state = stateFor(d.score, input.trigger, config, d.allowTrip ?? true);
+    const state = stateFor(d.score, input.trigger, config, d.allowTrip ?? true, input.source === 'call');
     // Fail-safe verdicts are never allowed to read as "safe".
     const floored = steering && d.route !== 'not_checked' && state === 'safe';
-    const insisted = !floored && input.neverSafe === true && state === 'safe';
+    // An ask that is never safe always gets "Hang up now", whatever the score.
+    const insisted = !floored && input.neverSafe === true && state !== 'tripped';
     const floorNote = floored ? EXPLANATION.steering : EXPLANATION.neverSafe;
     const finalState: VerdictState = insisted ? 'tripped' : (d.failSafe || floored) && state === 'safe' ? 'caution' : state;
     return {

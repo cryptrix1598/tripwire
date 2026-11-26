@@ -1,18 +1,18 @@
 {
-  "ranAt": "2026-11-26T20:12:29.248Z",
+  "ranAt": "2026-11-26T21:30:39.547Z",
   "where": "the built extension in Chrome/158.0.8127.88, headless, Gemini Nano on the device, driven by tapping the call page",
   "scams": 12,
   "caught": 12,
   "benign": 8,
-  "falseAlarms": 1,
-  "onDevice": 6,
+  "falseAlarms": 0,
+  "onDevice": 7,
   "rows": [
     {
       "id": "call-scam-01-bank-code",
       "label": "scam",
       "heading": "Hang up now.",
       "route": "Personal info removed · sent for a deeper check",
-      "ms": 5976,
+      "ms": 5996,
       "correct": true
     },
     {
@@ -20,7 +20,7 @@
       "label": "scam",
       "heading": "Hang up now.",
       "route": "Checked on your device · nothing left your computer",
-      "ms": 3416,
+      "ms": 3411,
       "correct": true
     },
     {
@@ -28,7 +28,7 @@
       "label": "scam",
       "heading": "Hang up now.",
       "route": "Personal info removed · sent for a deeper check",
-      "ms": 5979,
+      "ms": 5984,
       "correct": true
     },
     {
@@ -36,7 +36,7 @@
       "label": "scam",
       "heading": "Hang up now.",
       "route": "Checked on your device · nothing left your computer",
-      "ms": 3402,
+      "ms": 3409,
       "correct": true
     },
     {
@@ -44,7 +44,7 @@
       "label": "scam",
       "heading": "Hang up now.",
       "route": "Personal info removed · sent for a deeper check",
-      "ms": 5462,
+      "ms": 5459,
       "correct": true
     },
     {
@@ -52,7 +52,7 @@
       "label": "scam",
       "heading": "Hang up now.",
       "route": "Personal info removed · sent for a deeper check",
-      "ms": 5465,
+      "ms": 5469,
       "correct": true
     },
     {
@@ -60,7 +60,7 @@
       "label": "scam",
       "heading": "Hang up now.",
       "route": "Personal info removed · sent for a deeper check",
-      "ms": 5973,
+      "ms": 4450,
       "correct": true
     },
     {
@@ -68,7 +68,7 @@
       "label": "scam",
       "heading": "Hang up now.",
       "route": "Checked on your device · nothing left your computer",
-      "ms": 2904,
+      "ms": 2913,
       "correct": true
     },
     {
@@ -76,7 +76,7 @@
       "label": "scam",
       "heading": "Hang up now.",
       "route": "Personal info removed · sent for a deeper check",
-      "ms": 5468,
+      "ms": 4959,
       "correct": true
     },
     {
@@ -84,7 +84,7 @@
       "label": "scam",
       "heading": "Hang up now.",
       "route": "Checked on your device · nothing left your computer",
-      "ms": 3911,
+      "ms": 3406,
       "correct": true
     },
     {
@@ -92,7 +92,7 @@
       "label": "scam",
       "heading": "Hang up now.",
       "route": "Personal info removed · sent for a deeper check",
-      "ms": 5981,
+      "ms": 5988,
       "correct": true
     },
     {
@@ -100,7 +100,7 @@
       "label": "scam",
       "heading": "Hang up now.",
       "route": "Personal info removed · sent for a deeper check",
-      "ms": 5463,
+      "ms": 5472,
       "correct": true
     },
     {
@@ -116,7 +116,7 @@
       "label": "benign",
       "heading": "Nothing here sounds like a scam.",
       "route": "Nothing to check here · nothing left your computer",
-      "ms": 72,
+      "ms": 70,
       "correct": true
     },
     {
@@ -124,7 +124,7 @@
       "label": "benign",
       "heading": "Nothing here sounds like a scam.",
       "route": "Nothing to check here · nothing left your computer",
-      "ms": 65,
+      "ms": 61,
       "correct": true
     },
     {
@@ -132,7 +132,7 @@
       "label": "benign",
       "heading": "Nothing here sounds like a scam.",
       "route": "Checked on your device · nothing left your computer",
-      "ms": 2381,
+      "ms": 2899,
       "correct": true
     },
     {
@@ -140,7 +140,7 @@
       "label": "benign",
       "heading": "Nothing here sounds like a scam.",
       "route": "Nothing to check here · nothing left your computer",
-      "ms": 71,
+      "ms": 69,
       "correct": true
     },
     {
@@ -148,7 +148,7 @@
       "label": "benign",
       "heading": "Nothing here sounds like a scam.",
       "route": "Nothing to check here · nothing left your computer",
-      "ms": 76,
+      "ms": 61,
       "correct": true
     },
     {
@@ -162,10 +162,10 @@
     {
       "id": "call-ok-08-delivery",
       "label": "benign",
-      "heading": "Hang up now.",
-      "route": "Personal info removed · sent for a deeper check",
-      "ms": 5466,
-      "correct": false
+      "heading": "Nothing here sounds like a scam.",
+      "route": "Checked on your device · nothing left your computer",
+      "ms": 2399,
+      "correct": true
     }
   ]
 }

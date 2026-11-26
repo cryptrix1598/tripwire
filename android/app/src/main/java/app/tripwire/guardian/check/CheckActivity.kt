@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,8 +33,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,6 +45,8 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import app.tripwire.guardian.R
 import app.tripwire.guardian.ui.TripwireTheme
 import app.tripwire.guardian.ui.Tw
@@ -55,80 +57,104 @@ import kotlinx.coroutines.launch
  * from the share sheet: share a text message or an email to Tripwire.
  */
 class CheckActivity : ComponentActivity() {
+    private val model: CheckViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        val shared = if (intent?.action == Intent.ACTION_SEND) intent.getStringExtra(Intent.EXTRA_TEXT).orEmpty() else ""
-        setContent { TripwireTheme { CheckScreen(initialText = shared.take(5000)) } }
+        if (savedInstanceState == null && intent?.action == Intent.ACTION_SEND) {
+            model.text = intent.getStringExtra(Intent.EXTRA_TEXT).orEmpty().take(5000)
+        }
+        setContent { TripwireTheme { CheckScreen(model) } }
     }
 }
 
-private enum class Mode { MESSAGE, CALL }
+enum class Mode { MESSAGE, CALL }
 
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun CheckScreen(initialText: String) {
-    val checker = remember { ScamChecker() }
-    val scope = rememberCoroutineScope()
-    var mode by remember { mutableStateOf(Mode.MESSAGE) }
-    var text by remember { mutableStateOf(initialText) }
-    var wants by remember { mutableStateOf(emptySet<CallWant>()) }
-    var busy by remember { mutableStateOf(false) }
-    var result by remember { mutableStateOf<CheckResult?>(null) }
+/** Kept across rotation and while the check runs: the person never loses what they typed or the answer. */
+class CheckViewModel : ViewModel() {
+    private val checker = ScamChecker()
+    var mode by mutableStateOf(Mode.MESSAGE)
+    var text by mutableStateOf("")
+    var call by mutableStateOf(CallAnswers())
+    var busy by mutableStateOf(false)
+        private set
+    var result by mutableStateOf<CheckResult?>(null)
+        private set
+
+    fun edited() { result = null }
 
     fun run() {
         result = null
-        if (mode == Mode.CALL) {
-            CallCheck.instant(wants, text)?.let { result = it; return }
-        }
-        val input = if (mode == Mode.CALL) CallCheck.describe(wants, text) else text
+        val answers = call.copy(notes = text)
+        if (mode == Mode.CALL) CallCheck.instant(answers)?.let { result = it; return }
+        val input = if (mode == Mode.CALL) CallCheck.describe(answers) else text
         busy = true
-        scope.launch {
+        viewModelScope.launch {
             result = try { checker.check(input) } finally { busy = false }
         }
     }
+}
 
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CheckScreen(m: CheckViewModel) {
     Column(
         Modifier.fillMaxSize().background(Tw.Ground).safeDrawingPadding().verticalScroll(rememberScrollState()).padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(stringResource(R.string.check_title), style = MaterialTheme.typography.headlineMedium, color = Tw.Ink, modifier = Modifier.semantics { heading() })
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(selected = mode == Mode.MESSAGE, onClick = { mode = Mode.MESSAGE; result = null }, label = { Text(stringResource(R.string.check_mode_message), fontSize = 18.sp) })
-            FilterChip(selected = mode == Mode.CALL, onClick = { mode = Mode.CALL; result = null }, label = { Text(stringResource(R.string.check_mode_call), fontSize = 18.sp) })
+            Choice(m.mode == Mode.MESSAGE, R.string.check_mode_message) { m.mode = Mode.MESSAGE; m.edited() }
+            Choice(m.mode == Mode.CALL, R.string.check_mode_call) { m.mode = Mode.CALL; m.edited() }
         }
-        if (mode == Mode.CALL) {
-            Text(stringResource(R.string.check_call_question), style = MaterialTheme.typography.titleMedium, color = Tw.Ink)
+        if (m.mode == Mode.CALL) {
+            Question(R.string.check_call_who)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                CallWho.entries.forEach { w -> Choice(m.call.who == w, whoLabel(w)) { m.call = m.call.copy(who = if (m.call.who == w) null else w); m.edited() } }
+            }
+            Question(R.string.check_call_question)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 CallWant.entries.forEach { w ->
-                    FilterChip(
-                        selected = w in wants,
-                        onClick = { wants = if (w in wants) wants - w else wants + w; result = null },
-                        label = { Text(stringResource(wantLabel(w)), fontSize = 18.sp) },
-                    )
+                    Choice(w in m.call.wants, wantLabel(w)) {
+                        m.call = m.call.copy(wants = if (w in m.call.wants) m.call.wants - w else m.call.wants + w); m.edited()
+                    }
+                }
+            }
+            Question(R.string.check_call_how)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                CallHow.entries.forEach { h ->
+                    Choice(h in m.call.how, howLabel(h)) { m.call = m.call.copy(how = if (h in m.call.how) m.call.how - h else m.call.how + h); m.edited() }
                 }
             }
         }
         OutlinedTextField(
-            value = text,
-            onValueChange = { text = it.take(5000); result = null },
-            label = { Text(stringResource(if (mode == Mode.CALL) R.string.check_call_notes else R.string.check_message_label)) },
-            modifier = Modifier.fillMaxWidth().heightIn(min = if (mode == Mode.CALL) 80.dp else 160.dp),
+            value = m.text,
+            onValueChange = { m.text = it.take(5000); m.edited() },
+            label = { Text(stringResource(if (m.mode == Mode.CALL) R.string.check_call_notes else R.string.check_message_label)) },
+            modifier = Modifier.fillMaxWidth().heightIn(min = if (m.mode == Mode.CALL) 80.dp else 160.dp),
             textStyle = MaterialTheme.typography.bodyLarge,
         )
         Button(
-            onClick = ::run,
-            enabled = !busy && (text.isNotBlank() || (mode == Mode.CALL && wants.isNotEmpty())),
+            onClick = m::run,
+            enabled = !m.busy && (m.text.isNotBlank() || (m.mode == Mode.CALL && (m.call.wants.isNotEmpty() || m.call.who != null))),
             modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Tw.Deep),
-        ) { Text(stringResource(if (busy) R.string.check_busy else R.string.check_go), fontSize = 20.sp) }
-        result?.let { ResultCard(it, isCall = mode == Mode.CALL) }
+        ) { Text(stringResource(if (m.busy) R.string.check_busy else R.string.check_go), fontSize = 20.sp) }
+        m.result?.let { ResultCard(it, isCall = m.mode == Mode.CALL) }
     }
 }
 
 @Composable
+private fun Question(text: Int) = Text(stringResource(text), style = MaterialTheme.typography.titleMedium, color = Tw.Ink)
+
+@Composable
+private fun Choice(selected: Boolean, label: Int, onClick: () -> Unit) =
+    FilterChip(selected = selected, onClick = onClick, label = { Text(stringResource(label), fontSize = 18.sp) }, modifier = Modifier.heightIn(min = 48.dp))
+
+@Composable
 private fun ResultCard(r: CheckResult, isCall: Boolean) {
-    var showSent by remember { mutableStateOf(false) }
+    var showSent by rememberSaveable { mutableStateOf(false) }
     val (title, body, tone) = when (r.verdict) {
         Verdict.HANG_UP -> Triple(if (isCall) R.string.check_hangup_title else R.string.check_stop_title, if (isCall) R.string.check_hangup_body else R.string.check_stop_body, Tw.Signal)
         Verdict.CAREFUL -> Triple(R.string.check_careful_title, if (isCall) R.string.check_careful_call_body else R.string.check_careful_body, Tw.Signal)
@@ -170,6 +196,14 @@ private fun RouteLine(r: CheckResult) {
     }
 }
 
+private fun whoLabel(w: CallWho) = when (w) {
+    CallWho.BANK -> R.string.who_bank
+    CallWho.GOVERNMENT -> R.string.who_government
+    CallWho.COMPANY -> R.string.who_company
+    CallWho.FAMILY -> R.string.who_family
+    CallWho.OTHER -> R.string.who_other
+}
+
 private fun wantLabel(w: CallWant) = when (w) {
     CallWant.GIFT_CARDS -> R.string.want_gift_cards
     CallWant.CRYPTO -> R.string.want_crypto
@@ -179,6 +213,13 @@ private fun wantLabel(w: CallWant) = when (w) {
     CallWant.DETAILS -> R.string.want_details
     CallWant.PAYMENT -> R.string.want_payment
     CallWant.NOTHING -> R.string.want_nothing
+}
+
+private fun howLabel(h: CallHow) = when (h) {
+    CallHow.RUSHING -> R.string.how_rushing
+    CallHow.SECRET -> R.string.how_secret
+    CallHow.STAY_ON_LINE -> R.string.how_stay
+    CallHow.PATIENT -> R.string.how_patient
 }
 
 private fun signLabel(s: Sign) = when (s) {

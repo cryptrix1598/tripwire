@@ -36,39 +36,58 @@ class ScamChecker {
         val signs = Rules.signs(text)
         val rules = CheckResult(Rules.verdict(signs), Route.RULES, signs)
 
-        if (phoneModelReady()) {
-            val local = ask(onPhone, text, ON_PHONE_MS)
+        val phone = phoneModelReady()
+        if (phone) {
+            val local = ask(onPhone, Answers.prompt(text), InferenceSource.ON_DEVICE, ON_PHONE_MS)
             when {
                 local is Reply.WrongSide -> return rules.copy(wrongSide = true)
-                local is Reply.Answer -> Decide.onPhone(local.answer.risk, signs)?.let {
-                    return CheckResult(it, Route.ON_PHONE, signs, local.answer.reasons)
+                local is Reply.Text -> {
+                    val answer = Answers.parse(local.text) ?: return rules
+                    Decide.onPhone(answer.risk, signs)?.let { return CheckResult(it, Route.ON_PHONE, signs, answer.reasons) }
                 }
                 // The phone was meant to look and could not: keep the answer on the phone.
                 else -> return rules
             }
         }
-        return cloud(text, signs) ?: rules
+        return when (val c = cloud(text, signs, phone)) {
+            null -> rules
+            else -> c
+        }
     }
 
-    private suspend fun cloud(text: String, signs: List<Sign>): CheckResult? {
-        val redacted = Redactor.redact(text)
-        if (!Redactor.clean(redacted)) return null
-        val reply = ask(inCloud, redacted, IN_CLOUD_MS) as? Reply.Answer ?: return null
-        return CheckResult(Decide.fromCloud(reply.answer.risk, signs), Route.REDACTED_CLOUD, signs, reply.answer.reasons, sent = redacted)
+    /**
+     * Redact, then (when the phone has a model) let it point at what the patterns missed, then
+     * redact again and check for leaks. Any failure on the way means nothing is sent.
+     */
+    private suspend fun cloud(text: String, signs: List<Sign>, phone: Boolean): CheckResult? {
+        val first = Redactor.redact(text)
+        var candidate = first.text
+        if (phone) {
+            val listed = ask(onPhone, Answers.listPrompt(candidate), InferenceSource.ON_DEVICE, ON_PHONE_MS)
+            if (listed is Reply.WrongSide) return CheckResult(Rules.verdict(signs), Route.RULES, signs, wrongSide = true)
+            val items = (listed as? Reply.Text)?.let { Answers.parseItems(it.text) } ?: return null
+            candidate = Redactor.redact(Redactor.replaceItems(candidate, items)).text
+        }
+        if (!Redactor.clean(candidate, first.found)) return null
+        val reply = ask(inCloud, Answers.prompt(candidate), InferenceSource.IN_CLOUD, IN_CLOUD_MS) as? Reply.Text ?: return null
+        val answer = Answers.parse(reply.text) ?: return null
+        return CheckResult(Decide.fromCloud(answer.risk, signs), Route.REDACTED_CLOUD, signs, answer.reasons, sent = candidate)
     }
 
     private sealed interface Reply {
-        data class Answer(val answer: ModelAnswer) : Reply
+        data class Text(val text: String) : Reply
         data object WrongSide : Reply
         data object Nothing : Reply
     }
 
-    private suspend fun ask(model: com.google.firebase.ai.GenerativeModel, text: String, timeoutMs: Long): Reply = try {
+    private suspend fun ask(model: com.google.firebase.ai.GenerativeModel, prompt: String, expected: InferenceSource, timeoutMs: Long): Reply = try {
         withTimeoutOrNull(timeoutMs) {
-            val response = model.generateContent(Answers.prompt(text))
-            val expected = if (model === onPhone) InferenceSource.ON_DEVICE else InferenceSource.IN_CLOUD
-            if (response.inferenceSource != expected) Reply.WrongSide
-            else Answers.parse(response.text)?.let { Reply.Answer(it) } ?: Reply.Nothing
+            val response = model.generateContent(prompt)
+            when {
+                response.inferenceSource != expected -> Reply.WrongSide
+                response.text.isNullOrBlank() -> Reply.Nothing
+                else -> Reply.Text(response.text!!)
+            }
         } ?: Reply.Nothing
     } catch (_: Exception) {
         Reply.Nothing

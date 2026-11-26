@@ -25,9 +25,9 @@ page, email or phone call
 | --- | --- | --- | --- |
 | Gemini Nano in the built extension, 50 messages | 25 / 25 | 0 / 25 | 4,207 bytes, all redacted first |
 | Cloud only (no on-device model) | 25 / 25 | 0 / 25 | 22,018 bytes, all redacted first |
-| Phone-call check, Gemini Nano, 20 calls (latest run) | 12 / 12 | 1 / 8 | |
+| Phone-call check, Gemini Nano, 20 calls (latest run) | 12 / 12 | 0 / 8 | |
 
-203 unit tests (plus 16 on Android), 32 security-rules tests, a 14-step end-to-end run with 0 accessibility problems, a live run against the real Firebase project. Details are in [Test results](#test-results).
+206 unit tests (plus 19 on Android), 32 security-rules tests, a 14-step end-to-end run with 0 accessibility problems, a live run against the real Firebase project. Details are in [Test results](#test-results).
 
 ## Why this matters
 
@@ -232,13 +232,13 @@ Gemini Nano needs Chrome 139+ on a desktop with about 22 GB of free disk and eit
 
 `android/` holds a native Android app (Kotlin, Jetpack Compose) with two icons: **Is this a scam?** for the person being protected, and **Tripwire Guardian** for the family member.
 
-**Is this a scam?** covers the phone, where most of these scams start. Share a text message or an email to it from the share sheet, paste one in, or choose "Someone is calling me" and tap what the caller wants. It uses the same privacy gate as the extension, through **Firebase AI Logic hybrid inference** with the mode pinned per call ([ScamChecker.kt](android/app/src/main/java/app/tripwire/guardian/check/ScamChecker.kt)):
+**Is this a scam?** covers the phone, where most of these scams start. Share a text message or an email to it from the share sheet, paste one in, or choose "Someone is calling me" and tap who they say they are, what they want and how they act (the same questions and sentences as the extension's call check). It uses the same privacy gate as the extension, through **Firebase AI Logic hybrid inference** with the mode pinned per call ([ScamChecker.kt](android/app/src/main/java/app/tripwire/guardian/check/ScamChecker.kt)):
 
 - Gemini Nano on the phone (`InferenceMode.ONLY_ON_DEVICE`) reads the text as it is. `response.inferenceSource` must say `ON_DEVICE`, or Tripwire stops and says so. When the phone is sure and the built-in warning signs agree, it answers alone: "Checked on this phone · nothing left your phone".
-- Only when the phone is unsure does a copy go to the cloud model (`InferenceMode.ONLY_IN_CLOUD`), with emails, phone and card numbers, long numbers, addresses and greeted or introduced names removed first, and a leak check that sends nothing if anything is left. "See exactly what was sent" shows it.
-- If the phone model is there but does not answer, nothing is sent: the built-in warning signs answer. With no phone model, the redacted cloud check; offline, the built-in signs.
-- A caller who wants gift cards, crypto, a code, access to the phone or computer, or money moved to a "safe" account gets **Hang up now** at once, with no model at all. A caller who has asked for nothing gets no check.
-- The rules, redaction, leak check, answer parsing and decisions are plain Kotlin with 10 unit tests ([ScamCheckTest.kt](android/app/src/test/java/app/tripwire/guardian/check/ScamCheckTest.kt)). It is English only for now.
+- Only when the phone is unsure does a copy go to the cloud model (`InferenceMode.ONLY_IN_CLOUD`). The extension's redaction rules run first (emails, phone, card and Social Security numbers, codes, IDs, addresses, links cut to their site name, and names: greeted, titled, labelled, signed off, introduced, or on the same list of about 390 given names). Then Gemini Nano lists any personal details left and code replaces them, the rules run again, and a leak check sends nothing if a removed value or anything pattern-shaped is still there. "See exactly what was sent" shows it.
+- If the phone model is there but does not answer, or cannot list the details, nothing is sent: the built-in warning signs answer. With no phone model, the redacted cloud check; offline, the built-in signs.
+- A caller who wants gift cards, crypto, a code, bank or Social Security details, access to the phone or computer, or money moved to a "safe" account gets **Hang up now** at once, with no model at all (the same list as the extension). A calm caller who has asked for nothing gets no check.
+- The rules, redaction, leak check, answer parsing, call sentences and decisions are plain Kotlin with 13 unit tests ([ScamCheckTest.kt](android/app/src/test/java/app/tripwire/guardian/check/ScamCheckTest.kt)). Its screens are in English, Spanish and French, and what the person typed and the answer survive turning the phone.
 
 **Tripwire Guardian** is for the family member:
 
@@ -253,7 +253,7 @@ Build it (JDK 17 and the Android SDK needed):
 2. Register an App Check debug token for it and put it in `android/local.properties` as `appcheck.debugToken=<uuid>`. Neither file is committed.
 3. Run `./gradlew assembleDebug` in `android/`. The APK lands in `android/app/build/outputs/apk/debug/`.
 
-Status: the app compiles against firebase-ai 18.2.0 and firebase-ai-ondevice 16.0.0-beta08, its 16 unit tests pass and the debug APK builds. **It has not been run on a phone or emulator yet** (see "Not verified yet"). Alerts do not arrive while the app is closed: that needs push messaging from a server, which is outside this free-tier build.
+Status: the app compiles against firebase-ai 18.2.0 and firebase-ai-ondevice 16.0.0-beta08, its 19 unit tests pass and the debug APK builds. **It has not been run on a phone or emulator yet** (see "Not verified yet"). Alerts do not arrive while the app is closed: that needs push messaging from a server, which is outside this free-tier build.
 
 ## Commands
 
@@ -320,15 +320,16 @@ Because those fixes were made after seeing round one, a second round of six new 
 | Built-in rules only (`npm run eval`) | 8 / 12 | 0 / 8 |
 | Gemini Nano in the built extension, first run (26 Nov) | **12 / 12** | **2 / 8** |
 | Same, after the fix below | **12 / 12** | **0 / 8** |
-| Same, run again later that day (the latest run) | **12 / 12** | **1 / 8** |
+| Same, run again later that day | **12 / 12** | **1 / 8** |
+| After calls got a "Be careful" middle (the latest run) | **12 / 12** | **0 / 8** |
 
 The first run told people to hang up on two calls that had asked for nothing, a "bank" and a "government office", only because of who the caller said they were. A call that asks for nothing, with no pressure and nothing typed, now gets no model check and the answer "nothing risky so far; hang up if they ask for money, gift cards, a code or your details". Because that rule came from seeing the run, the second row is not a held-out result. Two more rules hold whatever a model says: a call asking for gift cards, crypto, a code from the phone, personal details or computer access is never answered "safe". Result files: [eval-results/calls-on-device-run1.json](eval-results/calls-on-device-run1.json), [eval-results/calls-on-device.json](eval-results/calls-on-device.json) (`node scripts/extension-nano.mjs --calls`).
 
-The latest run told people to hang up on one ordinary call: a delivery driver saying when he would arrive. That call has a typed note, so it does get a model check; it went to the cloud, which answered "hang up". The run before it passed the same call, so the model is not fully consistent on this one. Nothing was changed to hide it.
+The latest run told people to hang up on one ordinary call: a delivery driver saying when he would arrive. That call has a typed note, so it does get a model check; it went to the cloud, which answered "hang up". The run before it passed the same call, so the model is not fully consistent on this one. Nothing was changed to hide it. Calls now answer "Hang up now" only for clear risk or an ask that is never safe, and "Be careful" in between; the run after that change had no false alarms, but one clean run does not prove the delivery call can never be flagged again.
 
 ### Everything else
 
-- Unit tests: 203 passing (extension), 16 (Android). Security-rules tests: 30 against the emulator plus 2 that keep the rules and the app copy in step, 32 passing ([eval-results/rules-tests.json](eval-results/rules-tests.json)). Typecheck, unit tests, the rules-only corpus, the build and the rules tests also run in CI on every push ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
+- Unit tests: 206 passing (extension), 19 (Android). Security-rules tests: 30 against the emulator plus 2 that keep the rules and the app copy in step, 32 passing ([eval-results/rules-tests.json](eval-results/rules-tests.json)). Typecheck, unit tests, the rules-only corpus, the build and the rules tests also run in CI on every push ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
 - End-to-end in Chromium (`npm run e2e`): 14 of 14 steps, including the phone-call check, settings, the paused download, and a page that keeps deleting the warning. Result file: [eval-results/e2e.json](eval-results/e2e.json).
 - Live against the real project (`npm run live`): App Check token, hybrid call, Spanish explanations, pairing, single-use code, family alert. Result file: [eval-results/live-checks.json](eval-results/live-checks.json).
 - **App Check refuses robots, including ours.** On 16 Nov the hosted site began rejecting the automated test browser ("App attestation failed" from reCAPTCHA Enterprise), so pairing failed and the hosted demo fell back to built-in rules, with the badge saying so. The hosted demo was checked in an ordinary browser the same day and got its cloud answer. The automated runs of the hosted site now present the project's App Check debug token (read from `.env`, set only inside the test browser, never deployed); `--recaptcha` runs them as a robot. `node scripts/hosted-appcheck.mjs` shows the refusal, and the family page now says the browser could not be confirmed instead of blaming the internet.

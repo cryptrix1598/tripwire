@@ -388,6 +388,27 @@ describe('router: a phone call the person describes', () => {
     expect(v.state).toBe('tripped');
   });
 
+  it('a call with some risk gets "Be careful", not "Hang up now"', async () => {
+    const engine = fakeEngine({ triage: async () => triageJson(45, 0.9, 'other'), cloud: async () => cloudJson(45, 0.9, 'other') });
+    const v = await call('The caller says they are from a delivery company and want to confirm my address for a parcel.', engine);
+    expect(v.state).toBe('caution');
+  });
+
+  it('a call with clear risk gets "Hang up now"', async () => {
+    const engine = fakeEngine({ triage: async () => triageJson(92, 0.95, 'government_impersonation'), cloud: async () => cloudJson(92, 0.95, 'government_impersonation') });
+    const v = await call(CALL, engine);
+    expect(v.state).toBe('tripped');
+  });
+
+  it('a never-safe ask gets "Hang up now" even when the score is only in the middle', async () => {
+    const engine = fakeEngine({ triage: async () => triageJson(45, 0.9, 'other'), cloud: async () => cloudJson(45, 0.9, 'other') });
+    const v = await assess(
+      { text: 'The caller wants me to read them a code that was just sent to my phone.', hostname: 'phone call', trigger: 'live_call', source: 'call', neverSafe: true },
+      { engine, config: DEFAULT_CONFIG },
+    );
+    expect(v.state).toBe('tripped');
+  });
+
   it('a page with the same quiet text is still not checked', async () => {
     const engine = fakeEngine();
     const v = await run('Someone called about my car warranty and asked me to stay on the line.', engine);

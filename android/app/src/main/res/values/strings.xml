@@ -138,4 +138,15 @@
     <string name="sign_urgent">It rushes you.</string>
     <string name="sign_secret">It tells you to keep it secret or stay on the line.</string>
     <string name="sign_threat">It threatens you with arrest or a closed account.</string>
+    <string name="check_call_who">Who do they say they are?</string>
+    <string name="check_call_how">How are they acting? (You can skip this.)</string>
+    <string name="who_bank">My bank</string>
+    <string name="who_government">The government, Social Security or Medicare</string>
+    <string name="who_company">A company like Amazon or Microsoft</string>
+    <string name="who_family">Family or a friend in trouble</string>
+    <string name="who_other">I don’t know</string>
+    <string name="how_rushing">Rushing me or threatening</string>
+    <string name="how_secret">Telling me to keep it secret</string>
+    <string name="how_stay">Telling me to stay on the line</string>
+    <string name="how_patient">Calm, and said I can call back</string>
 </resources>

@@ -6,7 +6,9 @@
  *  - Tripped: a full-page pause.
  *
  * Rules this file keeps:
- *  - It never reads password fields, and never reads content that is not on screen.
+ *  - It never reads password fields. It reads the page's rendered text (what `innerText` returns, which leaves out hidden
+ *    elements but includes text scrolled below the screen, where a scam can put its ask), and in webmail
+ *    only the opened message.
  *  - Typed values are only ever tested locally (is this a card number?), never sent.
  *  - Every handler is wrapped: a Tripwire error must never break the host page.
  */
