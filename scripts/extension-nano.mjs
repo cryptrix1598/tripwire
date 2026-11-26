@@ -118,6 +118,44 @@ try {
     const shown = await page.locator('tripwire-ui .tw-banner, tripwire-ui .tw-overlay').count();
     if (shown) throw new Error('a warning appeared on the ordinary shop page');
   });
+  if (process.argv.includes('--calls')) {
+    await step('phone-call test set (corpus/calls.json), tapped on the call page', async () => {
+      const LABEL = {
+        bank: 'My bank', government: 'The government, Social Security or Medicare', company: 'A company like Amazon or Microsoft', family: 'Family or a friend in trouble', other: 'I don’t know',
+        money: 'Pay or move money', gift_cards: 'Buy gift cards', crypto: 'Send crypto or use a Bitcoin machine', code: 'Read them a code from my phone', details: 'Give my Social Security, Medicare or bank details', computer: 'Let them into my computer', nothing: 'Nothing yet',
+        rushing: 'Rushing me or threatening', secret: 'Telling me to keep it secret', stay_on_line: 'Telling me to stay on the line', patient: 'Calm, and said I can call back',
+      };
+      const set = JSON.parse(readFileSync('corpus/calls.json', 'utf8'));
+      const rows = [];
+      for (const c of set.calls) {
+        const call = await context.newPage();
+        await call.goto(ext('call.html'));
+        for (const key of [c.who, ...c.want, ...c.how]) await call.getByRole('button', { name: LABEL[key], exact: true }).click();
+        if (c.notes) await call.getByLabel('Anything else they said? (You can skip this.)').fill(c.notes);
+        const t0 = Date.now();
+        await call.getByRole('button', { name: 'Check this call' }).click();
+        await call.locator('section[aria-live]').waitFor({ timeout: 90_000 });
+        const heading = await call.locator('h2').first().innerText();
+        const route = (await call.locator('.tw-route').innerText()).replace(/s+/g, ' ');
+        const flagged = !/Nothing here sounds like a scam/.test(heading);
+        rows.push({ id: c.id, label: c.label, heading, route, ms: Date.now() - t0, correct: c.label === 'scam' ? flagged : !flagged });
+        await call.close();
+      }
+      const scams = rows.filter((r) => r.label === 'scam');
+      const benign = rows.filter((r) => r.label === 'benign');
+      const summary = {
+        ranAt: new Date().toISOString(),
+        where: `the built extension in ${version}, headless, Gemini Nano on the device, driven by tapping the call page`,
+        scams: scams.length, caught: scams.filter((r) => r.correct).length,
+        benign: benign.length, falseAlarms: benign.filter((r) => !r.correct).length,
+        onDevice: rows.filter((r) => /Checked on your device/.test(r.route)).length,
+        rows,
+      };
+      writeFileSync('eval-results/calls-on-device.json', JSON.stringify(summary, null, 2));
+      const wrong = rows.filter((r) => !r.correct).map((r) => `${r.id} (${r.heading})`);
+      return `scams ${summary.caught}/${summary.scams}, false alarms ${summary.falseAlarms}/${summary.benign}, decided on the device ${summary.onDevice}/${rows.length}${wrong.length ? `, wrong: ${wrong.join('; ')}` : ''}`;
+    });
+  }
   if (process.argv.includes('--corpus')) {
     await step('corpus: 50 samples through the router inside the extension', async () => {
       await checks.bringToFront();

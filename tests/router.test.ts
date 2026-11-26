@@ -374,3 +374,24 @@ describe('router: a phone call the person describes', () => {
     expect(v.route).toBe('not_checked');
   });
 });
+
+describe('router: a call with an ask that is never safe', () => {
+  it('is never answered "safe", even when the model says so', async () => {
+    const engine = fakeEngine({ triage: async () => triageJson(5, 0.95, 'none') });
+    const v = await assess(
+      { text: 'The caller says they are from my bank. They want me to read them a code that was just sent to my phone.', hostname: 'phone call', trigger: 'phone_call', source: 'call', neverSafe: true },
+      { engine, config: DEFAULT_CONFIG },
+    );
+    expect(v.state).toBe('caution');
+    expect(v.explanation).toContain('does not ask for this on a call');
+  });
+
+  it('without that ask, a calm call can still come back safe', async () => {
+    const engine = fakeEngine({ triage: async () => triageJson(5, 0.95, 'none') });
+    const v = await assess(
+      { text: 'The caller says they are from my bank. They have not asked me to do anything yet. They are calm and patient, and said I can call them back.', hostname: 'phone call', trigger: 'phone_call', source: 'call' },
+      { engine, config: DEFAULT_CONFIG },
+    );
+    expect(v.state).toBe('safe');
+  });
+});

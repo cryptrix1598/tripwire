@@ -76,6 +76,13 @@ export interface AssessInput {
    * the check, so it always reaches a model. Default: a page or opened email.
    */
   source?: 'page' | 'call';
+  /**
+   * The person reported an ask that is never safe on an unexpected call (gift cards, crypto,
+   * a code, personal details, computer access). The verdict is then never "safe".
+   */
+  neverSafe?: boolean;
+  /** The caller has asked for nothing yet and is not pressing (see call/describe.ts): nothing to judge. */
+  nothingAskedYet?: boolean;
 }
 
 export interface RouterDeps {
@@ -245,13 +252,15 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
     const state = stateFor(d.score, input.trigger, config, d.allowTrip ?? true);
     // Fail-safe verdicts are never allowed to read as "safe".
     const floored = steering && d.route !== 'not_checked' && state === 'safe';
-    const finalState: VerdictState = (d.failSafe || floored) && state === 'safe' ? 'caution' : state;
+    const insisted = !floored && input.neverSafe === true && state === 'safe';
+    const floorNote = floored ? EXPLANATION.steering : EXPLANATION.neverSafe;
+    const finalState: VerdictState = (d.failSafe || floored || insisted) && state === 'safe' ? 'caution' : state;
     return {
       state: finalState,
-      riskScore: floored ? Math.max(d.score, config.thresholds.low) : d.score,
+      riskScore: floored || insisted ? Math.max(d.score, config.thresholds.low) : d.score,
       scamType: finalState === 'safe' ? 'none' : d.scamType === 'none' ? 'other' : d.scamType,
-      redFlags: finalState === 'safe' ? [] : dedupe(floored ? [EXPLANATION.steering, ...d.redFlags] : d.redFlags),
-      explanation: finalState === 'safe' ? '' : floored ? EXPLANATION.steering : d.explanation,
+      redFlags: finalState === 'safe' ? [] : dedupe(floored || insisted ? [floorNote, ...d.redFlags] : d.redFlags),
+      explanation: finalState === 'safe' ? '' : floored || insisted ? floorNote : d.explanation,
       confidence: d.confidence,
       route: d.route,
       trigger: input.trigger,
@@ -298,6 +307,9 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
     worthChecking(signals) ||
     (input.trigger === 'passive' ? worthACloudLook(shape) : shape.secrecy && (shape.pressure || shape.hasPhone));
   if (input.trigger === 'passive' && !localLook) {
+    return finish({ score: 0, scamType: 'none', redFlags: [], explanation: '', confidence: 1, route: 'not_checked' });
+  }
+  if (asked && input.nothingAskedYet && !input.neverSafe) {
     return finish({
       score: 0,
       scamType: 'none',
@@ -336,6 +348,26 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
     return { kind: 'ok', analysis: result.value, bytes: utf8Bytes(prompt), redactionCount: redaction.redactionCount, sent: prompt };
   };
 
+  /** The cloud alone decides (no on-device model, or it failed); rules if the cloud cannot. */
+  const cloudOnly = async (failSafeIfUnreachable: boolean): Promise<Verdict> => {
+    const cloud = await runCloud(null, null);
+    if (cloud.kind !== 'ok') return rulesVerdict(failSafeIfUnreachable || cloud.kind === 'invalid');
+    const a = cloud.analysis;
+    return finish({
+      score: a.riskScore,
+      scamType: a.scamType,
+      redFlags: a.redFlags,
+      explanation: a.plainEnglishExplanation,
+      confidence: a.confidence,
+      route: 'cloud_fallback',
+      bytesSentToCloud: cloud.bytes,
+      redactionCount: cloud.redactionCount,
+      sent: cloud.sent,
+      allowTrip: a.confidence >= config.thresholds.minTripConfidence,
+      language: language?.code,
+    });
+  };
+
   // ── Fallback path: no on-device model ───────────────────────────────────
   if (status !== 'available') {
     // Without a private on-device check, a card field alone is not enough
@@ -344,24 +376,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
     if (!cloudLook) {
       return finish({ score: 0, scamType: 'none', redFlags: [], explanation: '', confidence: 1, route: 'not_checked' });
     }
-    const cloud = await runCloud(null, null);
-    if (cloud.kind === 'ok') {
-      const a = cloud.analysis;
-      return finish({
-        score: a.riskScore,
-        scamType: a.scamType,
-        redFlags: a.redFlags,
-        explanation: a.plainEnglishExplanation,
-        confidence: a.confidence,
-        route: 'cloud_fallback',
-        bytesSentToCloud: cloud.bytes,
-        redactionCount: cloud.redactionCount,
-        sent: cloud.sent,
-        allowTrip: a.confidence >= config.thresholds.minTripConfidence,
-        language: language?.code,
-      });
-    }
-    return rulesVerdict(cloud.kind === 'invalid');
+    return cloudOnly(false);
   }
 
   // ── [1] On-device triage ────────────────────────────────────────────────
@@ -378,24 +393,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
   if (!triage.ok) {
     // The on-device model let us down. Try the redacted cloud path; if that
     // fails too, fall back to rules with the fail-safe floor.
-    const cloud = await runCloud(null, null);
-    if (cloud.kind === 'ok') {
-      const a = cloud.analysis;
-      return finish({
-        score: a.riskScore,
-        scamType: a.scamType,
-        redFlags: a.redFlags,
-        explanation: a.plainEnglishExplanation,
-        confidence: a.confidence,
-        route: 'cloud_fallback',
-        bytesSentToCloud: cloud.bytes,
-        redactionCount: cloud.redactionCount,
-        sent: cloud.sent,
-        allowTrip: a.confidence >= config.thresholds.minTripConfidence,
-        language: language?.code,
-      });
-    }
-    return rulesVerdict(true);
+    return cloudOnly(true);
   }
 
   const t = triage.value;
@@ -482,7 +480,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
       route: 'device_then_cloud',
       bytesSentToCloud: cloud.bytes,
       redactionCount: cloud.redactionCount,
-        sent: cloud.sent,
+      sent: cloud.sent,
       allowTrip: a.riskScore >= high && a.confidence >= minTripConfidence,
     });
   }

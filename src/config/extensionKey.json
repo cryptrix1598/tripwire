@@ -1,0 +1,5 @@
+{
+  "about": "Public key that fixes the extension ID, so the hosted App Check page can answer only this extension. Only the public half is needed for an unpacked install; nothing secret here.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArETeJWfXukQol8Jnp4kB7/ymC30edAhfnr2N0+q791MUPu8qPd1gleTL4YJAUdIejqEhfvTRbMvRwkyndvGWiFk+hoA3bfilaGXjcSzJ+zk/JYVSKRPToaYQ5VAnUstVClHo96D+XMKDK0i7xucIrHk9LflCikUwamUoqwEuc90W7Wd4OjZ9cWIAhLnQoXMaUISqiV4WOKkKyt4T+uMKS3Ph3PRtPx08HHMT7YK+YoER5j50FD39+upUI4iQvzus3z5XwZySqoC/WlCgLQ6nKqq2Q+ibpRe7mmfSvyb3HDX1pM8euP6WDu9YJOsMuEctr8g/x8eDltSxiv7NzdncEwIDAQAB",
+  "id": "hchccgnaaficboghbjihnhgjioidaphf"
+}

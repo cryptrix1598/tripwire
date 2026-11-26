@@ -114,6 +114,17 @@ async function paintBadge(tabId: number, verdict: Verdict): Promise<void> {
 
 /* ---------- message handlers ---------- */
 
+/** The toolbar icon shows "…" while this tab's check is running. */
+async function markChecking(tabId: number, on: boolean): Promise<void> {
+  try {
+    await chrome.action.setBadgeBackgroundColor({ tabId, color: '#14344D' });
+    await chrome.action.setBadgeText({ tabId, text: on ? '…' : '' });
+    await chrome.action.setTitle({ tabId, title: on ? 'Tripwire is checking this page' : 'Tripwire' });
+  } catch {
+    // The tab closed.
+  }
+}
+
 async function handleAssess(msg: Extract<ToBackground, { type: 'assess' }>, tabId: number | undefined): Promise<AssessReply> {
   const settings = await loadSettings();
   const config = applySensitivity(await loadConfig(), settings.sensitivity);
@@ -130,7 +141,13 @@ async function handleAssess(msg: Extract<ToBackground, { type: 'assess' }>, tabI
   }
 
   const input = settings.explainInBrowserLanguage ? msg.input : { ...msg.input, language: undefined };
-  let verdict = await toOffscreen<Verdict>({ target: 'offscreen', type: 'assess', input });
+  // A check that reaches a model takes a few seconds. Say so quietly on the toolbar icon (never on
+  // the page), so a pause that arrives a moment later does not come out of nowhere.
+  const showBusy = tabId !== undefined ? setTimeout(() => void markChecking(tabId, true), 400) : undefined;
+  let verdict = await toOffscreen<Verdict>({ target: 'offscreen', type: 'assess', input }).finally(() => {
+    clearTimeout(showBusy);
+    if (tabId !== undefined) void markChecking(tabId, false);
+  });
   if (!verdict) {
     // Offscreen document unreachable. Never fail open: fall back to built-in rules.
     verdict = await assess(input, { engine: noModelEngine, config });
@@ -177,7 +194,7 @@ async function handleStatus(): Promise<StatusReply> {
     onDevice: 'unavailable',
     promptApiInOffscreen: false,
     guardianReady: false,
-    guardianCount: 0,
+    guardianCount: 0, pendingGuardians: 0,
     configSource: 'default',
     promptVersion: config.promptVersion,
     thresholds: config.thresholds,
@@ -222,6 +239,8 @@ async function handle(msg: ToBackground, sender: chrome.runtime.MessageSender): 
         (await toOffscreen<PairingReply>({ target: 'offscreen', type: 'pairing-code' })) ??
         ({ ok: false, reason: 'offline' } satisfies PairingReply)
       );
+    case 'pairing-decide':
+      return (await toOffscreen({ target: 'offscreen', type: 'pairing-decide', allow: msg.allow })) ?? { ok: false };
     case 'pairing-finish':
       await toOffscreen({ target: 'offscreen', type: 'pairing-finish' });
       return { ok: true };

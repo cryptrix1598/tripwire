@@ -5,23 +5,28 @@
  * Manifest V3), so it frames this page from its offscreen document. This page runs
  * reCAPTCHA Enterprise like any page on the site, gets an App Check token for the same
  * Firebase web app, and posts it back. It answers only chrome-extension:// parents
- * (optionally only the IDs in WXT_EXTENSION_IDS) and its own origin.
+ * whose ID is Tripwire's own (src/config/extensionKey.json, plus WXT_EXTENSION_IDS) and its own origin.
  *
  * Opened directly in a browser, it shows whether a token can be issued (a self-test).
  */
 import { getToken } from 'firebase/app-check';
 import { appCheck } from './firebase';
+import extensionKey from '../../src/config/extensionKey.json';
 
 const env = import.meta.env as Record<string, string | undefined>;
-const allowedIds = (env.WXT_EXTENSION_IDS ?? '')
-  .split(',')
-  .map((s) => s.trim())
-  .filter(Boolean);
+// Tripwire's own ID (fixed by the manifest key), plus any extra IDs, such as a store listing's.
+const allowedIds = [
+  extensionKey.id,
+  ...(env.WXT_EXTENSION_IDS ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean),
+];
 
 function allowed(origin: string): boolean {
   if (origin === location.origin) return true;
   if (!origin.startsWith('chrome-extension://')) return false;
-  return allowedIds.length === 0 || allowedIds.includes(origin.slice('chrome-extension://'.length));
+  return allowedIds.includes(origin.slice('chrome-extension://'.length));
 }
 
 /** When the token expires, read from its own `exp` claim. */

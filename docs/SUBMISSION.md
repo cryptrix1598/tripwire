@@ -34,7 +34,7 @@ It trips on actions: a card number field (checked locally), a gift-card code fie
 
 **Someone on the phone?** Most scams on older people start with a call, which no browser can see. From the Tripwire menu, "Someone is on the phone with me" opens a page where the person answers three questions by tapping big buttons, with no typing: who the caller says they are, what they want (money, gift cards, crypto, a code from the phone, personal details, access to the computer) and how they are acting (rushing, secrecy, "stay on the line"). Tripwire turns the taps into a plain English description, plus anything the person chooses to type, so the model reads clear English whatever language the screen is in. Gemini Nano checks it on the computer first (a redacted second opinion only if it is unsure), and the answer is plain: "Hang up now.", "Be careful." or "Nothing here sounds like a scam", always with "call back on a number you already know". "I hung up" sends the family alert.
 
-**Family Guardian** is optional. The person shows a six-digit code, a relative types it on the family page, and from then on sees that Tripwire stepped in: the time, the kind of scam, the action, and whether they stopped. Never the page, the email, or anything typed.
+**Family Guardian** is optional, and a guessed code is useless: nothing is shared until the person taps "Yes, allow" on their own computer. The person shows a six-digit code, a relative types it on the family page, and from then on sees that Tripwire stepped in: the time, the kind of scam, the action, and whether they stopped. Never the page, the email, or anything typed.
 
 ## How we used Firebase AI Logic
 
@@ -70,7 +70,7 @@ TypeScript (strict), Manifest V3 with WXT, React, Shadow DOM for the in-page UI,
 - **The built extension itself, with Gemini Nano, by automation:** 25/25 scams, 0/25 false alarms, 34 of 50 decided on the device.
 - Every screen in English, Spanish and French; explanations run live in Spanish and French with 0 bytes sent.
 - Twelve adversarial tests: a page that tells the model what to answer, repeats "scam" to look like advice, hides the ask under filler, or deletes the warning. None gets through quietly.
-- 145 unit tests, 19 security-rules tests, a 14-step end-to-end run, a live run against the real project, a test of the hosted demo with no extension, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems).
+- 149 unit tests, 24 security-rules tests, a 14-step end-to-end run, a live run against the real project, a test of the hosted demo with no extension, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems).
 
 ## Challenges
 

@@ -15,7 +15,7 @@
     "headers": [
       {
         "source": "/attest.html",
-        "headers": [{ "key": "Content-Security-Policy", "value": "frame-ancestors 'self' chrome-extension:" }]
+        "headers": [{ "key": "Content-Security-Policy", "value": "frame-ancestors 'self' chrome-extension://hchccgnaaficboghbjihnhgjioidaphf" }]
       },
       {
         "source": "**",

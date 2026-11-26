@@ -235,18 +235,33 @@ export function AlertRow({ alert }: { alert: Alert }) {
 function Feed({ person }: { person: Person }) {
   const [alerts, setAlerts] = useState<Alert[] | null>(null);
   const [failed, setFailed] = useState(false);
+  const [waiting, setWaiting] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const feed = DASHBOARD.feed;
 
   useEffect(() => {
-    setAlerts(null);
     setFailed(false);
+    let retry: ReturnType<typeof setTimeout> | undefined;
     const q = query(collection(db!, 'devices', person.deviceId, 'alerts'), orderBy('createdAt', 'desc'), limit(50));
-    return onSnapshot(
+    const stop = onSnapshot(
       q,
-      (snap) => setAlerts(snap.docs.map((d) => ({ id: d.id, ...(d.data({ serverTimestamps: 'estimate' }) as Omit<Alert, 'id'>) }))),
-      () => setFailed(true),
+      (snap) => {
+        setWaiting(false);
+        setAlerts(snap.docs.map((d) => ({ id: d.id, ...(d.data({ serverTimestamps: 'estimate' }) as Omit<Alert, 'id'>) })));
+      },
+      (err) => {
+        // Until they tap "Yes, allow", the rules refuse: wait and try again.
+        if ((err as { code?: string }).code === 'permission-denied') {
+          setWaiting(true);
+          retry = setTimeout(() => setAttempt((n) => n + 1), 3000);
+        } else setFailed(true);
+      },
     );
-  }, [person.deviceId]);
+    return () => {
+      clearTimeout(retry);
+      stop();
+    };
+  }, [person.deviceId, attempt]);
 
   return (
     <>
@@ -262,7 +277,9 @@ function Feed({ person }: { person: Person }) {
           </p>
         )}
       </div>
-      {failed ? (
+      {waiting ? (
+        <p className="tw-muted" role="status">{feed.waitingApproval}</p>
+      ) : failed ? (
         <p className="tw-notice" role="alert">
           <NoticeIcon />
           <span>{feed.loadError}</span>

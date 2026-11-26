@@ -68,3 +68,32 @@ if (summary.falsePositives > 0) {
   console.error('\nFAIL: the benign set must produce zero false positives.');
   process.exit(1);
 }
+
+// ── Phone-call check (corpus/calls.json), rules-only, same scoring ─────────
+{
+  const { readFileSync } = await import('node:fs');
+  const { describeCall, neverSafe, nothingAskedYet } = await import('../src/call/describe');
+  const { assess } = await import('../src/inference/router');
+  const set = JSON.parse(readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), '..', 'corpus', 'calls.json'), 'utf8')) as {
+    calls: Array<{ id: string; label: 'scam' | 'benign'; who: never; want: never[]; how: never[]; notes?: string }>;
+  };
+  let caught = 0;
+  let falseAlarms = 0;
+  const rows = [];
+  for (const c of set.calls) {
+    const answers = { who: c.who, want: c.want, how: c.how, notes: c.notes };
+    const v = await assess(
+      { text: describeCall(answers), hostname: 'phone call', trigger: 'phone_call', source: 'call', neverSafe: neverSafe(answers), nothingAskedYet: nothingAskedYet(answers) },
+      { engine: noModelEngine, config: DEFAULT_CONFIG },
+    );
+    const flagged = v.state !== 'safe';
+    if (c.label === 'scam' && flagged) caught += 1;
+    if (c.label === 'benign' && flagged) falseAlarms += 1;
+    rows.push({ id: c.id, label: c.label, state: v.state, riskScore: v.riskScore, route: v.route });
+  }
+  const scams = set.calls.filter((c) => c.label === 'scam').length;
+  const benign = set.calls.length - scams;
+  console.log(`\nPhone-call check, rules only: scams flagged ${caught}/${scams}, false alarms ${falseAlarms}/${benign}`);
+  writeFileSync(resolve(dirname(outPath), 'calls-rules-baseline.json'), `${JSON.stringify({ ranAt: new Date().toISOString(), mode: 'rules-only (Node, no AI)', scams, caught, benign, falseAlarms, rows }, null, 2)}\n`);
+  if (falseAlarms > 0) process.exitCode = 1;
+}

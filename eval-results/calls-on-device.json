@@ -1,0 +1,171 @@
+{
+  "ranAt": "2026-11-26T15:38:11.346Z",
+  "where": "the built extension in Chrome/158.0.8127.88, headless, Gemini Nano on the device, driven by tapping the call page",
+  "scams": 12,
+  "caught": 12,
+  "benign": 8,
+  "falseAlarms": 0,
+  "onDevice": 6,
+  "rows": [
+    {
+      "id": "call-scam-01-bank-code",
+      "label": "scam",
+      "heading": "Hang up now.",
+      "route": "Per onal info removed ·  ent for a deeper check",
+      "ms": 10608,
+      "correct": true
+    },
+    {
+      "id": "call-scam-02-irs-gift-cards",
+      "label": "scam",
+      "heading": "Hang up now.",
+      "route": "Checked on your device · 0 byte   ent",
+      "ms": 3943,
+      "correct": true
+    },
+    {
+      "id": "call-scam-03-microsoft-remote",
+      "label": "scam",
+      "heading": "Hang up now.",
+      "route": "Per onal info removed ·  ent for a deeper check",
+      "ms": 8053,
+      "correct": true
+    },
+    {
+      "id": "call-scam-04-grandchild-bail",
+      "label": "scam",
+      "heading": "Hang up now.",
+      "route": "Checked on your device · 0 byte   ent",
+      "ms": 4455,
+      "correct": true
+    },
+    {
+      "id": "call-scam-05-safe-account",
+      "label": "scam",
+      "heading": "Hang up now.",
+      "route": "Per onal info removed ·  ent for a deeper check",
+      "ms": 9597,
+      "correct": true
+    },
+    {
+      "id": "call-scam-06-medicare-number",
+      "label": "scam",
+      "heading": "Hang up now.",
+      "route": "Per onal info removed ·  ent for a deeper check",
+      "ms": 12125,
+      "correct": true
+    },
+    {
+      "id": "call-scam-07-amazon-gift-cards",
+      "label": "scam",
+      "heading": "Hang up now.",
+      "route": "Per onal info removed ·  ent for a deeper check",
+      "ms": 10082,
+      "correct": true
+    },
+    {
+      "id": "call-scam-08-crypto-investment",
+      "label": "scam",
+      "heading": "Hang up now.",
+      "route": "Checked on your device · 0 byte   ent",
+      "ms": 3946,
+      "correct": true
+    },
+    {
+      "id": "call-scam-09-family-gift-cards",
+      "label": "scam",
+      "heading": "Hang up now.",
+      "route": "Per onal info removed ·  ent for a deeper check",
+      "ms": 10629,
+      "correct": true
+    },
+    {
+      "id": "call-scam-10-warrant",
+      "label": "scam",
+      "heading": "Hang up now.",
+      "route": "Checked on your device · 0 byte   ent",
+      "ms": 4451,
+      "correct": true
+    },
+    {
+      "id": "call-scam-11-calm-code",
+      "label": "scam",
+      "heading": "Hang up now.",
+      "route": "Per onal info removed ·  ent for a deeper check",
+      "ms": 10587,
+      "correct": true
+    },
+    {
+      "id": "call-scam-12-power-cut",
+      "label": "scam",
+      "heading": "Hang up now.",
+      "route": "Per onal info removed ·  ent for a deeper check",
+      "ms": 11116,
+      "correct": true
+    },
+    {
+      "id": "call-ok-01-bank-call-back",
+      "label": "benign",
+      "heading": "Nothing here sounds like a scam.",
+      "route": "Nothing to check here · 0 byte   ent",
+      "ms": 70,
+      "correct": true
+    },
+    {
+      "id": "call-ok-02-family-chat",
+      "label": "benign",
+      "heading": "Nothing here sounds like a scam.",
+      "route": "Nothing to check here · 0 byte   ent",
+      "ms": 79,
+      "correct": true
+    },
+    {
+      "id": "call-ok-03-unknown",
+      "label": "benign",
+      "heading": "Nothing here sounds like a scam.",
+      "route": "Nothing to check here · 0 byte   ent",
+      "ms": 80,
+      "correct": true
+    },
+    {
+      "id": "call-ok-04-appointment",
+      "label": "benign",
+      "heading": "Nothing here sounds like a scam.",
+      "route": "Checked on your device · 0 byte   ent",
+      "ms": 3451,
+      "correct": true
+    },
+    {
+      "id": "call-ok-05-census",
+      "label": "benign",
+      "heading": "Nothing here sounds like a scam.",
+      "route": "Nothing to check here · 0 byte   ent",
+      "ms": 66,
+      "correct": true
+    },
+    {
+      "id": "call-ok-06-bank-plain",
+      "label": "benign",
+      "heading": "Nothing here sounds like a scam.",
+      "route": "Nothing to check here · 0 byte   ent",
+      "ms": 65,
+      "correct": true
+    },
+    {
+      "id": "call-ok-07-pharmacy",
+      "label": "benign",
+      "heading": "Nothing here sounds like a scam.",
+      "route": "Per onal info removed ·  ent for a deeper check",
+      "ms": 5995,
+      "correct": true
+    },
+    {
+      "id": "call-ok-08-delivery",
+      "label": "benign",
+      "heading": "Nothing here sounds like a scam.",
+      "route": "Checked on your device · 0 byte   ent",
+      "ms": 3434,
+      "correct": true
+    }
+  ]
+}

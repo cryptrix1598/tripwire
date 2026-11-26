@@ -1,0 +1,25 @@
+{
+  "about": "Phone-call check test set: tap answers as a person would give them (who the caller says they are, what they want, how they act), with optional typed notes. Written on 26 Nov 2026 before any of it was run. Scams use asks no real organisation makes on a call; ordinary calls ask for nothing risky.",
+  "calls": [
+    { "id": "call-scam-01-bank-code", "label": "scam", "who": "bank", "want": ["code"], "how": ["rushing", "secret"] },
+    { "id": "call-scam-02-irs-gift-cards", "label": "scam", "who": "government", "want": ["gift_cards"], "how": ["rushing"] },
+    { "id": "call-scam-03-microsoft-remote", "label": "scam", "who": "company", "want": ["computer"], "how": ["stay_on_line"] },
+    { "id": "call-scam-04-grandchild-bail", "label": "scam", "who": "family", "want": ["money"], "how": ["secret", "rushing"], "notes": "He says he is in jail and needs bail money tonight." },
+    { "id": "call-scam-05-safe-account", "label": "scam", "who": "bank", "want": ["money"], "how": ["stay_on_line", "secret"], "notes": "They want me to move my savings to a new safe account." },
+    { "id": "call-scam-06-medicare-number", "label": "scam", "who": "government", "want": ["details"], "how": ["rushing"] },
+    { "id": "call-scam-07-amazon-gift-cards", "label": "scam", "who": "company", "want": ["gift_cards"], "how": [] },
+    { "id": "call-scam-08-crypto-investment", "label": "scam", "who": "other", "want": ["crypto"], "how": ["rushing"] },
+    { "id": "call-scam-09-family-gift-cards", "label": "scam", "who": "family", "want": ["gift_cards"], "how": [] },
+    { "id": "call-scam-10-warrant", "label": "scam", "who": "government", "want": ["money"], "how": ["rushing", "secret"], "notes": "They say there is a warrant for my arrest." },
+    { "id": "call-scam-11-calm-code", "label": "scam", "who": "company", "want": ["code"], "how": ["patient"] },
+    { "id": "call-scam-12-power-cut", "label": "scam", "who": "other", "want": ["money"], "how": ["rushing"], "notes": "The electric company says my power will be cut off in an hour unless I pay." },
+    { "id": "call-ok-01-bank-call-back", "label": "benign", "who": "bank", "want": ["nothing"], "how": ["patient"] },
+    { "id": "call-ok-02-family-chat", "label": "benign", "who": "family", "want": ["nothing"], "how": ["patient"] },
+    { "id": "call-ok-03-unknown", "label": "benign", "who": "other", "want": ["nothing"], "how": [] },
+    { "id": "call-ok-04-appointment", "label": "benign", "who": "company", "want": ["nothing"], "how": ["patient"], "notes": "The dentist's office is confirming my appointment on Tuesday." },
+    { "id": "call-ok-05-census", "label": "benign", "who": "government", "want": ["nothing"], "how": ["patient"] },
+    { "id": "call-ok-06-bank-plain", "label": "benign", "who": "bank", "want": ["nothing"], "how": [] },
+    { "id": "call-ok-07-pharmacy", "label": "benign", "who": "other", "want": ["nothing"], "how": ["patient"], "notes": "The pharmacy says my prescription is ready to pick up." },
+    { "id": "call-ok-08-delivery", "label": "benign", "who": "company", "want": ["nothing"], "how": [], "notes": "The delivery driver says he will be there between 2 and 4." }
+  ]
+}

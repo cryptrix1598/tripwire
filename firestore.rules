@@ -22,9 +22,12 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == deviceId;
     }
 
+    // A link counts only once the person has tapped "Yes, allow" on their own computer, so a
+    // guessed or overheard pairing code is not enough to see their alerts.
     function isGuardianOf(deviceId) {
       return signedIn()
-        && exists(/databases/$(database)/documents/devices/$(deviceId)/guardians/$(request.auth.uid));
+        && exists(/databases/$(database)/documents/devices/$(deviceId)/guardians/$(request.auth.uid))
+        && get(/databases/$(database)/documents/devices/$(deviceId)/guardians/$(request.auth.uid)).data.get('approved', false) == true;
     }
 
     function validNewCode(code) {
@@ -108,7 +111,10 @@ service cloud.firestore {
           && get(/databases/$(database)/documents/pairingCodes/$(request.resource.data.code)).data.expiresAt > request.time
           // ...and this guardian must be the one who claimed the code, in this same write.
           && getAfter(/databases/$(database)/documents/pairingCodes/$(request.resource.data.code)).data.usedBy == request.auth.uid;
-        allow update: if false;
+        // Only the device can approve a link, and approving is the only change allowed.
+        allow update: if isDevice(deviceId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['approved'])
+          && request.resource.data.approved == true;
         // Either side can end the link.
         allow delete: if isDevice(deviceId) || (signedIn() && request.auth.uid == guardianId);
       }

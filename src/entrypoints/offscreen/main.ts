@@ -10,7 +10,7 @@ import { applySensitivity, loadSettings } from '../../config/settings';
 import { loadConfig } from '../../config/store';
 import { refreshRemoteConfig } from '../../config/remoteConfig';
 import { isFirebaseConfigured } from '../../firebase/config';
-import { createPairingCode, disconnectGuardians, guardianCount, retirePairingCode, sendAlert } from '../../guardian/device';
+import { createPairingCode, decidePending, disconnectGuardians, guardianCount, guardianLinks, retirePairingCode, sendAlert } from '../../guardian/device';
 import type { AiEngine } from '../../inference/engine';
 import { firebaseEngine, onDeviceStatus } from '../../inference/firebaseEngine';
 import { assess } from '../../inference/router';
@@ -45,10 +45,11 @@ async function refreshConfig(): Promise<void> {
 async function status(): Promise<StatusReply> {
   const config = await loadConfig();
   let count = 0;
+  let pending = 0;
   let guardianReady = false;
   if (isFirebaseConfigured() && navigator.onLine) {
     try {
-      count = await guardianCount();
+      ({ approved: count, pending } = await guardianLinks());
       guardianReady = true;
     } catch {
       guardianReady = false;
@@ -60,6 +61,7 @@ async function status(): Promise<StatusReply> {
     promptApiInOffscreen: typeof (globalThis as { LanguageModel?: unknown }).LanguageModel !== 'undefined',
     guardianReady,
     guardianCount: count,
+    pendingGuardians: pending,
     configSource,
     promptVersion: config.promptVersion,
     thresholds: config.thresholds,
@@ -84,6 +86,14 @@ async function handle(msg: ToOffscreen): Promise<unknown> {
       return status();
     case 'pairing-code':
       return pairing();
+    case 'pairing-decide':
+      if (!isFirebaseConfigured()) return { ok: false };
+      try {
+        await decidePending(msg.allow);
+        return { ok: true };
+      } catch {
+        return { ok: false };
+      }
     case 'pairing-finish':
       if (isFirebaseConfigured()) await retirePairingCode();
       return { ok: true };

@@ -12,12 +12,12 @@ import {
   collection,
   deleteDoc,
   doc,
-  getCount,
   getDocs,
   getFirestore,
   serverTimestamp,
   setDoc,
   Timestamp,
+  updateDoc,
 } from 'firebase/firestore/lite';
 import { getFirebaseApp } from '../firebase/app';
 import type { ScamType, Trigger } from '../inference/schemas';
@@ -106,11 +106,31 @@ export async function createPairingCode(): Promise<{ code: string; expiresAt: nu
   throw lastError instanceof Error ? lastError : new Error('Could not create a pairing code');
 }
 
-export async function guardianCount(): Promise<number> {
+/** Family members who can see alerts (allowed), and links waiting for the person's "Yes, allow". */
+export async function guardianLinks(): Promise<{ approved: number; pending: number }> {
   const user = await ensureSignedIn();
   const db = getFirestore(getFirebaseApp());
-  const snap = await getCount(collection(db, 'devices', user.uid, 'guardians'));
-  return snap.data().count;
+  const links = await getDocs(collection(db, 'devices', user.uid, 'guardians'));
+  const approved = links.docs.filter((d) => d.data().approved === true).length;
+  return { approved, pending: links.size - approved };
+}
+
+export async function guardianCount(): Promise<number> {
+  return (await guardianLinks()).approved;
+}
+
+/**
+ * The person's answer to "Someone just typed your code": allow every waiting link, or remove
+ * them. Either way the code is switched off.
+ */
+export async function decidePending(allow: boolean): Promise<number> {
+  const user = await ensureSignedIn();
+  const db = getFirestore(getFirebaseApp());
+  const links = await getDocs(collection(db, 'devices', user.uid, 'guardians'));
+  const waiting = links.docs.filter((d) => d.data().approved !== true);
+  await Promise.all(waiting.map((d) => (allow ? updateDoc(d.ref, { approved: true }) : deleteDoc(d.ref))));
+  await retirePairingCode();
+  return waiting.length;
 }
 
 /**

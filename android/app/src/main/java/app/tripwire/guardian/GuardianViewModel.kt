@@ -84,7 +84,7 @@ class GuardianViewModel(app: Application) : AndroidViewModel(app) {
         _state.update { it.copy(alerts = null, alertsFailed = false) }
         if (person == null) return
         alertsJob = viewModelScope.launch {
-            repository.alerts(person.deviceId)
+            repository.alertsOnceAllowed(person.deviceId)
                 .catch { _state.update { s -> s.copy(alertsFailed = true) } }
                 .collect { alerts ->
                     // Notify only for alerts that arrive after the first load.

@@ -24,6 +24,7 @@ export type ToBackground =
   | { target: 'background'; type: 'get-status' }
   | { target: 'background'; type: 'pairing-code' }
   | { target: 'background'; type: 'pairing-finish' }
+  | { target: 'background'; type: 'pairing-decide'; allow: boolean }
   | { target: 'background'; type: 'family-disconnect' }
   | { target: 'background'; type: 'get-pending-download'; downloadId: number };
 
@@ -34,6 +35,7 @@ export type ToOffscreen =
   | { target: 'offscreen'; type: 'status' }
   | { target: 'offscreen'; type: 'pairing-code' }
   | { target: 'offscreen'; type: 'pairing-finish' }
+  | { target: 'offscreen'; type: 'pairing-decide'; allow: boolean }
   | { target: 'offscreen'; type: 'family-disconnect' }
   | { target: 'offscreen'; type: 'alert'; scamType: ScamType; trigger: Trigger; outcome: Outcome }
   | { target: 'offscreen'; type: 'refresh-config' };
@@ -58,6 +60,8 @@ export interface StatusReply {
   /** Signed in and able to reach Firestore. */
   guardianReady: boolean;
   guardianCount: number;
+  /** Someone typed the code and is waiting for the person's "Yes, allow". */
+  pendingGuardians: number;
   configSource: 'remote' | 'default';
   promptVersion: string;
   thresholds: TripwireConfig['thresholds'];

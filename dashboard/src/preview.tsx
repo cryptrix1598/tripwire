@@ -47,7 +47,7 @@ const status: StatusReply = {
   onDevice: (params.get('model') as StatusReply['onDevice']) ?? 'downloadable',
   promptApiInOffscreen: false,
   guardianReady: true,
-  guardianCount: 1,
+  guardianCount: 1, pendingGuardians: 0,
   configSource: 'default',
   promptVersion: 'v1',
   thresholds: { low: 30, high: 80, minTripConfidence: 0.6, minCorroboration: 40, rulesOnlyCaution: 60 } as StatusReply['thresholds'],

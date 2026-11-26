@@ -103,6 +103,8 @@ function Pairing({ paired, onConnected }: { paired: number; onConnected: () => v
   const [reply, setReply] = useState<PairingReply | null>(null);
   const [busy, setBusy] = useState(false);
   const [connected, setConnected] = useState(false);
+  const [waiting, setWaiting] = useState(false);
+  const [refused, setRefused] = useState(false);
   const [baseline, setBaseline] = useState(paired);
   const copy = ONBOARDING.family;
 
@@ -122,15 +124,44 @@ function Pairing({ paired, onConnected }: { paired: number; onConnected: () => v
     if (!code || connected) return;
     const timer = setInterval(() => {
       void send<StatusReply>({ target: 'background', type: 'get-status' }).then((status) => {
-        if (status && status.guardianCount > baseline) {
-          void send({ target: 'background', type: 'pairing-finish' });
-          setConnected(true);
-          onConnected();
-        }
+        if (status && status.pendingGuardians > 0) setWaiting(true);
       });
     }, 3000);
     return () => clearInterval(timer);
   }, [code, connected, baseline, onConnected]);
+
+  const decide = (allow: boolean) => {
+    setBusy(true);
+    void send<{ ok: boolean }>({ target: 'background', type: 'pairing-decide', allow }).then((r) => {
+      setBusy(false);
+      setWaiting(false);
+      if (!r?.ok) return;
+      if (allow) {
+        setConnected(true);
+        onConnected();
+      } else {
+        setRefused(true);
+        setReply(null);
+      }
+    });
+  };
+
+  if (waiting && !connected) {
+    return (
+      <div className="tw-card" role="alertdialog" aria-labelledby="approve-title">
+        <h2 id="approve-title" className="tw-h3">{copy.approveTitle}</h2>
+        <p>{copy.approveBody}</p>
+        <div className="tw-row">
+          <button type="button" className="tw-btn" onClick={() => decide(true)} disabled={busy}>
+            {copy.allow}
+          </button>
+          <button type="button" className="tw-btn tw-btn--outline" onClick={() => decide(false)} disabled={busy}>
+            {copy.deny}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (connected) {
     return (
@@ -162,6 +193,7 @@ function Pairing({ paired, onConnected }: { paired: number; onConnected: () => v
   return (
     <>
       {paired > 0 && <p className="tw-ok">{copy.paired}</p>}
+      {refused && <p role="status">{copy.refused}</p>}
       {reply && !reply.ok && (
         <p className="tw-muted" role="status">
           {copy.unavailable}

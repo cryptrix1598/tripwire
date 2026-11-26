@@ -4,11 +4,14 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -54,6 +57,13 @@ class GuardianRepository {
                 trySend(snapshot.documents.map(::toAlert))
             }
         awaitClose { registration.remove() }
+    }
+
+    /** Alerts, waiting while the rules refuse because the person has not tapped "Yes, allow" yet. */
+    fun alertsOnceAllowed(deviceId: String): Flow<List<Alert>> = alerts(deviceId).retryWhen { cause, _ ->
+        val waiting = (cause as? FirebaseFirestoreException)?.code == FirebaseFirestoreException.Code.PERMISSION_DENIED
+        if (waiting) delay(3_000)
+        waiting
     }
 
     private fun toAlert(doc: DocumentSnapshot) = Alert(

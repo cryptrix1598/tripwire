@@ -27,9 +27,9 @@ async function seedCode(expiresInMinutes = 5) {
     await setDoc(doc(ctx.firestore(), 'pairingCodes', CODE), { deviceId: DEVICE, createdAt: Timestamp.now(), expiresAt: inMinutes(expiresInMinutes) });
   });
 }
-async function seedLink() {
+async function seedLink(approved = true) {
   await env.withSecurityRulesDisabled(async (ctx) => {
-    await setDoc(doc(ctx.firestore(), 'devices', DEVICE, 'guardians', GUARDIAN), { code: CODE, pairedAt: Timestamp.now() });
+    await setDoc(doc(ctx.firestore(), 'devices', DEVICE, 'guardians', GUARDIAN), { code: CODE, pairedAt: Timestamp.now(), ...(approved ? { approved: true } : {}) });
     await setDoc(doc(ctx.firestore(), 'devices', DEVICE, 'alerts', 'a1'), { ...buildAlert('gift_card', 'gift_card', 'continued'), createdAt: Timestamp.now() });
   });
 }
@@ -147,6 +147,39 @@ describe('alerts', () => {
     await assertSucceeds(getDocs(collection(as(DEVICE), 'devices', DEVICE, 'alerts')));
     await assertFails(getDocs(collection(as(STRANGER), 'devices', DEVICE, 'alerts')));
     await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(), 'devices', DEVICE, 'alerts', 'a1')));
+  });
+});
+
+describe('approval: a code alone is not enough', () => {
+  const alerts = (uid: string) => getDocs(collection(as(uid), 'devices', DEVICE, 'alerts'));
+  const linkRef = (uid: string) => doc(as(uid), 'devices', DEVICE, 'guardians', GUARDIAN);
+
+  it('a linked guardian cannot read alerts until the device allows it', async () => {
+    await seedLink(false);
+    await assertFails(alerts(GUARDIAN));
+  });
+
+  it('the guardian cannot approve itself; a stranger cannot either', async () => {
+    await seedLink(false);
+    await assertFails(updateDoc(linkRef(GUARDIAN), { approved: true }));
+    await assertFails(updateDoc(linkRef(STRANGER), { approved: true }));
+  });
+
+  it('the device can approve, and then the guardian can read', async () => {
+    await seedLink(false);
+    await assertSucceeds(updateDoc(linkRef(DEVICE), { approved: true }));
+    await assertSucceeds(alerts(GUARDIAN));
+  });
+
+  it('approving is the only change the device can make to a link', async () => {
+    await seedLink(false);
+    await assertFails(updateDoc(linkRef(DEVICE), { approved: true, code: '111111' }));
+    await assertFails(updateDoc(linkRef(DEVICE), { approved: false }));
+  });
+
+  it('the device can refuse a link by deleting it', async () => {
+    await seedLink(false);
+    await assertSucceeds(deleteDoc(linkRef(DEVICE)));
   });
 });
 

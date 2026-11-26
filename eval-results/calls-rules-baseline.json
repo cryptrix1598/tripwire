@@ -1,0 +1,150 @@
+{
+  "ranAt": "2026-11-26T15:35:20.933Z",
+  "mode": "rules-only (Node, no AI)",
+  "scams": 12,
+  "caught": 8,
+  "benign": 8,
+  "falseAlarms": 0,
+  "rows": [
+    {
+      "id": "call-scam-01-bank-code",
+      "label": "scam",
+      "state": "caution",
+      "riskScore": 30,
+      "route": "rules_only"
+    },
+    {
+      "id": "call-scam-02-irs-gift-cards",
+      "label": "scam",
+      "state": "tripped",
+      "riskScore": 60,
+      "route": "rules_only"
+    },
+    {
+      "id": "call-scam-03-microsoft-remote",
+      "label": "scam",
+      "state": "caution",
+      "riskScore": 30,
+      "route": "rules_only"
+    },
+    {
+      "id": "call-scam-04-grandchild-bail",
+      "label": "scam",
+      "state": "safe",
+      "riskScore": 10,
+      "route": "rules_only"
+    },
+    {
+      "id": "call-scam-05-safe-account",
+      "label": "scam",
+      "state": "safe",
+      "riskScore": 10,
+      "route": "rules_only"
+    },
+    {
+      "id": "call-scam-06-medicare-number",
+      "label": "scam",
+      "state": "caution",
+      "riskScore": 30,
+      "route": "rules_only"
+    },
+    {
+      "id": "call-scam-07-amazon-gift-cards",
+      "label": "scam",
+      "state": "caution",
+      "riskScore": 30,
+      "route": "rules_only"
+    },
+    {
+      "id": "call-scam-08-crypto-investment",
+      "label": "scam",
+      "state": "caution",
+      "riskScore": 30,
+      "route": "rules_only"
+    },
+    {
+      "id": "call-scam-09-family-gift-cards",
+      "label": "scam",
+      "state": "caution",
+      "riskScore": 30,
+      "route": "rules_only"
+    },
+    {
+      "id": "call-scam-10-warrant",
+      "label": "scam",
+      "state": "safe",
+      "riskScore": 23,
+      "route": "rules_only"
+    },
+    {
+      "id": "call-scam-11-calm-code",
+      "label": "scam",
+      "state": "caution",
+      "riskScore": 30,
+      "route": "rules_only"
+    },
+    {
+      "id": "call-scam-12-power-cut",
+      "label": "scam",
+      "state": "safe",
+      "riskScore": 10,
+      "route": "rules_only"
+    },
+    {
+      "id": "call-ok-01-bank-call-back",
+      "label": "benign",
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked"
+    },
+    {
+      "id": "call-ok-02-family-chat",
+      "label": "benign",
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked"
+    },
+    {
+      "id": "call-ok-03-unknown",
+      "label": "benign",
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked"
+    },
+    {
+      "id": "call-ok-04-appointment",
+      "label": "benign",
+      "state": "safe",
+      "riskScore": 0,
+      "route": "rules_only"
+    },
+    {
+      "id": "call-ok-05-census",
+      "label": "benign",
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked"
+    },
+    {
+      "id": "call-ok-06-bank-plain",
+      "label": "benign",
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked"
+    },
+    {
+      "id": "call-ok-07-pharmacy",
+      "label": "benign",
+      "state": "safe",
+      "riskScore": 0,
+      "route": "rules_only"
+    },
+    {
+      "id": "call-ok-08-delivery",
+      "label": "benign",
+      "state": "safe",
+      "riskScore": 0,
+      "route": "rules_only"
+    }
+  ]
+}

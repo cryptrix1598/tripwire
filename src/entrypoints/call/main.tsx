@@ -11,7 +11,7 @@
 import { useState, type FormEvent } from 'react';
 import { send, type AssessReply } from '../../messaging';
 import type { Verdict } from '../../inference/schemas';
-import { CALL_HOW, CALL_WANT, CALL_WHO, canCheck, describeCall, type CallHow, type CallWant, type CallWho } from '../../call/describe';
+import { CALL_HOW, CALL_WANT, CALL_WHO, canCheck, describeCall, neverSafe, nothingAskedYet, type CallHow, type CallWant, type CallWho } from '../../call/describe';
 import { CALL } from '../../ui/copy';
 import { closeThisTab, mount } from '../../ui/ext';
 import { Brand, RouteLine, SentReceipt, Split, flagsFor, routeExplanation } from '../../ui/kit';
@@ -39,7 +39,7 @@ function CallCheck() {
       const reply = await send<AssessReply>({
         target: 'background',
         type: 'assess',
-        input: { text: describeCall({ ...answers, notes: text.trim().slice(0, 3000) }), hostname: 'phone call', trigger: 'phone_call', source: 'call', language: navigator.language },
+        input: { text: describeCall({ ...answers, notes: text.trim().slice(0, 3000) }), hostname: 'phone call', trigger: 'phone_call', source: 'call', neverSafe: neverSafe(answers), nothingAskedYet: nothingAskedYet(answers), language: navigator.language },
       });
       if (reply?.verdict) setVerdict(reply.verdict);
       else setFailed(true);
@@ -94,7 +94,7 @@ function CallCheck() {
       ) : verdict && result ? (
         <section className="tw-stack" aria-live="polite">
           <h2 className="tw-h1">{result.title}</h2>
-          <p style={{ fontSize: 20 }}>{result.body}</p>
+          <p style={{ fontSize: 20 }}>{verdict.state === 'safe' && verdict.route === 'not_checked' ? CALL.nothingYet : result.body}</p>
           {verdict.state !== 'safe' && (
             <ul className="tw-flags">
               {flagsFor(verdict).map((flag) => (

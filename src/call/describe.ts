@@ -47,6 +47,27 @@ const HOW_TEXT: Record<CallHow, string> = {
   patient: 'They are calm and patient, and said I can call them back.',
 };
 
+/**
+ * Asks that are never safe on a call you did not expect: no real bank, government office or
+ * company asks for these. When any is tapped, the answer is at least "be careful", whatever a
+ * model says.
+ */
+export const NEVER_SAFE_ON_A_CALL: readonly CallWant[] = ['gift_cards', 'crypto', 'code', 'details', 'computer'];
+
+export function neverSafe(answers: CallAnswers): boolean {
+  return answers.want.some((w) => NEVER_SAFE_ON_A_CALL.includes(w));
+}
+
+/**
+ * The caller has asked for nothing yet and is not pressing: there is nothing to judge, so no
+ * model is asked. (A first run of corpus/calls.json told people to hang up on two such calls,
+ * from a "bank" and a "government office", only because of who the caller said they were.)
+ */
+export function nothingAskedYet(answers: CallAnswers): boolean {
+  const pressing = answers.how.some((h) => h !== 'patient');
+  return answers.want.length > 0 && answers.want.every((w) => w === 'nothing') && !pressing && !(answers.notes ?? '').trim();
+}
+
 /** True when there is enough to check: something they want, or some words typed. */
 export function canCheck(answers: CallAnswers): boolean {
   return answers.want.length > 0 || (answers.notes ?? '').trim().length >= 8;

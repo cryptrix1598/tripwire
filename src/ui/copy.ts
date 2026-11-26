@@ -150,6 +150,7 @@ export const EXPLANATION = {
   localTrip: 'Your computer recognised this as a likely scam without sending anything anywhere.',
   localCaution: 'Your computer found some warning signs on this page.',
   steering: 'This page contains hidden instructions aimed at safety tools. Ordinary pages do not have those.',
+  neverSafe: 'A real bank, government office or company does not ask for this on a call. Hang up and call back on a number you already know.',
 } as const;
 
 /* ------------------------------------------------------------------ */
@@ -230,6 +231,11 @@ export const ONBOARDING = {
     connectedBody: 'They will be told when Tripwire steps in. The code has been switched off and cannot be used again.',
     waiting: 'Waiting for them to type the code…',
     working: 'Getting a code…',
+    approveTitle: 'Someone just typed your code.',
+    approveBody: 'Allow them only if you gave this code to a family member yourself, just now. If you are not sure, choose No.',
+    allow: 'Yes, allow',
+    deny: 'No, this wasn’t them',
+    refused: 'Removed. Nobody can see your alerts. You can show a new code at any time.',
   },
   done: {
     title: 'You are protected.',
@@ -323,6 +329,7 @@ export const CALL = {
     caution: { title: 'Be careful.', body: 'Some of this sounds like what scammers say. It is fine to hang up.' },
     safe: { title: 'Nothing here sounds like a scam.', body: 'If you are still unsure, it is always fine to hang up.' },
   },
+  nothingYet: 'So far they have not asked for anything risky. If they ask for money, gift cards, a code from your phone or your personal details, hang up.',
   callBack: 'Call back on a number you already know: the one on your card, your bill, or the official website. Never the number the caller gives you.',
   hungUp: 'I hung up',
   again: 'Check another call',
@@ -485,6 +492,7 @@ export const DASHBOARD = {
     privacyBody:
       'Alerts contain the time, the kind of scam, what they were about to do, and whether they stopped. Tripwire never stores the page, the email, or anything they typed.',
     loadError: 'Alerts could not be loaded. Check your internet connection.',
+    waitingApproval: 'Connected. Waiting for them to tap “Yes, allow” on their computer…',
     subtitle: 'Recent alerts from their Tripwire',
     loading: 'Loading…',
     today: 'Today',

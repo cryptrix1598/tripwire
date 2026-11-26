@@ -27,3 +27,16 @@ describe('the phone-call check by taps', () => {
     expect(canCheck({ want: [], how: [], notes: 'He wants my PIN number' })).toBe(true);
   });
 });
+
+import { nothingAskedYet, neverSafe } from '../src/call/describe';
+describe('which calls need a model', () => {
+  it('a calm caller who has asked for nothing needs no check', () => {
+    expect(nothingAskedYet({ who: 'bank', want: ['nothing'], how: ['patient'] })).toBe(true);
+    expect(nothingAskedYet({ who: 'bank', want: ['nothing'], how: ['rushing'] })).toBe(false);
+    expect(nothingAskedYet({ who: 'bank', want: ['nothing'], how: [], notes: 'he wants my PIN' })).toBe(false);
+  });
+  it('gift cards, crypto, codes, details and computer access are never safe on a call', () => {
+    for (const w of ['gift_cards', 'crypto', 'code', 'details', 'computer'] as const) expect(neverSafe({ want: [w], how: [] })).toBe(true);
+    expect(neverSafe({ want: ['money'], how: [] })).toBe(false);
+  });
+});
