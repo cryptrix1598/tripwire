@@ -59,6 +59,20 @@ class GuardianRepository {
         awaitClose { registration.remove() }
     }
 
+    /** The linked people, read once (for the background worker). */
+    suspend fun peopleOnce(uid: String): List<Person> =
+        db.collection("guardians").document(uid).collection("people").get().await()
+            .documents.map { Person(it.id, it.getString("nickname").orEmpty()) }
+
+    /** Alerts newer than a moment, oldest first (for the background worker). */
+    suspend fun alertsSince(deviceId: String, sinceMillis: Long): List<Alert> =
+        db.collection("devices").document(deviceId).collection("alerts")
+            .whereGreaterThan("createdAt", com.google.firebase.Timestamp(java.util.Date(sinceMillis)))
+            .orderBy("createdAt", Query.Direction.ASCENDING)
+            .limit(20)
+            .get().await()
+            .documents.map(::toAlert)
+
     /** Alerts, waiting while the rules refuse because the person has not tapped "Yes, allow" yet. */
     fun alertsOnceAllowed(deviceId: String): Flow<List<Alert>> = alerts(deviceId).retryWhen { cause, _ ->
         val waiting = (cause as? FirebaseFirestoreException)?.code == FirebaseFirestoreException.Code.PERMISSION_DENIED

@@ -53,7 +53,7 @@ class ScamCheckTest {
 
     @Test
     fun `the phone model only points, and code replaces what it listed`() {
-        val items = Answers.parseItems("ITEM: Oakwood Retirement Village\nITEM: ref AB-77\nITEM: [NAME]")!!
+        val items = Answers.parseItems("ITEM: Oakwood Retirement Village\nITEM: ref AB-77\nITEM: [NAME]\nEND")!!
         val out = Redactor.replaceItems("Meet at Oakwood Retirement Village, ref AB-77, [NAME] will wait.", items)
         assertFalse(out.contains("Oakwood"))
         assertFalse(out.contains("AB-77"))
@@ -118,5 +118,37 @@ class ScamCheckTest {
                 "They are rushing me and say something bad will happen if I do not act right now. In my own words: He said my card was cloned.",
             text,
         )
+    }
+
+    @Test
+    fun `the cloud's structured answer is parsed, and anything else is no answer`() {
+        val a = Answers.parseJson("""{"risk": 88, "reasons": ["It asks for gift cards.", "It says \"act now\"."]}""")!!
+        assertEquals(88, a.risk)
+        assertEquals(listOf("It asks for gift cards.", "It says \"act now\"."), a.reasons)
+        assertNull(Answers.parseJson("""{"reasons": []}"""))
+        assertNull(Answers.parseJson("not json"))
+    }
+
+    @Test
+    fun `a cut-off list of details is treated as no answer`() {
+        assertNull(Answers.parseItems("ITEM: Margaret Ellison\nITEM: 42 Oa"))
+        assertEquals(listOf("Margaret Ellison"), Answers.parseItems("ITEM: Margaret Ellison\nEND"))
+    }
+
+    @Test
+    fun `a listed detail is removed whatever its case, and the leak check looks for it too`() {
+        val out = Redactor.replaceItems("Margaret said MARGARET would pay.", listOf("Margaret"))
+        assertFalse(out.contains("argaret", ignoreCase = true))
+        assertFalse(Redactor.clean("Ask margaret", listOf("Margaret")))
+    }
+
+    @Test
+    fun `reasons are asked for in the phone's language, and the thresholds match the extension`() {
+        assertTrue(Answers.prompt("x", "Spanish").startsWith("Write the reasons in Spanish"))
+        assertFalse(Answers.prompt("x", "English").startsWith("Write"))
+        assertEquals(Verdict.HANG_UP, Decide.fromCloud(80, emptyList()))
+        assertEquals(Verdict.CAREFUL, Decide.fromCloud(79, emptyList()))
+        assertEquals(Verdict.CAREFUL, Decide.fromCloud(30, emptyList()))
+        assertEquals(Verdict.NO_SIGNS, Decide.fromCloud(29, emptyList()))
     }
 }

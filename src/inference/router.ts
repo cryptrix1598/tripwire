@@ -95,7 +95,6 @@ export interface RouterDeps {
 
 const DEFAULT_TIMEOUTS = { onDeviceMs: 15_000, cloudMs: 20_000 };
 /** How much of the sent text is kept on the verdict for the "what was sent" receipt. */
-const SENT_PREVIEW_MAX = 1500;
 const utf8Bytes = (s: string) => new TextEncoder().encode(s).length;
 
 /** Pull the JSON object out of a model reply, tolerating code fences and stray prose. */
@@ -268,8 +267,9 @@ function onDeviceRedactor(engine: AiEngine, system: string, timeoutMs: number): 
     for (const item of r.value.items) {
       const found = item.text.trim();
       // Ignore anything too short to be a personal detail, existing tags, and runaway answers.
-      if (found.length < 3 || found.length > 80 || /^\[[A-Z]+\]$/.test(found) || !out.includes(found)) continue;
-      out = out.split(found).join(`[${item.kind}]`);
+      if (found.length < 3 || found.length > 80 || /^\[[A-Z]+\]$/.test(found)) continue;
+      // Every occurrence, whatever its case ("Margaret" and "MARGARET"), so no variant of a listed detail is left.
+      out = out.replace(new RegExp(found.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), `[${item.kind}]`);
     }
     return out;
   };
@@ -344,7 +344,8 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
       promptVersion: config.promptVersion,
       elapsedMs: now() - started,
       ...(d.language && finalState !== 'safe' ? { explanationLanguage: d.language } : {}),
-      ...(d.sent ? { sentPreview: d.sent.length > SENT_PREVIEW_MAX ? `${d.sent.slice(0, SENT_PREVIEW_MAX)}…` : d.sent } : {}),
+      // The whole request, so "This is everything Tripwire sent" is true. Its size is already bounded by maxModelChars.
+      ...(d.sent ? { sentPreview: d.sent } : {}),
     };
   };
 

@@ -9,6 +9,9 @@ import com.google.firebase.ai.ondevice.FirebaseAIOnDevice
 import com.google.firebase.ai.ondevice.OnDeviceModelStatus
 import com.google.firebase.ai.type.GenerativeBackend
 import com.google.firebase.ai.type.PublicPreviewAPI
+import com.google.firebase.ai.type.Schema
+import com.google.firebase.ai.type.generationConfig
+import java.util.Locale
 import kotlinx.coroutines.withTimeoutOrNull
 
 /**
@@ -28,9 +31,23 @@ class ScamChecker {
     private val onPhone by lazy {
         ai.generativeModel(modelName = CLOUD_MODEL, onDeviceConfig = OnDeviceConfig(InferenceMode.ONLY_ON_DEVICE, 160, 0f))
     }
-    private val inCloud by lazy {
-        ai.generativeModel(modelName = CLOUD_MODEL, onDeviceConfig = OnDeviceConfig(InferenceMode.ONLY_IN_CLOUD))
+    /** Listing personal details can need more room than a verdict, so it has its own output budget. */
+    private val lister by lazy {
+        ai.generativeModel(modelName = CLOUD_MODEL, onDeviceConfig = OnDeviceConfig(InferenceMode.ONLY_ON_DEVICE, 512, 0f))
     }
+    /** The cloud answers to a schema, like the extension's cloud call. */
+    private val inCloud by lazy {
+        ai.generativeModel(
+            modelName = CLOUD_MODEL,
+            generationConfig = generationConfig {
+                responseMimeType = "application/json"
+                responseSchema = Schema.obj(mapOf("risk" to Schema.integer(), "reasons" to Schema.array(Schema.string())))
+            },
+            onDeviceConfig = OnDeviceConfig(InferenceMode.ONLY_IN_CLOUD),
+        )
+    }
+    /** Reasons are written in the phone's language (English, Spanish or French screens). */
+    private val language: String = Locale.getDefault().getDisplayLanguage(Locale.ENGLISH)
 
     suspend fun check(text: String): CheckResult {
         val signs = Rules.signs(text)
@@ -38,7 +55,7 @@ class ScamChecker {
 
         val phone = phoneModelReady()
         if (phone) {
-            val local = ask(onPhone, Answers.prompt(text), InferenceSource.ON_DEVICE, ON_PHONE_MS)
+            val local = ask(onPhone, Answers.prompt(text, language), InferenceSource.ON_DEVICE, ON_PHONE_MS, Answers::parse)
             when {
                 local is Reply.WrongSide -> return rules.copy(wrongSide = true)
                 local is Reply.Text -> {
@@ -62,15 +79,17 @@ class ScamChecker {
     private suspend fun cloud(text: String, signs: List<Sign>, phone: Boolean): CheckResult? {
         val first = Redactor.redact(text)
         var candidate = first.text
+        var listedItems = emptyList<String>()
         if (phone) {
-            val listed = ask(onPhone, Answers.listPrompt(candidate), InferenceSource.ON_DEVICE, ON_PHONE_MS)
+            val listed = ask(lister, Answers.listPrompt(candidate), InferenceSource.ON_DEVICE, ON_PHONE_MS, Answers::parseItems)
             if (listed is Reply.WrongSide) return CheckResult(Rules.verdict(signs), Route.RULES, signs, wrongSide = true)
-            val items = (listed as? Reply.Text)?.let { Answers.parseItems(it.text) } ?: return null
-            candidate = Redactor.redact(Redactor.replaceItems(candidate, items)).text
+            listedItems = (listed as? Reply.Text)?.let { Answers.parseItems(it.text) } ?: return null
+            candidate = Redactor.redact(Redactor.replaceItems(candidate, listedItems)).text
         }
-        if (!Redactor.clean(candidate, first.found)) return null
-        val reply = ask(inCloud, Answers.prompt(candidate), InferenceSource.IN_CLOUD, IN_CLOUD_MS) as? Reply.Text ?: return null
-        val answer = Answers.parse(reply.text) ?: return null
+        // Nothing the patterns removed, and nothing the phone listed, may still be there in any case.
+        if (!Redactor.clean(candidate, first.found + Redactor.usable(listedItems))) return null
+        val reply = ask(inCloud, Answers.prompt(candidate, language), InferenceSource.IN_CLOUD, IN_CLOUD_MS, Answers::parseJson) as? Reply.Text ?: return null
+        val answer = Answers.parseJson(reply.text) ?: return null
         return CheckResult(Decide.fromCloud(answer.risk, signs), Route.REDACTED_CLOUD, signs, answer.reasons, sent = candidate)
     }
 
@@ -80,17 +99,30 @@ class ScamChecker {
         data object Nothing : Reply
     }
 
-    private suspend fun ask(model: com.google.firebase.ai.GenerativeModel, prompt: String, expected: InferenceSource, timeoutMs: Long): Reply = try {
-        withTimeoutOrNull(timeoutMs) {
-            val response = model.generateContent(prompt)
-            when {
-                response.inferenceSource != expected -> Reply.WrongSide
-                response.text.isNullOrBlank() -> Reply.Nothing
-                else -> Reply.Text(response.text!!)
+    /** One call, retried once if the answer does not parse (never after a timeout or a wrong-side answer). */
+    private suspend fun ask(
+        model: com.google.firebase.ai.GenerativeModel,
+        prompt: String,
+        expected: InferenceSource,
+        timeoutMs: Long,
+        parses: (String?) -> Any?,
+    ): Reply {
+        repeat(2) {
+            val reply = try {
+                withTimeoutOrNull(timeoutMs) {
+                    val response = model.generateContent(prompt)
+                    when {
+                        response.inferenceSource != expected -> Reply.WrongSide
+                        response.text.isNullOrBlank() -> Reply.Nothing
+                        else -> Reply.Text(response.text!!)
+                    }
+                } ?: return Reply.Nothing
+            } catch (_: Exception) {
+                Reply.Nothing
             }
-        } ?: Reply.Nothing
-    } catch (_: Exception) {
-        Reply.Nothing
+            if (reply is Reply.WrongSide || (reply is Reply.Text && parses(reply.text) != null)) return reply
+        }
+        return Reply.Nothing
     }
 
     private suspend fun phoneModelReady(): Boolean = try {

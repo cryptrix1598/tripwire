@@ -62,6 +62,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.9.4")
     implementation("androidx.core:core-ktx:1.17.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
+    // Alerts while the app is closed (AlertWorker).
+    implementation("androidx.work:work-runtime-ktx:2.10.0")
 
     // Firebase. All AI goes through Firebase AI Logic; the on-device half is not in the BoM yet.
     implementation(platform("com.google.firebase:firebase-bom:35.2.0"))

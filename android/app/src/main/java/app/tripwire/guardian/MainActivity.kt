@@ -23,6 +23,8 @@ class GuardianApp : Application() {
         // App Check must be installed before the first Firestore or AI Logic call.
         installAppCheck()
         Notifier.createChannel(this)
+        // Alerts while the app is closed, about every 15 minutes.
+        AlertWorker.schedule(this)
     }
 }
 

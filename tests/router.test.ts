@@ -520,3 +520,21 @@ describe('router: a check meant for the device that Chrome says ran in the cloud
     expect(v.bytesSentToCloud).toBe(0);
   });
 });
+
+describe('router: what the device lists, and what the receipt shows', () => {
+  it('a listed name is removed in every case it appears in', async () => {
+    const engine = fakeEngine({
+      triage: async () => triageJson(55),
+      redact: async () => JSON.stringify({ items: [{ text: 'Zephyrine Quillfeather', kind: 'NAME' }] }),
+    });
+    await run(`${SCAM.text} Zephyrine Quillfeather said so. ZEPHYRINE QUILLFEATHER will call.`, engine);
+    const sent = engine.analyzeInCloud.mock.calls[0]![1];
+    expect(sent).not.toMatch(/zephyrine/i);
+  });
+
+  it('the receipt is the whole request, not a shortened copy', async () => {
+    const engine = fakeEngine({ triage: async () => triageJson(55) });
+    const v = await run(SCAM.text, engine);
+    expect(v.sentPreview).toBe(engine.analyzeInCloud.mock.calls[0]![1]);
+  });
+});

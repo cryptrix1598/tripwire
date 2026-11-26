@@ -27,7 +27,7 @@ page, email or phone call
 | Cloud only (no on-device model) | 25 / 25 | 0 / 25 | 22,018 bytes, all redacted first |
 | Phone-call check, Gemini Nano, 20 calls (latest run) | 12 / 12 | 0 / 8 | |
 
-206 unit tests (plus 19 on Android), 32 security-rules tests, a 14-step end-to-end run with 0 accessibility problems, a live run against the real Firebase project. Details are in [Test results](#test-results).
+208 unit tests (plus 23 on Android), 32 security-rules tests, a 14-step end-to-end run with 0 accessibility problems, a live run against the real Firebase project. Details are in [Test results](#test-results).
 
 ## Why this matters
 
@@ -238,12 +238,13 @@ Gemini Nano needs Chrome 139+ on a desktop with about 22 GB of free disk and eit
 - Only when the phone is unsure does a copy go to the cloud model (`InferenceMode.ONLY_IN_CLOUD`). The extension's redaction rules run first (emails, phone, card and Social Security numbers, codes, IDs, addresses, links cut to their site name, and names: greeted, titled, labelled, signed off, introduced, or on the same list of about 390 given names). Then Gemini Nano lists any personal details left and code replaces them, the rules run again, and a leak check sends nothing if a removed value or anything pattern-shaped is still there. "See exactly what was sent" shows it.
 - If the phone model is there but does not answer, or cannot list the details, nothing is sent: the built-in warning signs answer. With no phone model, the redacted cloud check; offline, the built-in signs.
 - A caller who wants gift cards, crypto, a code, bank or Social Security details, access to the phone or computer, or money moved to a "safe" account gets **Hang up now** at once, with no model at all (the same list as the extension). A calm caller who has asked for nothing gets no check.
-- The rules, redaction, leak check, answer parsing, call sentences and decisions are plain Kotlin with 13 unit tests ([ScamCheckTest.kt](android/app/src/test/java/app/tripwire/guardian/check/ScamCheckTest.kt)). Its screens are in English, Spanish and French, and what the person typed and the answer survive turning the phone.
+- The cloud model answers to a JSON schema (`responseSchema`) and every call is retried once if its answer does not parse; the listing step has its own output budget and must end with END, or nothing is sent. Reasons are written in the phone's language. The answer thresholds are the extension's (caution from 30, "hang up" from 80).
+- The rules, redaction, leak check, answer parsing, call sentences and decisions are plain Kotlin with 17 unit tests ([ScamCheckTest.kt](android/app/src/test/java/app/tripwire/guardian/check/ScamCheckTest.kt)). Its screens are in English, Spanish and French, and what the person typed and the answer survive turning the phone.
 
 **Tripwire Guardian** is for the family member:
 
 - Pair with the same eight-digit code, then see the same live alert feed as the web family page.
-- A notification when a new alert arrives while the app is running.
+- A notification when a new alert arrives: at once while the app is open, and from a background check about every 15 minutes while it is closed ([AlertWorker.kt](android/app/src/main/java/app/tripwire/guardian/AlertWorker.kt), WorkManager; no server, the same security rules).
 - **"What should I say to them?"** writes three kind sentences for a phone call. This is the app's AI feature and it goes through **Firebase AI Logic hybrid inference** (`InferenceMode.PREFER_ON_DEVICE`): Gemini Nano on the phone when it has one, the cloud model otherwise. The prompt is built only from the kind of scam and whether they stopped, so nothing personal can reach a model. Under every suggestion the app says where it was written: "Written on this phone · nothing was sent" or "Written online · only the kind of scam was sent". If neither can answer, it shows built-in advice and says so.
 - App Check: the debug provider in debug builds, Play Integrity in release builds.
 
@@ -253,7 +254,7 @@ Build it (JDK 17 and the Android SDK needed):
 2. Register an App Check debug token for it and put it in `android/local.properties` as `appcheck.debugToken=<uuid>`. Neither file is committed.
 3. Run `./gradlew assembleDebug` in `android/`. The APK lands in `android/app/build/outputs/apk/debug/`.
 
-Status: the app compiles against firebase-ai 18.2.0 and firebase-ai-ondevice 16.0.0-beta08, its 19 unit tests pass and the debug APK builds. **It has not been run on a phone or emulator yet** (see "Not verified yet"). Alerts do not arrive while the app is closed: that needs push messaging from a server, which is outside this free-tier build.
+Status: the app compiles against firebase-ai 18.2.0 and firebase-ai-ondevice 16.0.0-beta08, its 23 unit tests pass and the debug APK builds. **It has not been run on a phone or emulator yet** (see "Not verified yet"). While the app is closed, a background check looks for new alerts about every 15 minutes (the shortest period Android allows); there is no push.
 
 ## Commands
 
@@ -329,7 +330,7 @@ The latest run told people to hang up on one ordinary call: a delivery driver sa
 
 ### Everything else
 
-- Unit tests: 206 passing (extension), 19 (Android). Security-rules tests: 30 against the emulator plus 2 that keep the rules and the app copy in step, 32 passing ([eval-results/rules-tests.json](eval-results/rules-tests.json)). Typecheck, unit tests, the rules-only corpus, the build and the rules tests also run in CI on every push ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
+- Unit tests: 208 passing (extension), 23 (Android). Security-rules tests: 30 against the emulator plus 2 that keep the rules and the app copy in step, 32 passing ([eval-results/rules-tests.json](eval-results/rules-tests.json)). Typecheck, unit tests, the rules-only corpus, the build and the rules tests also run in CI on every push ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
 - End-to-end in Chromium (`npm run e2e`): 14 of 14 steps, including the phone-call check, settings, the paused download, and a page that keeps deleting the warning. Result file: [eval-results/e2e.json](eval-results/e2e.json).
 - Live against the real project (`npm run live`): App Check token, hybrid call, Spanish explanations, pairing, single-use code, family alert. Result file: [eval-results/live-checks.json](eval-results/live-checks.json).
 - **App Check refuses robots, including ours.** On 16 Nov the hosted site began rejecting the automated test browser ("App attestation failed" from reCAPTCHA Enterprise), so pairing failed and the hosted demo fell back to built-in rules, with the badge saying so. The hosted demo was checked in an ordinary browser the same day and got its cloud answer. The automated runs of the hosted site now present the project's App Check debug token (read from `.env`, set only inside the test browser, never deployed); `--recaptcha` runs them as a robot. `node scripts/hosted-appcheck.mjs` shows the refusal, and the family page now says the browser could not be confirmed instead of blaming the internet.
