@@ -176,6 +176,11 @@ export interface Verdict {
   failSafe: boolean;
   /** True when the cloud step was wanted but could not be reached. */
   cloudUnreachable: boolean;
+  /**
+   * True when Chrome reported that a check meant to run on the device was answered in the
+   * cloud. Tripwire stops using models for that page and says so.
+   */
+  wrongSide?: boolean;
   promptVersion: string;
   elapsedMs: number;
   /**

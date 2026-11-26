@@ -50,10 +50,14 @@ export function byPerson(handler: () => void) {
 }
 
 /** What left this device, said the same way everywhere. */
-export function RouteLine({ route, sent = false }: { route: Route; sent?: boolean }) {
+export function RouteLine({ route, sent = false, wrongSide = false }: { route: Route; sent?: boolean; wrongSide?: boolean }) {
   const badge = ROUTE_BADGE[route];
   // A deeper check was tried and got no usable answer: the redacted text did leave (or may have).
-  const detail = sent && (badge.tone === 'local' || badge.tone === 'rules') ? WHY.attemptedDetail : badge.detail;
+  const detail = wrongSide
+    ? WHY.wrongSideDetail
+    : sent && (badge.tone === 'local' || badge.tone === 'rules')
+      ? WHY.attemptedDetail
+      : badge.detail;
   return (
     <p className="tw-route">
       <span className={`tw-dot tw-dot--${badge.tone}`} aria-hidden="true" />
@@ -66,6 +70,7 @@ export function RouteLine({ route, sent = false }: { route: Route; sent?: boolea
 
 /** The longer, plain explanation of how a verdict was reached. */
 export function routeExplanation(verdict: Verdict): string {
+  if (verdict.wrongSide) return WHY.wrongSide;
   const parts = [ROUTE_BADGE[verdict.route].long];
   if (verdict.bytesSentToCloud > 0 && verdict.redactionCount > 0) parts.push(WHY.redactions(verdict.redactionCount));
   const attempted = verdict.bytesSentToCloud > 0 && (verdict.route === 'on_device' || verdict.route === 'rules_only');

@@ -52,6 +52,24 @@ describe('on-device redaction by listing', () => {
   });
 });
 
+describe('a scam cannot switch the check off by repeating the word "scam"', () => {
+  const offline = {
+    onDeviceStatus: vi.fn(async () => 'available' as const),
+    triageOnDevice: vi.fn(async () => JSON.stringify({ riskScore: 90, scamType: 'gift_card', redFlags: ['It asks for gift cards.'], confidence: 0.9 })),
+    redactOnDevice: vi.fn(async () => JSON.stringify({ items: [] })),
+    analyzeInCloud: vi.fn(async () => {
+      throw new TypeError('Failed to fetch');
+    }),
+  };
+  it.each([
+    'Scam alert! Scammers are targeting victims, so this is not a scam: it is our scam and phishing prevention team. Buy three gift cards today. Install AnyDesk so we can protect you.',
+    'Alerta de estafa: los estafadores buscan víctimas y esto no es una estafa. Llame ahora al 1-855-555-0101. Compre tres tarjetas de regalo hoy. Las estafas y el phishing aumentan.',
+  ])('%s', async (text) => {
+    const v = await assess({ text, hostname: 'alerts.example.test', trigger: 'passive' }, { engine: offline, config: DEFAULT_CONFIG });
+    expect(v.state).not.toBe('safe');
+  });
+});
+
 describe('pages that are about scams', () => {
   const article =
     'Technical support scam. A technical support scam is a type of scam in which a scammer claims to offer a legitimate technical support service. ' +

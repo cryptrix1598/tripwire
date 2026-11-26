@@ -16,6 +16,7 @@
  * Only when no model is available, or it failed to answer at all, is the
  * regex-only text sent.
  */
+import { PrivacyInvariantError } from '../inference/engine';
 import { countTags, findLeaks, regexRedact } from './regex';
 
 export interface RedactionOutcome {
@@ -56,7 +57,9 @@ export async function redactForCloud(original: string, modelRedactor?: ModelReda
     let rewritten: string | null = null;
     try {
       rewritten = await modelRedactor(first.text);
-    } catch {
+    } catch (err) {
+      // An on-device call that ran in the cloud is not "no model": the caller must stop.
+      if (err instanceof PrivacyInvariantError) throw err;
       // A model that failed to answer is the same as no model: the regex pass already ran.
     }
     if (rewritten !== null) {

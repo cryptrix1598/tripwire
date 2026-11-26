@@ -87,6 +87,8 @@ export const ES: LocaleBundle = {
     redactions: (n: number) => (n === 1 ? 'Primero se quitó 1 dato personal.' : `Primero se quitaron ${n} datos personales.`),
     cloudUnreachable: 'No fue posible una revisión más a fondo porque esta computadora no tiene conexión.',
     attemptedDetail: 'datos personales retirados; luego quizá se envió',
+    wrongSideDetail: 'una revisión privada se hizo en línea por error, así que Tripwire se detuvo',
+    wrongSide: 'Chrome indicó que una revisión que debía hacerse en esta computadora se respondió en línea. Tripwire se detuvo de inmediato, no envió nada más y usó sus señales de alerta incorporadas. Es posible que el texto de esa revisión haya salido de su computadora.',
     attempted: 'Tripwire intentó una revisión más a fondo: retiró los datos personales y envió el resto, pero no llegó una respuesta útil. "Ver exactamente qué se envió" muestra lo que envió.',
     sentShow: 'Ver exactamente lo que se envió',
     sentHide: 'Ocultar lo que se envió',

@@ -87,6 +87,8 @@ export const FR: LocaleBundle = {
     redactions: (n: number) => (n === 1 ? '1 donnée personnelle a d’abord été retirée.' : `${n} données personnelles ont d’abord été retirées.`),
     cloudUnreachable: 'Une vérification plus poussée n’a pas été possible car cet ordinateur est hors ligne.',
     attemptedDetail: 'données personnelles retirées, puis peut-être envoyées',
+    wrongSideDetail: 'une vérification privée a eu lieu en ligne par erreur, Tripwire s’est arrêté',
+    wrongSide: 'Chrome a indiqué qu’une vérification prévue sur cet ordinateur a reçu une réponse en ligne. Tripwire s’est arrêté aussitôt, n’a rien envoyé de plus et a utilisé ses signaux d’alerte intégrés. Le texte de cette vérification a peut-être quitté votre ordinateur.',
     attempted: 'Tripwire a tenté une vérification plus poussée : il a retiré les données personnelles et envoyé le reste, mais aucune réponse utilisable n’est arrivée. « Voir exactement ce qui a été envoyé » montre ce qu’il a envoyé.',
     sentShow: 'Voir exactement ce qui a été envoyé',
     sentHide: 'Masquer ce qui a été envoyé',

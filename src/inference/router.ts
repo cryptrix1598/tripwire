@@ -28,7 +28,7 @@ import type { z } from 'zod';
 import type { TripwireConfig } from '../config/defaults';
 import { redactForCloud, type ModelRedactor } from '../redaction/pipeline';
 import { EXPLANATION, RULE_FLAG } from '../ui/copy';
-import { withTimeout, type AiEngine, type OnDeviceStatus } from './engine';
+import { PrivacyInvariantError, withTimeout, type AiEngine, type OnDeviceStatus } from './engine';
 import {
   buildCloudPrompt,
   buildRedactPrompt,
@@ -111,7 +111,11 @@ export function extractJson(raw: string): unknown {
   }
 }
 
-type CallResult<T> = { ok: true; value: T } | { ok: false; reason: 'invalid' | 'unreachable'; timedOut?: boolean };
+type CallResult<T> =
+  | { ok: true; value: T }
+  | { ok: false; reason: 'invalid' | 'unreachable'; timedOut?: boolean }
+  // An on-device call that Chrome says was answered in the cloud. Final: never retried.
+  | { ok: false; reason: 'wrong_side' };
 
 /**
  * Run a model call, validate its output, retry once.
@@ -129,6 +133,8 @@ async function callValidated<S extends z.ZodType>(
     try {
       raw = await call();
     } catch (err) {
+      // A call meant for the device that ran in the cloud must not be repeated.
+      if (err instanceof PrivacyInvariantError) return { ok: false, reason: 'wrong_side' };
       // A timeout is not worth a second wait of the same length.
       if (err instanceof Error && err.message.includes('timed out')) {
         timedOut = true;
@@ -184,6 +190,7 @@ interface Draft {
   redactionCount?: number;
   failSafe?: boolean;
   cloudUnreachable?: boolean;
+  wrongSide?: boolean;
   /** Passive trips need corroboration; this says whether it was present. */
   allowTrip?: boolean;
   /** Set when redFlags and explanation are written in a language other than English. */
@@ -194,8 +201,8 @@ interface Draft {
 
 /** What a cloud request carried when no usable answer came back. Reported like a successful one. */
 type CloudAttempt = { bytesSentToCloud: number; redactionCount: number; sent: string };
-const attemptOf = (cloud: { kind: string; attempt?: CloudAttempt }): Partial<CloudAttempt> =>
-  cloud.kind === 'unreachable' || cloud.kind === 'invalid' ? (cloud.attempt ?? {}) : {};
+const attemptOf = (cloud: { kind: string; attempt?: CloudAttempt; wrongSide?: boolean }): Partial<CloudAttempt> & { wrongSide?: boolean } =>
+  cloud.kind === 'unreachable' || cloud.kind === 'invalid' ? (cloud.attempt ?? {}) : cloud.wrongSide ? { wrongSide: true } : {};
 
 /** Stage 1: everything the router knows about the text before any model is asked. Pure. */
 function readPage(input: AssessInput, config: TripwireConfig) {
@@ -208,13 +215,14 @@ function readPage(input: AssessInput, config: TripwireConfig) {
       : `${input.text.slice(0, half)}\n${salientExcerpt(input.text.slice(half), config.maxScanChars - half)}`;
   // Advice pages, news and encyclopaedia articles ABOUT scams contain every scam phrase there is.
   const mentions = scamTalk(page);
+  const signals = detectSignals(page, config);
   const asks = directedAsks(page);
   return {
     shape: detectShape(page),
     // What the models read: a focused excerpt, never the whole of a long page.
     // Triple quotes are the prompt's own delimiter: the page must not be able to close it.
     text: salientExcerpt(page, config.maxModelChars).replace(/"{3,}/g, "'''"),
-    signals: detectSignals(page, config),
+    signals,
     mentions,
     // Describing scams (third person) is not the same as using scam words while telling the reader what to do.
     aboutScams: mentions >= ABOUT_SCAMS_AT && asks < 2,
@@ -248,6 +256,8 @@ function onDeviceRedactor(engine: AiEngine, system: string, timeoutMs: number): 
       () => withTimeout(engine.redactOnDevice(system, buildRedactPrompt(preRedacted)), timeoutMs, 'on-device redaction'),
       RedactionSchema,
     );
+    // Rethrown so the privacy gate closes: nothing more may be sent about this page.
+    if (!r.ok && r.reason === 'wrong_side') throw new PrivacyInvariantError('on-device redaction ran in the cloud');
     if (!r.ok) return null;
     // Nothing can be paraphrased or dropped, because the model never writes the text.
     let out = preRedacted;
@@ -296,6 +306,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
       () => withTimeout(translate(prompts.translateSystem, buildTranslatePrompt(texts, language), language.code), timeouts.onDeviceMs, 'on-device translation'),
       TranslationSchema,
     );
+    if (!result.ok && result.reason === 'wrong_side') return { ...d, wrongSide: true };
     if (!result.ok || result.value.texts.length !== texts.length) return d;
     const out = result.value.texts;
     return d.explanation
@@ -323,6 +334,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
       redactionCount: d.redactionCount ?? 0,
       failSafe: d.failSafe ?? false,
       cloudUnreachable: d.cloudUnreachable ?? false,
+      ...(d.wrongSide ? { wrongSide: true } : {}),
       promptVersion: config.promptVersion,
       elapsedMs: now() - started,
       ...(d.language && finalState !== 'safe' ? { explanationLanguage: d.language } : {}),
@@ -331,7 +343,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
   };
 
   /** Deterministic verdict for when no model can be reached. */
-  const rulesVerdict = (failSafe: boolean, attempt?: CloudAttempt): Verdict => {
+  const rulesVerdict = (failSafe: boolean, attempt?: CloudAttempt, wrongSide = false): Verdict => {
     const { low, rulesOnlyCaution } = config.thresholds;
     // After a model failure the bar for caution drops to LOW: never silently pass.
     const cautionAt = failSafe ? low : rulesOnlyCaution;
@@ -348,6 +360,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
       failSafe: failSafe && flagged,
       allowTrip: false,
       ...attempt,
+      wrongSide,
     });
   };
 
@@ -381,9 +394,15 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
   ): Promise<
     | { kind: 'ok'; analysis: CloudAnalysis; bytes: number; redactionCount: number; sent: string }
     | { kind: 'unreachable' | 'invalid'; attempt?: CloudAttempt }
-    | { kind: 'gate_closed' }
+    | { kind: 'gate_closed'; wrongSide?: boolean }
   > => {
-    const redaction = await redactForCloud(text, redactor);
+    let redaction;
+    try {
+      redaction = await redactForCloud(text, redactor);
+    } catch (err) {
+      if (err instanceof PrivacyInvariantError) return { kind: 'gate_closed', wrongSide: true };
+      throw err;
+    }
     if (!redaction.safeToSend) return { kind: 'gate_closed' };
     const prompt = buildCloudPrompt(redaction.text, ctx, deviceTriage);
     const result = await callValidated(
@@ -394,10 +413,11 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
     // (or may have), so the verdict must not claim that nothing left the computer. A request
     // that failed outright (offline) never got out.
     const attempt: CloudAttempt | undefined =
-      !result.ok && (result.reason === 'invalid' || result.timedOut)
+      !result.ok && (result.reason !== 'unreachable' || result.timedOut)
         ? { bytesSentToCloud: utf8Bytes(prompt), redactionCount: redaction.redactionCount, sent: prompt }
         : undefined;
-    if (!result.ok) return { kind: result.reason, attempt };
+    // (The cloud call never reports 'wrong_side'; it is treated as invalid if it ever did.)
+    if (!result.ok) return { kind: result.reason === 'unreachable' ? 'unreachable' : 'invalid', attempt };
     // Everything Tripwire wrote into the request about this page: the redacted text plus the
     // site name and the lines around it. (The fixed instructions are the same for every page.)
     return { kind: 'ok', analysis: result.value, bytes: utf8Bytes(prompt), redactionCount: redaction.redactionCount, sent: prompt };
@@ -445,6 +465,11 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
     TriageSchema,
   );
 
+  if (!triage.ok && triage.reason === 'wrong_side') {
+    // Chrome says the private check ran in the cloud. Stop here: no second model, nothing more
+    // sent, built-in rules with the fail-safe floor, and the verdict says what happened.
+    return rulesVerdict(true, undefined, true);
+  }
   if (!triage.ok) {
     // The on-device model let us down. Try the redacted cloud path; if that
     // fails too, fall back to rules with the fail-safe floor.

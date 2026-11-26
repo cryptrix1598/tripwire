@@ -127,6 +127,8 @@ export const WHY = {
     n === 1 ? '1 piece of personal info was removed first.' : `${n} pieces of personal info were removed first.`,
   cloudUnreachable: 'A deeper check was not possible because this computer is offline.',
   attemptedDetail: 'personal info removed, then it may have been sent',
+  wrongSideDetail: 'a private check ran online by mistake, so Tripwire stopped',
+  wrongSide: 'Chrome reported that a check meant to run on this computer was answered online instead. Tripwire stopped at once, sent nothing more, and used its built-in warning signs. The text that check was given may have left your computer.',
   attempted: 'Tripwire tried a deeper check: it removed personal info and sent the rest, but no usable answer came back. "See exactly what was sent" shows what it sent.',
   sentShow: 'See exactly what was sent',
   sentHide: 'Hide what was sent',

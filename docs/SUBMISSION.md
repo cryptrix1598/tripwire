@@ -28,7 +28,7 @@ Tripwire is a Chrome extension with three states.
 - **Caution:** a calm amber banner with one plain sentence and a "Why?" button.
 - **Tripped:** a full-page pause that asks one question: *did someone call, text, or email you and ask you to do this?* "Stop and stay safe" is the large button; "I'm sure, continue" is a quiet link.
 
-It trips on actions: a card number field (checked locally), a gift-card code field, a crypto wallet field, a phone link on a suspicious page, and the download of a remote-access tool shortly after a suspicious page was open.
+It trips on actions: a card number field (checked locally), a gift-card code field, a crypto wallet field, a phone link, and the download of a remote-access tool. On a page that has not been checked yet, or has changed since, the field or the phone link is held until the check answers. A remote-access download always asks, once per tool, even with no suspicious page open.
 
 **Settings** give a three-step warning level and a list of trusted sites, with a warning aimed at the exact way a scammer would try to abuse that list. **Explanations follow the browser's language**: a verdict that stayed on the device is translated on the device, so "nothing left your computer" stays true.
 
@@ -69,15 +69,15 @@ TypeScript (strict), Manifest V3 with WXT, React, Shadow DOM for the in-page UI,
 - **A third held-out round, written after all tuning and run once:** 12 of 12 new kinds of scam paused, 0 false alarms on 12 ordinary messages chosen to look like scams.
 - **The built extension itself is what was measured above**, loaded over the DevTools protocol with Gemini Nano running in its offscreen document.
 - Every screen in English, Spanish and French; explanations run live in Spanish and French with nothing sent.
-- Twelve adversarial tests: a page that tells the model what to answer, repeats "scam" to look like advice, hides the ask under filler, or deletes the warning. None gets through quietly.
-- 191 unit tests, 29 security-rules tests (including a limit of one family alert every 15 seconds), a 14-step end-to-end run, a live run against the real project, a test of the hosted demo with no extension, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems).
+- Fourteen hostile-page tests: a page that tells the model what to answer, repeats "scam" (or "this is not a scam") to look like advice, hides the ask under filler, or deletes the warning. None gets through quietly.
+- 199 unit tests, 30 security-rules tests (including a limit of one family alert every 15 seconds, and a pairing code that cannot be used up without creating a family link), a 14-step end-to-end run, a live run against the real project, a test of the hosted demo with no extension, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems).
 
 ## Challenges
 
 - **Our own test set flattered us.** A held-out run caught only 6 of 10 new scams: the keyword gate, tuned on our corpus, never showed four of them to a model. Long real pages took 51 seconds because the on-device model was given whole pages. We rebuilt the gate around the shape of a request (an ask for money or credentials, plus pressure, secrecy or a number to call), gave the models a short excerpt, and changed on-device redaction so the model lists personal details and code does the replacing. A second, fresh round of scams was then caught 6 of 6.
 - **An article about a scam is not a scam.** One run paused the Wikipedia page on tech support scams. Pages that keep saying "scam" and "victim" now need the cloud model to agree before anything is shown.
 - **False alarms.** A tool that cries wolf gets uninstalled by exactly the people who need it. A local-only trip needs the model's confidence and the rule score to agree, and the corpus run fails on a single false alarm.
-- **App Check in an extension.** No reCAPTCHA on `chrome-extension://`; we documented the debug-token path and what a production token endpoint would look like.
+- **App Check in an extension.** reCAPTCHA cannot load on `chrome-extension://`. The release build gets real tokens from a hidden frame on our own hosted page, which passes reCAPTCHA Enterprise and answers only Tripwire's fixed extension ID. No server and no paid plan; development and test builds use a debug token, because reCAPTCHA rightly refuses automated browsers.
 - **Where the model can live.** Not in the service worker; the offscreen document is the answer.
 - **"Continue" must be narrow.** Our first version remembered "I'm sure, continue" for a whole site, which in Gmail would have silenced every later email. It now applies to one page.
 
@@ -87,7 +87,7 @@ Test on data you did not write for. And hybrid inference is most interesting whe
 
 ## What's next
 
-Running the Android companion (Tripwire Guardian, in `android/`) on real phones and adding push alerts, translating the fixed interface text as well as the reasons, and a production App Check endpoint so the extension can ship in the Chrome Web Store.
+Running the Android companion (Tripwire Guardian, in `android/`) on real phones and adding push alerts, more languages than English, Spanish and French, and testing with older users and their families.
 
 ---
 

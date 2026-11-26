@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { BENIGN_SAMPLES, SCAM_SAMPLES } from '../corpus/index';
 import { DEFAULT_CONFIG, mergeConfig } from '../src/config/defaults';
-import type { AiEngine, OnDeviceStatus } from '../src/inference/engine';
+import { PrivacyInvariantError, type AiEngine, type OnDeviceStatus } from '../src/inference/engine';
 import { assess, escalateForAction, extractJson } from '../src/inference/router';
 import { detectSignals, worthChecking } from '../src/inference/signals';
 import { regexRedact } from '../src/redaction/regex';
@@ -447,5 +447,35 @@ describe('router: a cloud check that got no usable answer is not reported as "no
     const v = await run(SCAM.text, engine);
     expect(v.bytesSentToCloud).toBe(0);
     expect(v.sentPreview).toBeUndefined();
+  });
+});
+
+describe('router: a check meant for the device that Chrome says ran in the cloud', () => {
+  it('triage: stops at once, never retries, never asks the cloud, and says what happened', async () => {
+    const engine = fakeEngine({
+      triage: async () => {
+        throw new PrivacyInvariantError('on-device triage ran in the cloud');
+      },
+    });
+    const v = await run(SCAM.text, engine);
+    expect(engine.triageOnDevice).toHaveBeenCalledTimes(1);
+    expect(engine.analyzeInCloud).not.toHaveBeenCalled();
+    expect(v.wrongSide).toBe(true);
+    expect(v.route).toBe('rules_only');
+    expect(v.state).not.toBe('safe');
+  });
+
+  it('redaction: the privacy gate closes and nothing is sent to the cloud', async () => {
+    const engine = fakeEngine({
+      triage: async () => triageJson(55),
+      redact: async () => {
+        throw new PrivacyInvariantError('on-device redaction ran in the cloud');
+      },
+    });
+    const v = await run(SCAM.text, engine);
+    expect(engine.redactOnDevice).toHaveBeenCalledTimes(1);
+    expect(engine.analyzeInCloud).not.toHaveBeenCalled();
+    expect(v.wrongSide).toBe(true);
+    expect(v.bytesSentToCloud).toBe(0);
   });
 });

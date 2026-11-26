@@ -114,6 +114,8 @@ export interface ScanScheduler {
   /** A new page in the same tab: forget what was seen and start the budget again. */
   reset(): void;
   stop(): void;
+  /** True while a scan is waiting to run: the page changed and has not been read again yet. */
+  pending(): boolean;
 }
 
 /**
@@ -185,6 +187,9 @@ export function createScanScheduler(
     stop() {
       stopped = true;
       if (timer) clearTimeout(timer);
+    },
+    pending() {
+      return !stopped && timer !== undefined;
     },
   };
 }

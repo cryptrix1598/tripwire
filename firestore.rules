@@ -91,6 +91,8 @@ service cloud.firestore {
           && request.resource.data.usedBy == request.auth.uid
           && request.auth.uid != resource.data.deviceId
           && resource.data.expiresAt > request.time
+          // The claim and the guardian link are one write: a guessed code cannot just be used up.
+          && existsAfter(/databases/$(database)/documents/devices/$(resource.data.deviceId)/guardians/$(request.auth.uid))
         )
       );
       allow delete: if signedIn() && resource.data.deviceId == request.auth.uid;

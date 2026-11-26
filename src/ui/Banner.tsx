@@ -49,7 +49,7 @@ export function Banner({ verdict, onDismiss }: { verdict: Verdict; onDismiss: ()
           </div>
           <div className="tw-why__part">
             <h3 className="tw-why__title">{WHY.routeLabel}</h3>
-            <RouteLine route={verdict.route} sent={verdict.bytesSentToCloud > 0} />
+            <RouteLine route={verdict.route} sent={verdict.bytesSentToCloud > 0} wrongSide={verdict.wrongSide} />
             <p className="tw-muted">{routeExplanation(verdict)}</p>
             <SentReceipt verdict={verdict} />
           </div>

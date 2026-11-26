@@ -96,6 +96,8 @@ function startTopFrame(ctx: ContentScriptContext): void {
   let view: View = { kind: 'none' };
   const listeners = new Set<() => void>();
   let last: Verdict | null = null;
+  /** Page scans sent and not yet answered. */
+  let scansInFlight = 0;
   let acknowledged = false;
   let dismissed = false;
   let href = location.href;
@@ -285,7 +287,10 @@ function startTopFrame(ctx: ContentScriptContext): void {
   }
 
   async function onPageText(): Promise<void> {
-    const reply = await assess('passive');
+    scansInFlight += 1;
+    const reply = await assess('passive').finally(() => {
+      scansInFlight -= 1;
+    });
     if (!reply) return;
     last = reply.verdict;
     acknowledged = reply.acknowledged;
@@ -328,12 +333,13 @@ function startTopFrame(ctx: ContentScriptContext): void {
         if (!(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return;
         const info = describeField(el);
         if (info.type.toLowerCase() === 'password') return;
-        // If this page has not been judged yet, the field is held (read-only) until the check
-        // answers, so a card number, gift card code or wallet address cannot be typed first. The
-        // check itself is bounded by the router's timeouts; the cap here is only a backstop so a
-        // field is never stuck.
+        // If this page has not been judged yet, or it changed since it was judged, the field is
+        // held (read-only) until the check answers, so a card number, gift card code or wallet
+        // address cannot be typed first. The check itself is bounded by the router's timeouts;
+        // the cap here is only a backstop so a field is never stuck.
         const held = (trigger: Trigger, what: 'card' | 'code') => {
-          const hold = !last && !acknowledged && !el.readOnly;
+          const unjudged = !last || scansInFlight > 0 || scheduler.pending();
+          const hold = unjudged && !acknowledged && !el.readOnly;
           if (hold) el.readOnly = true;
           const release = () => {
             if (hold) el.readOnly = false;

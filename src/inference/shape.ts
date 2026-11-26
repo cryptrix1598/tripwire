@@ -67,7 +67,10 @@ export function worthACloudLook(shape: Shape): boolean {
   return count >= 3 && (shape.moneyAsk || shape.credentialAsk);
 }
 
-const SCAM_TALK = /\b(?:scams?|scammers?|scammed|fraudsters?|victims?|phishing|con artists?)\b/gi;
+const SCAM_TALK =
+  /\b(?:scams?|scammers?|scammed|fraudsters?|victims?|phishing|con artists?|estafas?|estafadores?|víctimas?|arnaques?|arnaqueurs?|escroqueries?|escrocs?|victimes?|hameçonnage)\b/gi;
+/** "This is not a scam" is something scams say about themselves; it is not talk about scams. */
+const SELF_REASSURANCE = /\b(?:(?:this|it) is not a scam|not a scam|no es (?:una )?estafa|ce n.est pas une arnaque)\b/gi;
 /** A page that says "scam", "scammer" or "victim" this often is almost always describing scams, not running one. */
 export const ABOUT_SCAMS_AT = 5;
 
@@ -77,7 +80,8 @@ export const ABOUT_SCAMS_AT = 5;
  * of its wording. A real scam does not keep calling itself one.
  */
 export function scamTalk(text: string): number {
-  return text.match(SCAM_TALK)?.length ?? 0;
+  const all = text.match(SCAM_TALK)?.length ?? 0;
+  return Math.max(0, all - (text.match(SELF_REASSURANCE)?.length ?? 0));
 }
 
 const DIRECTED =
@@ -89,8 +93,20 @@ const DIRECTED =
  * stops a scam from switching the check off just by repeating the word "scam".
  */
 export function directedAsks(text: string): number {
-  return text.match(DIRECTED)?.length ?? 0;
+  return (text.match(DIRECTED)?.length ?? 0) + (text.match(DIRECTED_ES_FR)?.length ?? 0) + (text.match(ORDER)?.length ?? 0);
 }
+
+/**
+ * A sentence that opens with an order to move money or let someone in ("Buy three gift cards.",
+ * "Install AnyDesk now."). Articles describe these in the third person ("tells the victim to
+ * install..."), and advice says "Never buy...", so neither matches.
+ */
+const ORDER =
+  /(?:^|[.!?:]\s+)(?:please\s+|now\s+)?(?:buy|purchase|install|download|scratch off|wire|transfer|withdraw|deposit|compre|instale|descargue|retire|achetez|installez|téléchargez|retirez)\s/gim;
+
+/** The same kinds of ask, in Spanish and French. */
+const DIRECTED_ES_FR =
+  /\b(?:usted (?:debe|tiene que)|su (?:cuenta|tarjeta|computadora|pago|paquete|banco|dinero) (?:ha|está|será|fue)|llame (?:ahora|ya|de inmediato|a este número|al)|envíe(?:nos)?\b|pague (?:ahora|hoy|ya|de inmediato)|haga clic|no (?:se lo diga|le diga|cuelgue)|vous devez|votre (?:compte|carte|ordinateur|paiement|colis|banque|argent) (?:a été|est|sera)|appelez(?:-nous)? (?:maintenant|immédiatement|ce numéro|le)|envoyez(?:-nous)?\b|payez (?:maintenant|aujourd|immédiatement)|cliquez|ne (?:le dites|raccrochez))/gi;
 
 const STEERING =
   /\b(?:ignore (?:all |any |the )?(?:previous|prior|above|earlier) (?:instructions|rules|messages|text)|disregard (?:the|all|any) (?:previous |above )?(?:instructions|rules)|(?:mark|classify|rate|label|score|treat) (?:this|it|the (?:page|text|message|email)) as (?:safe|legitimate|benign|harmless|low risk|0)|this (?:page|message|text|email) is (?:safe|legitimate|not a scam|verified)(?: and (?:should|must) not be flagged)?|do not (?:flag|warn about|block) this|(?:attention|note to) (?:ai|assistant|safety (?:tool|system|filter)|scam (?:checker|detector)))/i;

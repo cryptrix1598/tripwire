@@ -89,6 +89,13 @@ describe('guardian links', () => {
     await assertFails(setDoc(doc(as(GUARDIAN), 'devices', DEVICE, 'guardians', GUARDIAN), { code: CODE, pairedAt: serverTimestamp() }));
   });
 
+  it('refuses a claim of the code without a guardian link in the same write', async () => {
+    await seedCode();
+    await assertFails(updateDoc(doc(as(STRANGER), 'pairingCodes', CODE), { usedBy: STRANGER }));
+    // The code is still free for the real family member.
+    await assertSucceeds(link(GUARDIAN));
+  });
+
   it('does not let a claim change anything else about the code', async () => {
     await seedCode();
     await assertFails(updateDoc(doc(as(STRANGER), 'pairingCodes', CODE), { usedBy: STRANGER, deviceId: STRANGER }));
