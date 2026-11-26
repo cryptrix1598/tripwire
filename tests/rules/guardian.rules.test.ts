@@ -183,6 +183,26 @@ describe('approval: a code alone is not enough', () => {
   });
 });
 
+describe('the name on a link', () => {
+  const claim = (name: unknown) => {
+    const db = as(GUARDIAN);
+    return writeBatch(db)
+      .update(doc(db, 'pairingCodes', CODE), { usedBy: GUARDIAN })
+      .set(doc(db, 'devices', DEVICE, 'guardians', GUARDIAN), { code: CODE, pairedAt: serverTimestamp(), name })
+      .commit();
+  };
+  it('a short first name is accepted', async () => {
+    await seedCode();
+    await assertSucceeds(claim('Sam'));
+  });
+  it('an empty, overlong or non-text name is refused', async () => {
+    await seedCode();
+    await assertFails(claim(''));
+    await assertFails(claim('x'.repeat(41)));
+    await assertFails(claim(42));
+  });
+});
+
 describe("a guardian's list of people", () => {
   it('is private to that guardian', async () => {
     const mine = doc(as(GUARDIAN), 'guardians', GUARDIAN, 'people', DEVICE);

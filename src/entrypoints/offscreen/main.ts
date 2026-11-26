@@ -46,10 +46,11 @@ async function status(): Promise<StatusReply> {
   const config = await loadConfig();
   let count = 0;
   let pending = 0;
+  let pendingNames: string[] = [];
   let guardianReady = false;
   if (isFirebaseConfigured() && navigator.onLine) {
     try {
-      ({ approved: count, pending } = await guardianLinks());
+      ({ approved: count, pending, pendingNames } = await guardianLinks());
       guardianReady = true;
     } catch {
       guardianReady = false;
@@ -62,6 +63,7 @@ async function status(): Promise<StatusReply> {
     guardianReady,
     guardianCount: count,
     pendingGuardians: pending,
+    pendingNames,
     configSource,
     promptVersion: config.promptVersion,
     thresholds: config.thresholds,

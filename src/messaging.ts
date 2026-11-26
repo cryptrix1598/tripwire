@@ -62,6 +62,8 @@ export interface StatusReply {
   guardianCount: number;
   /** Someone typed the code and is waiting for the person's "Yes, allow". */
   pendingGuardians: number;
+  /** The first names they gave, if any. */
+  pendingNames?: string[];
   configSource: 'remote' | 'default';
   promptVersion: string;
   thresholds: TripwireConfig['thresholds'];

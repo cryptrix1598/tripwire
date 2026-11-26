@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-11-26T15:54:11.783Z",
+  "ranAt": "2026-11-26T17:03:43.619Z",
   "mode": "rules-only (Node, no AI)",
   "scams": 12,
   "caught": 8,
@@ -9,7 +9,7 @@
     {
       "id": "call-scam-01-bank-code",
       "label": "scam",
-      "state": "caution",
+      "state": "tripped",
       "riskScore": 30,
       "route": "rules_only"
     },
@@ -23,7 +23,7 @@
     {
       "id": "call-scam-03-microsoft-remote",
       "label": "scam",
-      "state": "caution",
+      "state": "tripped",
       "riskScore": 30,
       "route": "rules_only"
     },
@@ -44,28 +44,28 @@
     {
       "id": "call-scam-06-medicare-number",
       "label": "scam",
-      "state": "caution",
+      "state": "tripped",
       "riskScore": 30,
       "route": "rules_only"
     },
     {
       "id": "call-scam-07-amazon-gift-cards",
       "label": "scam",
-      "state": "caution",
+      "state": "tripped",
       "riskScore": 30,
       "route": "rules_only"
     },
     {
       "id": "call-scam-08-crypto-investment",
       "label": "scam",
-      "state": "caution",
+      "state": "tripped",
       "riskScore": 30,
       "route": "rules_only"
     },
     {
       "id": "call-scam-09-family-gift-cards",
       "label": "scam",
-      "state": "caution",
+      "state": "tripped",
       "riskScore": 30,
       "route": "rules_only"
     },
@@ -79,7 +79,7 @@
     {
       "id": "call-scam-11-calm-code",
       "label": "scam",
-      "state": "caution",
+      "state": "tripped",
       "riskScore": 30,
       "route": "rules_only"
     },

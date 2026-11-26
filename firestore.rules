@@ -102,7 +102,9 @@ service cloud.firestore {
         allow create: if signedIn()
           && request.auth.uid == guardianId
           && request.auth.uid != deviceId
-          && request.resource.data.keys().hasOnly(['code', 'pairedAt'])
+          && request.resource.data.keys().hasOnly(['code', 'pairedAt', 'name'])
+          && (!('name' in request.resource.data) || (request.resource.data.name is string
+              && request.resource.data.name.size() >= 1 && request.resource.data.name.size() <= 40))
           && request.resource.data.code is string
           && request.resource.data.code.matches('^[0-9]{6}$')
           && request.resource.data.pairedAt == request.time

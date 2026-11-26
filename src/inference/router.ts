@@ -188,12 +188,8 @@ interface Draft {
   sent?: string;
 }
 
-export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verdict> {
-  const now = deps.now ?? Date.now;
-  const started = now();
-  const { engine, config } = deps;
-  const timeouts = deps.timeouts ?? DEFAULT_TIMEOUTS;
-  const prompts = promptSet(config.promptVersion);
+/** Stage 1: everything the router knows about the text before any model is asked. Pure. */
+function readPage(input: AssessInput, config: TripwireConfig) {
   // A long page is read as its opening plus the sentences that carry an ask from the rest,
   // so a scam cannot hide below a screenful of filler.
   const half = Math.floor(config.maxScanChars / 2);
@@ -201,19 +197,69 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
     input.text.length <= config.maxScanChars
       ? input.text
       : `${input.text.slice(0, half)}\n${salientExcerpt(input.text.slice(half), config.maxScanChars - half)}`;
-  const shape = detectShape(page);
-  // What the models read: a focused excerpt, never the whole of a long page.
-  // Triple quotes are the prompt's own delimiter: the page must not be able to close it.
-  const text = salientExcerpt(page, config.maxModelChars).replace(/"{3,}/g, "'''");
-  const signals = detectSignals(page, config);
   // Advice pages, news and encyclopaedia articles ABOUT scams contain every scam phrase there is.
   const mentions = scamTalk(page);
   const asks = directedAsks(page);
-  // Describing scams (third person) is not the same as using scam words while telling the reader what to do.
-  const aboutScams = mentions >= ABOUT_SCAMS_AT && asks < 2;
-  const scamWordsPlusAsks = mentions >= ABOUT_SCAMS_AT && asks >= 2;
-  // Text aimed at an automated checker. A model's "safe" is never the last word on such a page.
-  const steering = triesToSteerTheChecker(page);
+  return {
+    shape: detectShape(page),
+    // What the models read: a focused excerpt, never the whole of a long page.
+    // Triple quotes are the prompt's own delimiter: the page must not be able to close it.
+    text: salientExcerpt(page, config.maxModelChars).replace(/"{3,}/g, "'''"),
+    signals: detectSignals(page, config),
+    mentions,
+    // Describing scams (third person) is not the same as using scam words while telling the reader what to do.
+    aboutScams: mentions >= ABOUT_SCAMS_AT && asks < 2,
+    scamWordsPlusAsks: mentions >= ABOUT_SCAMS_AT && asks >= 2,
+    // Text aimed at an automated checker. A model's "safe" is never the last word on such a page.
+    steering: triesToSteerTheChecker(page),
+  };
+}
+
+/** Stage 2: which models may look at all. A look on the device is cheap; one that sends something is not. */
+function gate(input: AssessInput, read: ReturnType<typeof readPage>) {
+  const { signals, shape } = read;
+  const asked = input.source === 'call';
+  return {
+    asked,
+    // Keyword lists alone were too narrow (see shape.ts), so the shape of the request counts too.
+    localLook: asked || worthChecking(signals) || worthALocalLook(shape),
+    // An ordinary checkout always has a price and a card number box, so when the person is
+    // typing a card (or similar) those two prove nothing: only secrecy plus pressure does.
+    cloudLook:
+      asked ||
+      worthChecking(signals) ||
+      (input.trigger === 'passive' ? worthACloudLook(shape) : shape.secrecy && (shape.pressure || shape.hasPhone)),
+  };
+}
+
+/** The on-device redactor: the model only points at personal details; this code replaces them. */
+function onDeviceRedactor(engine: AiEngine, system: string, timeoutMs: number): ModelRedactor {
+  return async (preRedacted) => {
+    const r = await callValidated(
+      () => withTimeout(engine.redactOnDevice(system, buildRedactPrompt(preRedacted)), timeoutMs, 'on-device redaction'),
+      RedactionSchema,
+    );
+    if (!r.ok) return null;
+    // Nothing can be paraphrased or dropped, because the model never writes the text.
+    let out = preRedacted;
+    for (const item of r.value.items) {
+      const found = item.text.trim();
+      // Ignore anything too short to be a personal detail, existing tags, and runaway answers.
+      if (found.length < 3 || found.length > 80 || /^\[[A-Z]+\]$/.test(found) || !out.includes(found)) continue;
+      out = out.split(found).join(`[${item.kind}]`);
+    }
+    return out;
+  };
+}
+
+export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verdict> {
+  const now = deps.now ?? Date.now;
+  const started = now();
+  const { engine, config } = deps;
+  const timeouts = deps.timeouts ?? DEFAULT_TIMEOUTS;
+  const prompts = promptSet(config.promptVersion);
+  const read = readPage(input, config);
+  const { shape, text, signals, mentions, aboutScams, scamWordsPlusAsks, steering } = read;
   const language = explainLanguage(input.language);
   const ctx: PromptContext = {
     hostname: input.hostname,
@@ -295,17 +341,8 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
     });
   };
 
-  // ── Gate ────────────────────────────────────────────────────────────────
-  // A passive scan with no warning signs never reaches a model.
-  // Keyword lists alone were too narrow (see shape.ts), so the shape of the request counts too.
-  const asked = input.source === 'call';
-  const localLook = asked || worthChecking(signals) || worthALocalLook(shape);
-  // An ordinary checkout always has a price and a card number box, so when the person is
-  // typing a card (or similar) those two prove nothing: only secrecy plus pressure does.
-  const cloudLook =
-    asked ||
-    worthChecking(signals) ||
-    (input.trigger === 'passive' ? worthACloudLook(shape) : shape.secrecy && (shape.pressure || shape.hasPhone));
+  // ── Stage 2: the gate. A passive scan with no warning signs never reaches a model. ──
+  const { asked, localLook, cloudLook } = gate(input, read);
   if (input.trigger === 'passive' && !localLook) {
     return finish({ score: 0, scamType: 'none', redFlags: [], explanation: '', confidence: 1, route: 'not_checked' });
   }
@@ -327,7 +364,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
     status = 'unavailable';
   }
 
-  // ── [3] shared by both paths ────────────────────────────────────────────
+  // The redacted cloud call, shared by stages 3 and 5.
   const runCloud = async (
     redactor: ModelRedactor | null,
     deviceTriage: Triage | null,
@@ -368,7 +405,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
     });
   };
 
-  // ── Fallback path: no on-device model ───────────────────────────────────
+  // ── Stage 3: no on-device model. The cloud alone, and only past the stricter gate. ──
   if (status !== 'available') {
     // Without a private on-device check, a card field alone is not enough
     // reason to send a (redacted) checkout page anywhere.
@@ -379,7 +416,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
     return cloudOnly(false);
   }
 
-  // ── [1] On-device triage ────────────────────────────────────────────────
+  // ── Stage 4: on-device triage, and the verdicts the device may give alone. ──
   const triage = await callValidated(
     () =>
       withTimeout(
@@ -437,30 +474,8 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
     );
   }
 
-  // ── [2] + [3] Uncertain middle band ─────────────────────────────────────
-  const modelRedactor: ModelRedactor = async (preRedacted) => {
-    const r = await callValidated(
-      () =>
-        withTimeout(
-          engine.redactOnDevice(prompts.redactSystem, buildRedactPrompt(preRedacted)),
-          timeouts.onDeviceMs,
-          'on-device redaction',
-        ),
-      RedactionSchema,
-    );
-    if (!r.ok) return null;
-    // The model only points; the replacing happens here, so nothing can be paraphrased or dropped.
-    let out = preRedacted;
-    for (const item of r.value.items) {
-      const found = item.text.trim();
-      // Ignore anything too short to be a personal detail, existing tags, and runaway answers.
-      if (found.length < 3 || found.length > 80 || /^\[[A-Z]+\]$/.test(found) || !out.includes(found)) continue;
-      out = out.split(found).join(`[${item.kind}]`);
-    }
-    return out;
-  };
-
-  const cloud = await runCloud(modelRedactor, t);
+  // ── Stage 5: the device is unsure. Redact on the device, then ask the cloud. ──
+  const cloud = await runCloud(onDeviceRedactor(engine, prompts.redactSystem, timeouts.onDeviceMs), t);
   if (cloud.kind === 'ok') {
     const a = cloud.analysis;
     // The device was unsure, which is the only reason the cloud was asked. If the
@@ -485,7 +500,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
     });
   }
 
-  // Cloud not reachable (offline), invalid, or the privacy gate closed.
+  // ── Stage 6: no second opinion (offline, invalid, or the privacy gate closed). ──
   // For a page about scams the small model's word alone is not enough to interrupt someone reading.
   if (aboutScams && input.trigger === 'passive') {
     return finish({ score: Math.min(t.riskScore, low - 1), scamType: 'none', redFlags: [], explanation: '', confidence: t.confidence, route: 'on_device' });

@@ -108,6 +108,7 @@ function SignIn() {
 export function Pair({ uid, onDone }: { uid: string; onDone: (deviceId: string) => void }) {
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
+  const [me, setMe] = useState(auth?.currentUser?.displayName?.split(' ')[0] ?? '');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const copy = DASHBOARD.pair;
@@ -129,7 +130,9 @@ export function Pair({ uid, onDone }: { uid: string; onDone: (deviceId: string) 
       // Claim the code and create the link together: the rules allow each code to be claimed once.
       const batch = writeBatch(db!);
       batch.update(doc(db!, 'pairingCodes', clean), { usedBy: uid });
-      batch.set(doc(db!, 'devices', data.deviceId, 'guardians', uid), { code: clean, pairedAt: serverTimestamp() });
+      // Their name goes on the link, so the person sees who is asking before tapping "Yes, allow".
+      const myName = me.trim().slice(0, 40);
+      batch.set(doc(db!, 'devices', data.deviceId, 'guardians', uid), { code: clean, pairedAt: serverTimestamp(), ...(myName ? { name: myName } : {}) });
       await batch.commit();
       await setDoc(doc(db!, 'guardians', uid, 'people', data.deviceId), {
         nickname: name.trim().slice(0, 40) || DASHBOARD.feed.someone,
@@ -173,6 +176,11 @@ export function Pair({ uid, onDone }: { uid: string; onDone: (deviceId: string) 
         <div className="tw-field">
           <label htmlFor="pair-name">{copy.nameLabel}</label>
           <input id="pair-name" className="tw-input" type="text" autoComplete="off" maxLength={40} placeholder={copy.namePlaceholder} value={name} onChange={(e) => setName(e.target.value)} />
+        </div>
+        <div className="tw-field">
+          <label htmlFor="pair-me">{copy.meLabel}</label>
+          <input id="pair-me" className="tw-input" type="text" autoComplete="given-name" maxLength={40} placeholder={copy.mePlaceholder} value={me} onChange={(e) => setMe(e.target.value)} aria-describedby="pair-me-help" />
+          <p id="pair-me-help" className="tw-small">{copy.meHelp}</p>
         </div>
         {error && (
           <p id="pair-error" className="tw-notice" role="alert">

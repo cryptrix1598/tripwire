@@ -104,6 +104,7 @@ function Pairing({ paired, onConnected }: { paired: number; onConnected: () => v
   const [busy, setBusy] = useState(false);
   const [connected, setConnected] = useState(false);
   const [waiting, setWaiting] = useState(false);
+  const [asker, setAsker] = useState('');
   const [refused, setRefused] = useState(false);
   const [baseline, setBaseline] = useState(paired);
   const copy = ONBOARDING.family;
@@ -124,7 +125,10 @@ function Pairing({ paired, onConnected }: { paired: number; onConnected: () => v
     if (!code || connected) return;
     const timer = setInterval(() => {
       void send<StatusReply>({ target: 'background', type: 'get-status' }).then((status) => {
-        if (status && status.pendingGuardians > 0) setWaiting(true);
+        if (status && status.pendingGuardians > 0) {
+          setAsker(status.pendingNames?.[0] ?? '');
+          setWaiting(true);
+        }
       });
     }, 3000);
     return () => clearInterval(timer);
@@ -149,7 +153,7 @@ function Pairing({ paired, onConnected }: { paired: number; onConnected: () => v
   if (waiting && !connected) {
     return (
       <div className="tw-card" role="alertdialog" aria-labelledby="approve-title">
-        <h2 id="approve-title" className="tw-h3">{copy.approveTitle}</h2>
+        <h2 id="approve-title" className="tw-h3">{asker ? copy.approveNamed(asker) : copy.approveTitle}</h2>
         <p>{copy.approveBody}</p>
         <div className="tw-row">
           <button type="button" className="tw-btn" onClick={() => decide(true)} disabled={busy}>

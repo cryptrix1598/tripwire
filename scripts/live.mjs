@@ -125,9 +125,12 @@ try {
       await family.getByRole('button', { name: 'Continue without an account' }).click();
       await family.getByLabel('Six-digit pairing code').fill(code);
       await family.getByLabel('What should we call them?').fill('Mum');
+      await family.getByLabel('Your first name').fill('Sam');
       await family.getByRole('button', { name: 'Connect' }).click();
       // Until the person allows it, the family page waits and sees nothing.
       await family.getByText('Waiting for them to tap').waitFor({ timeout: 30_000 });
+      // The person sees who is asking before allowing.
+      await setup.getByRole('heading', { name: 'Sam just typed your code.' }).waitFor({ timeout: 30_000 });
       await setup.getByRole('button', { name: 'Yes, allow' }).click({ timeout: 30_000 });
       await family.getByRole('heading', { name: 'All quiet.' }).waitFor({ timeout: 30_000 });
     } catch (err) {

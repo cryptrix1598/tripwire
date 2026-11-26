@@ -107,12 +107,16 @@ export async function createPairingCode(): Promise<{ code: string; expiresAt: nu
 }
 
 /** Family members who can see alerts (allowed), and links waiting for the person's "Yes, allow". */
-export async function guardianLinks(): Promise<{ approved: number; pending: number }> {
+export async function guardianLinks(): Promise<{ approved: number; pending: number; pendingNames: string[] }> {
   const user = await ensureSignedIn();
   const db = getFirestore(getFirebaseApp());
   const links = await getDocs(collection(db, 'devices', user.uid, 'guardians'));
-  const approved = links.docs.filter((d) => d.data().approved === true).length;
-  return { approved, pending: links.size - approved };
+  const waiting = links.docs.filter((d) => d.data().approved !== true);
+  const pendingNames = waiting
+    .map((d) => d.data().name)
+    .filter((n): n is string => typeof n === 'string' && n.trim().length > 0)
+    .map((n) => n.trim().slice(0, 40));
+  return { approved: links.size - waiting.length, pending: waiting.length, pendingNames };
 }
 
 export async function guardianCount(): Promise<number> {

@@ -70,7 +70,7 @@ TypeScript (strict), Manifest V3 with WXT, React, Shadow DOM for the in-page UI,
 - **The built extension itself, with Gemini Nano, by automation:** 25/25 scams, 0/25 false alarms, 34 of 50 decided on the device.
 - Every screen in English, Spanish and French; explanations run live in Spanish and French with 0 bytes sent.
 - Twelve adversarial tests: a page that tells the model what to answer, repeats "scam" to look like advice, hides the ask under filler, or deletes the warning. None gets through quietly.
-- 164 unit tests, 24 security-rules tests, a 14-step end-to-end run, a live run against the real project, a test of the hosted demo with no extension, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems).
+- 179 unit tests, 26 security-rules tests, a 14-step end-to-end run, a live run against the real project, a test of the hosted demo with no extension, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems).
 
 ## Challenges
 

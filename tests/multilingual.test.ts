@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
+import { DEFAULT_CONFIG } from '../src/config/defaults';
+import type { AiEngine } from '../src/inference/engine';
+import { assess } from '../src/inference/router';
 import { detectShape, worthALocalLook } from '../src/inference/shape';
+
+const noModel: AiEngine = {
+  onDeviceStatus: async () => 'unavailable',
+  triageOnDevice: async () => { throw new Error('none'); },
+  redactOnDevice: async () => { throw new Error('none'); },
+  analyzeInCloud: async () => { throw new Error('offline'); },
+};
 
 // Spanish and French scams must reach a model, the way English ones do.
 const SCAMS = [
@@ -23,5 +33,16 @@ describe('Spanish and French warning signs', () => {
   });
   it.each(ORDINARY)('an ordinary message does not: %s', (text) => {
     expect(worthALocalLook(detectShape(text))).toBe(false);
+  });
+});
+
+describe('Spanish and French with no model at all (the built-in rules)', () => {
+  it.each(SCAMS)('a scam gets at least a caution: %s', async (text) => {
+    const v = await assess({ text, hostname: 'mail.example.test', trigger: 'passive' }, { engine: noModel, config: DEFAULT_CONFIG });
+    expect(v.state).not.toBe('safe');
+  });
+  it.each(ORDINARY)('an ordinary message stays silent: %s', async (text) => {
+    const v = await assess({ text, hostname: 'mail.example.test', trigger: 'passive' }, { engine: noModel, config: DEFAULT_CONFIG });
+    expect(v.state).toBe('safe');
   });
 });

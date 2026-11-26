@@ -21,8 +21,8 @@ export function isGmail(hostname: string): boolean {
 
 /**
  * Other webmail: where an opened message's body lives. On these sites nothing
- * is read unless a message is open, so the inbox list is never checked. Only
- * Gmail's selectors have been exercised by tests; these are best-effort.
+ * is read unless a message is open, so the inbox list is never checked. The selectors are
+ * covered by fixture tests (tests/webmail.test.ts); real mailboxes have not been tested.
  */
 const WEBMAIL_BODY: Record<string, string> = {
   'outlook.live.com': '[aria-label="Message body"], div[role="document"]',
@@ -35,10 +35,39 @@ export function isWebmail(hostname: string): boolean {
   return hostname === GMAIL_HOST || hostname in WEBMAIL_BODY;
 }
 
-function webmailOpenedText(doc: Document, selector: string): string {
+/** Where the sender's address can be found in an opened message. Only its domain is ever read. */
+const SENDER: Record<string, string> = {
+  'mail.google.com': 'span.gD[email]',
+  'outlook.live.com': '[aria-label^="From"] [title*="@"], span[title*="@"]',
+  'outlook.office.com': '[aria-label^="From"] [title*="@"], span[title*="@"]',
+  'outlook.office365.com': '[aria-label^="From"] [title*="@"], span[title*="@"]',
+  'mail.yahoo.com': '[data-test-id="message-from"], [data-test-id="email-pill"]',
+};
+
+type Visible = (el: HTMLElement) => boolean;
+const onScreen: Visible = (el) => el.offsetParent !== null;
+const textOf = (el: HTMLElement) => el.innerText ?? el.textContent ?? '';
+
+/**
+ * The domain of the opened message's sender, such as "paypa1-support.com". A sender whose
+ * domain does not match the company it claims to be is the strongest sign in an email. Only
+ * the part after the @ is read, never the person's address.
+ */
+export function senderDomain(doc: Document, host: string): string {
+  const selector = SENDER[host];
+  if (!selector) return '';
+  for (const el of Array.from(doc.querySelectorAll<HTMLElement>(selector))) {
+    const raw = el.getAttribute('email') ?? el.getAttribute('title') ?? el.textContent ?? '';
+    const domain = /@([a-z0-9.-]+\.[a-z]{2,})/i.exec(raw)?.[1];
+    if (domain) return domain.toLowerCase();
+  }
+  return '';
+}
+
+function webmailOpenedText(doc: Document, selector: string, visible: Visible): string {
   return Array.from(doc.querySelectorAll<HTMLElement>(selector))
-    .filter((el) => el.offsetParent !== null)
-    .map((el) => el.innerText)
+    .filter(visible)
+    .map(textOf)
     .join('\n');
 }
 
@@ -47,20 +76,23 @@ function clean(text: string): string {
 }
 
 /** Text of the emails currently open in Gmail, or '' when none is open. */
-function gmailOpenedText(doc: Document): string {
-  const bodies = Array.from(doc.querySelectorAll<HTMLElement>(GMAIL_BODY)).filter((el) => el.offsetParent !== null);
+function gmailOpenedText(doc: Document, visible: Visible): string {
+  const bodies = Array.from(doc.querySelectorAll<HTMLElement>(GMAIL_BODY)).filter(visible);
   if (bodies.length === 0) return '';
-  const subject = doc.querySelector<HTMLElement>(GMAIL_SUBJECT)?.innerText ?? '';
-  return [subject, ...bodies.map((b) => b.innerText)].join('\n');
+  const subjectEl = doc.querySelector<HTMLElement>(GMAIL_SUBJECT);
+  return [subjectEl ? textOf(subjectEl) : '', ...bodies.map(textOf)].join('\n');
 }
 
 /** The visible text worth checking, or '' when there is nothing to check yet. */
-export function readVisibleText(doc: Document = document): string {
+export function readVisibleText(doc: Document = document, visible: Visible = onScreen): string {
   try {
     const host = doc.location.hostname;
     const webmail = WEBMAIL_BODY[host];
-    const raw = isGmail(host) ? gmailOpenedText(doc) : webmail ? webmailOpenedText(doc, webmail) : (doc.body?.innerText ?? '');
-    return clean(raw).slice(0, MAX_CHARS);
+    const raw = isGmail(host) ? gmailOpenedText(doc, visible) : webmail ? webmailOpenedText(doc, webmail, visible) : (doc.body?.innerText ?? '');
+    if (!raw.trim()) return '';
+    // For an opened email, say where it really came from (the domain only).
+    const from = isWebmail(host) ? senderDomain(doc, host) : '';
+    return clean(from ? `Sender's address is at: ${from}\n${raw}` : raw).slice(0, MAX_CHARS);
   } catch {
     return '';
   }
