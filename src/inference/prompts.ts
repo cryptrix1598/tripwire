@@ -136,14 +136,13 @@ export function buildRedactPrompt(preRedacted: string): string {
   return ['Text:', '"""', preRedacted, '"""'].join('\n');
 }
 
-export function buildCloudPrompt(redactedText: string, ctx: PromptContext, deviceTriage?: Triage | null): string {
+export function buildCloudPrompt(redactedText: string, ctx: PromptContext): string {
   const lines = [
     `Site: ${ctx.hostname || 'unknown'}`,
     `Situation: ${situation(ctx)}`,
     `Warning signs found by simple rules: ${ctx.signalSummary}`,
   ];
   // The on-device score is deliberately NOT passed on: the second opinion has to be independent.
-  void deviceTriage;
   if (ctx.language) {
     lines.push(
       `Write redFlags and plainEnglishExplanation in ${ctx.language.name} (${ctx.language.code}), in plain everyday words. Every other field stays exactly as specified.`,

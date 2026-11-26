@@ -29,7 +29,7 @@ page, email or phone call
 | Held-out scams and 39 real pages, Gemini Nano first | 28 / 28 | 0 / 39 | |
 | The same held-out set, built-in rules only (no AI) | 3 / 28 | 0 / 39 | 0 |
 
-211 unit tests (plus 27 on Android), 32 security-rules tests, a 14-step end-to-end run with 0 accessibility problems, a live run against the real Firebase project. Details are in [Test results](#test-results).
+212 unit tests (plus 28 on Android), 32 security-rules tests, a 14-step end-to-end run with 0 accessibility problems, a live run against the real Firebase project. Details are in [Test results](#test-results).
 
 ## Why this matters
 
@@ -241,7 +241,7 @@ Gemini Nano needs Chrome 139+ on a desktop with about 22 GB of free disk and eit
 - If the phone model is there but does not answer, or cannot list the details, nothing is sent: the built-in warning signs answer. With no phone model, the redacted cloud check; offline, the built-in signs.
 - A caller who wants gift cards, crypto, a code, bank or Social Security details, access to the phone or computer, or money moved to a "safe" account gets **Hang up now** at once, with no model at all (the same list as the extension). A calm caller who has asked for nothing gets no check.
 - The cloud model answers to a JSON schema (`responseSchema`) and every call is retried once if its answer does not parse; the listing step has its own output budget and must end with END, or nothing is sent. Reasons are written in the phone's language. The answer thresholds are the extension's (caution from 30, "hang up" from 80).
-- The rules, redaction, leak check, answer parsing, call sentences and decisions are plain Kotlin with 18 unit tests, plus 3 that keep its alert sentences in step with firestore.rules ([ScamCheckTest.kt](android/app/src/test/java/app/tripwire/guardian/check/ScamCheckTest.kt)). Every screen of the app, both icons, is in English, Spanish and French, and what the person typed and the answer survive turning the phone.
+- The rules, redaction, leak check, answer parsing, call sentences and decisions are plain Kotlin with 19 unit tests, plus 3 that keep its alert sentences in step with firestore.rules ([ScamCheckTest.kt](android/app/src/test/java/app/tripwire/guardian/check/ScamCheckTest.kt)). Every screen of the app, both icons, is in English, Spanish and French, and what the person typed and the answer survive turning the phone.
 
 **Family on the phone too.** The protected person's phone can be the device a family member links to: "Show a pairing code" in **Is this a scam?** uses the same eight-digit code, "Yes, allow" approval and security rules as the extension. When a call check says to hang up and the person taps **I hung up**, the family is told (the alert carries one fixed sentence, as everywhere else). Thresholds and the cloud model are read from the same Remote Config parameter as the extension (`tripwire_config`).
 
@@ -258,7 +258,7 @@ Build it (JDK 17 and the Android SDK needed):
 2. Register an App Check debug token for it and put it in `android/local.properties` as `appcheck.debugToken=<uuid>`. Neither file is committed.
 3. Run `./gradlew assembleDebug` in `android/`. The APK lands in `android/app/build/outputs/apk/debug/`.
 
-Status: the app compiles against firebase-ai 18.2.0 and firebase-ai-ondevice 16.0.0-beta08, its 27 unit tests pass and the debug APK builds. **It has not been run on a phone or emulator yet** (see "Not verified yet"). While the app is closed, a background check looks for new alerts about every 15 minutes (the shortest period Android allows); there is no push.
+Status: the app compiles against firebase-ai 18.2.0 and firebase-ai-ondevice 16.0.0-beta08, its 28 unit tests pass and the debug APK builds. **It has not been run on a phone or emulator yet** (see "Not verified yet"). While the app is closed, a background check looks for new alerts about every 15 minutes (the shortest period Android allows); there is no push.
 
 ## Commands
 
@@ -346,7 +346,7 @@ The latest run told people to hang up on one ordinary call: a delivery driver sa
 
 ### Everything else
 
-- Unit tests: 211 passing (extension), 27 (Android). Security-rules tests: 30 against the emulator plus 2 that keep the rules and the app copy in step, 32 passing ([eval-results/rules-tests.json](eval-results/rules-tests.json)). Typecheck, unit tests, the rules-only corpus, the build and the rules tests also run in CI on every push ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
+- Unit tests: 212 passing (extension), 28 (Android). Security-rules tests: 30 against the emulator plus 2 that keep the rules and the app copy in step, 32 passing ([eval-results/rules-tests.json](eval-results/rules-tests.json)). Typecheck, unit tests, the rules-only corpus, the build and the rules tests also run in CI on every push ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
 - End-to-end in Chromium (`npm run e2e`): 14 of 14 steps, including the phone-call check, settings, the paused download, and a page that keeps deleting the warning. Result file: [eval-results/e2e.json](eval-results/e2e.json).
 - Live against the real project (`npm run live`): App Check token, hybrid call, Spanish explanations, pairing, single-use code, family alert. Result file: [eval-results/live-checks.json](eval-results/live-checks.json).
 - **App Check refuses robots, including ours.** On 16 Nov the hosted site began rejecting the automated test browser ("App attestation failed" from reCAPTCHA Enterprise), so pairing failed and the hosted demo fell back to built-in rules, with the badge saying so. The hosted demo was checked in an ordinary browser the same day and got its cloud answer. The automated runs of the hosted site now present the project's App Check debug token (read from `.env`, set only inside the test browser, never deployed); `--recaptcha` runs them as a robot. `node scripts/hosted-appcheck.mjs` shows the refusal, and the family page now says the browser could not be confirmed instead of blaming the internet.

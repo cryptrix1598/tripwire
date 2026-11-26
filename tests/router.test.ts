@@ -538,3 +538,13 @@ describe('router: what the device lists, and what the receipt shows', () => {
     expect(v.sentPreview).toBe(engine.analyzeInCloud.mock.calls[0]![1]);
   });
 });
+
+describe('router: listed details are whole words', () => {
+  it('a listed "Ted" does not turn "started" into "star[NAME]"', async () => {
+    const engine = fakeEngine({ triage: async () => triageJson(55), redact: async () => JSON.stringify({ items: [{ text: 'Ted', kind: 'NAME' }] }) });
+    await run(`${SCAM.text} Ted started the call and Ted asked for the code.`, engine);
+    const sent = engine.analyzeInCloud.mock.calls[0]![1];
+    expect(sent).toContain('started');
+    expect(sent).not.toMatch(/\bTed\b/);
+  });
+});

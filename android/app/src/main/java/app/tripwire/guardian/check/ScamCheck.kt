@@ -138,7 +138,10 @@ object Redactor {
 
     /** Replace what the phone's own model pointed at. The model only points; this code replaces. */
     fun replaceItems(text: String, items: List<String>): String =
-        usable(items).fold(text) { acc, item -> acc.replace(item, "[DETAIL]", ignoreCase = true) }
+        // Whole words only, whatever the case: a listed "Ted" must not turn "started" into "star[DETAIL]".
+        usable(items).fold(text) { acc, item ->
+            Regex("""(?<![\p{L}\p{N}])${Regex.escape(item)}(?![\p{L}\p{N}])""", RegexOption.IGNORE_CASE).replace(acc, "[DETAIL]")
+        }
 
     /** What the model listed that can be a personal detail: not a tag, not a runaway answer. */
     fun usable(items: List<String>): List<String> =

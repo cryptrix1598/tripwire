@@ -161,4 +161,9 @@ class ScamCheckTest {
         assertEquals("gemini-3.5-flash-lite", CheckConfig.parse("""{"cloudModel": "not a gemini model"}""").cloudModel)
         assertEquals(Verdict.CAREFUL, Decide.fromCloud(84, emptyList(), c))
     }
+
+    @Test
+    fun `a listed detail is replaced as a whole word only`() {
+        assertEquals("[DETAIL] started the call.", Redactor.replaceItems("Ted started the call.", listOf("Ted")))
+    }
 }

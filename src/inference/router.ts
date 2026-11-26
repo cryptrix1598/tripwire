@@ -270,7 +270,9 @@ function onDeviceRedactor(engine: AiEngine, system: string, timeoutMs: number): 
       // Ignore anything too short to be a personal detail, existing tags, and runaway answers.
       if (found.length < 3 || found.length > 80 || /^\[[A-Z]+\]$/.test(found)) continue;
       // Every occurrence, whatever its case ("Margaret" and "MARGARET"), so no variant of a listed detail is left.
-      out = out.replace(new RegExp(found.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), `[${item.kind}]`);
+      // Whole words only: a listed "Ted" must not turn "started" into "star[NAME]".
+      const pattern = found.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      out = out.replace(new RegExp(`(?<![\\p{L}\\p{N}])${pattern}(?![\\p{L}\\p{N}])`, 'giu'), `[${item.kind}]`);
     }
     return out;
   };
@@ -398,7 +400,6 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
   // The redacted cloud call, shared by stages 3 and 5.
   const runCloud = async (
     redactor: ModelRedactor | null,
-    deviceTriage: Triage | null,
   ): Promise<
     | { kind: 'ok'; analysis: CloudAnalysis; bytes: number; redactionCount: number; sent: string }
     | { kind: 'unreachable' | 'invalid'; attempt?: CloudAttempt }
@@ -412,7 +413,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
       throw err;
     }
     if (!redaction.safeToSend) return { kind: 'gate_closed' };
-    const prompt = buildCloudPrompt(redaction.text, ctx, deviceTriage);
+    const prompt = buildCloudPrompt(redaction.text, ctx);
     const result = await callValidated(
       () => withTimeout(engine.analyzeInCloud(prompts.cloudSystem, prompt, config.cloudModel), timeouts.cloudMs, 'cloud analysis'),
       CloudAnalysisSchema,
@@ -437,7 +438,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
     redactor: ModelRedactor | null = null,
     route: 'cloud_fallback' | 'device_then_cloud' = 'cloud_fallback',
   ): Promise<Verdict> => {
-    const cloud = await runCloud(redactor, null);
+    const cloud = await runCloud(redactor);
     if (cloud.kind !== 'ok') {
       return rulesVerdict(
         failSafeIfUnreachable || cloud.kind === 'invalid',
@@ -493,7 +494,9 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
     // The on-device model is here but did not answer (busy, timed out, invalid). Only past the
     // stricter gate, and only with the on-device redaction (which closes the gate if the device
     // fails again), may a copy go to the cloud. Otherwise the built-in rules, with the fail-safe floor.
-    if (!cloudLook) return rulesVerdict(true);
+    // A timeout on a slow machine is not a warning sign, so the normal caution bar applies; only a model
+    // that answered with nonsense lowers it.
+    if (!cloudLook) return rulesVerdict(triage.reason === 'invalid');
     return cloudOnly(true, onDeviceRedactor(engine, prompts.redactSystem, timeouts.onDeviceMs), 'device_then_cloud');
   }
 
@@ -539,7 +542,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
   }
 
   // ── Stage 5: the device is unsure. Redact on the device, then ask the cloud. ──
-  const cloud = await runCloud(onDeviceRedactor(engine, prompts.redactSystem, timeouts.onDeviceMs), t);
+  const cloud = await runCloud(onDeviceRedactor(engine, prompts.redactSystem, timeouts.onDeviceMs));
   if (cloud.kind === 'ok') {
     const a = cloud.analysis;
     // The device was unsure, which is the only reason the cloud was asked. If the
