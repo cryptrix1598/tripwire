@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-11-27T16:15:14.918Z",
+  "ranAt": "2026-11-27T16:54:35.846Z",
   "browser": "Chromium (Playwright), extension loaded",
   "steps": [
     {
@@ -36,7 +36,7 @@
     },
     {
       "state": "pass",
-      "name": "fake tech support: the phone link pauses instead of dialling"
+      "name": "fake tech support: the phone link pauses instead of dialing"
     },
     {
       "state": "pass",

@@ -2,8 +2,8 @@
  * Tripwire design tokens and components, shared by the extension (pages and the
  * in-page Shadow DOM UI) and the family dashboard.
  *
- * Direction: "harbor light". One deep harbor-blue field owns a region; amber
- * is the single signal color and never decoration; everything else is calm,
+ * Direction: blue and white. One deep navy field, leaning a little toward royal,
+ * owns a region; one brighter blue is the single accent and never decoration; everything else is calm,
  * pale and large. Built for a reader in their seventies: 18px body minimum on
  * anything they see, 44px+ targets, no red, nothing that flashes.
  *
@@ -12,27 +12,27 @@
  */
 :root,
 :host {
-  --tw-deep: #14344d;
-  --tw-ink: #0e2233;
-  --tw-ground: #eef3f6;
+  --tw-deep: #15335f;
+  --tw-ink: #0d1f3a;
+  --tw-ground: #f4f7fc;
   --tw-surface: #ffffff;
-  --tw-text-2: #34495a;
-  --tw-line: #c9d6de;
-  --tw-line-soft: #e3eaef;
-  --tw-field-line: #6f8798;
-  --tw-on-deep: #f4f8fa;
-  --tw-on-deep-2: #d5e3ec;
-  --tw-deep-line: #3f6583;
-  --tw-signal: #f0b429;
-  --tw-signal-soft: #fff3d1;
-  --tw-signal-mark: #ffe7a6;
-  --tw-signal-text: #6b4100;
-  --tw-signal-ink: #4a3a12;
-  --tw-ok: #17553b;
-  --tw-ok-on-deep: #7fd1ae;
-  --tw-dot-local: #1f7a55;
-  --tw-dot-redacted: #b25e00;
-  --tw-dot-fallback: #1f5fbf;
+  --tw-text-2: #354a68;
+  --tw-line: #cbd6e8;
+  --tw-line-soft: #e2e9f4;
+  --tw-field-line: #6b809f;
+  --tw-on-deep: #f5f8fd;
+  --tw-on-deep-2: #d3def0;
+  --tw-deep-line: #3c5c8f;
+  --tw-signal: #4f7fe8;
+  --tw-signal-soft: #eaf1fe;
+  --tw-signal-mark: #d6e4fd;
+  --tw-signal-text: #1d43a6;
+  --tw-signal-ink: #1c3765;
+  --tw-ok: #1c48b0;
+  --tw-ok-on-deep: #a9c4fa;
+  --tw-dot-local: #4f7fe8;
+  --tw-dot-redacted: #4f7fe8;
+  --tw-dot-fallback: #7f93b5;
   --tw-dot-rules: #5b6570;
   --tw-error: #7a2e0e;
   --tw-font: 'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -317,7 +317,8 @@
   background: var(--tw-ok-on-deep);
 }
 .tw-dot--redacted {
-  background: var(--tw-dot-redacted);
+  background: transparent;
+  box-shadow: inset 0 0 0 3px var(--tw-dot-redacted);
 }
 .tw-dot--fallback {
   background: var(--tw-dot-fallback);
@@ -678,7 +679,7 @@
   font-variant-numeric: tabular-nums;
 }
 .tw-input::placeholder {
-  color: #5a7285;
+  color: #5a6f8f;
 }
 .tw .tw-input:focus {
   outline: 4px solid var(--tw-signal);
@@ -1025,7 +1026,7 @@
   }
 }
 
-/* The five-minute hold on never-safe pauses: one calm amber surface, the countdown in figures that do not jump */
+/* The five-minute hold on never-safe pauses: one calm pale-blue surface, the countdown in figures that do not jump */
 .tw .tw-hold { display: grid; gap: 8px; padding: 20px 24px; border: 1px solid var(--tw-signal); border-radius: var(--tw-radius); background: var(--tw-signal-soft); color: var(--tw-ink); }
 .tw .tw-hold p { margin: 0; }
 .tw .tw-hold__lead { font-size: 22px; line-height: 1.3; font-weight: 700; color: var(--tw-signal-ink); }

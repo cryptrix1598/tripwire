@@ -4,7 +4,7 @@ import type { Route, Verdict } from '../inference/schemas';
 import { BRAND, ROUTE_BADGE, WHY } from './copy';
 
 /** The Tripwire mark: two posts joined by a wire. */
-export function Mark({ size = 32, color = '#F0B429', label }: { size?: number; color?: string; label?: string }) {
+export function Mark({ size = 32, color = '#8DAEF5', label }: { size?: number; color?: string; label?: string }) {
   return (
     <svg
       className="tw-mark"
@@ -124,11 +124,11 @@ export function Split({ side, children }: { side: ReactNode; children: ReactNode
 
 export function Tick({ ok = true }: { ok?: boolean }) {
   return ok ? (
-    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#17553b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#1c48b0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="4,11 9,16 18,6" />
     </svg>
   ) : (
-    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#34495a" strokeWidth="2.5" strokeLinecap="round">
+    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#354a68" strokeWidth="2.5" strokeLinecap="round">
       <line x1="5" y1="5" x2="17" y2="17" />
       <line x1="17" y1="5" x2="5" y2="17" />
     </svg>

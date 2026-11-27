@@ -106,7 +106,7 @@ async function paintBadge(tabId: number, verdict: Verdict): Promise<void> {
       return;
     }
     await chrome.action.setBadgeText({ tabId, text: '!' });
-    await chrome.action.setBadgeBackgroundColor({ tabId, color: verdict.state === 'tripped' ? '#1F3A5F' : '#B26A00' });
+    await chrome.action.setBadgeBackgroundColor({ tabId, color: verdict.state === 'tripped' ? '#15335F' : '#3C5C8F' });
     await chrome.action.setBadgeTextColor?.({ tabId, color: '#FFFFFF' });
   } catch {
     // The tab may already be gone.
@@ -118,7 +118,7 @@ async function paintBadge(tabId: number, verdict: Verdict): Promise<void> {
 /** The toolbar icon shows "…" while this tab's check is running. */
 async function markChecking(tabId: number, on: boolean): Promise<void> {
   try {
-    await chrome.action.setBadgeBackgroundColor({ tabId, color: '#14344D' });
+    await chrome.action.setBadgeBackgroundColor({ tabId, color: '#15335F' });
     await chrome.action.setBadgeText({ tabId, text: on ? '…' : '' });
     await chrome.action.setTitle({ tabId, title: on ? 'Tripwire is checking this page' : 'Tripwire' });
   } catch {

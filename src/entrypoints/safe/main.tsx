@@ -8,7 +8,7 @@ import { closeThisTab, mount, useStatus } from '../../ui/ext';
 import { Brand, Split } from '../../ui/kit';
 
 const icon = (children: ReactNode) => (
-  <svg aria-hidden="true" width="44" height="44" viewBox="0 0 44 44" fill="none" stroke="#14344D" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg aria-hidden="true" width="44" height="44" viewBox="0 0 44 44" fill="none" stroke="#15335F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     {children}
   </svg>
 );
@@ -45,7 +45,7 @@ function Safe() {
         <>
           <Brand />
           <div className="tw-stack tw-stack--tight" style={{ gap: 20 }}>
-            <svg aria-hidden="true" width="72" height="72" viewBox="0 0 72 72" fill="none" stroke="#7FD1AE" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round">
+            <svg aria-hidden="true" width="72" height="72" viewBox="0 0 72 72" fill="none" stroke="#A9C4FA" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="36" cy="36" r="31" />
               <polyline points="22,37 32,47 51,27" />
             </svg>

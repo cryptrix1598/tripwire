@@ -4,22 +4,22 @@ One look across the in-page UI, the extension pages and the family page. Tokens 
 
 ## Direction
 
-"Harbour light." A deep harbour-blue field owns one region of each screen and carries the single headline. Amber is the only signal color and is never decoration. Everything else is pale, large and still. The tripped state is deep blue, not red: the aim is to slow someone down, not frighten them further.
+Blue and white. A deep navy field, leaning a little toward royal blue, owns one region of each screen and carries the single headline. One brighter blue is the only accent and is never decoration. Everything else is pale, large and still. The tripped state is deep blue, not red: the aim is to slow someone down, not frighten them further.
 
 ## Color
 
 | Token | Value | Use |
 | --- | --- | --- |
-| `--tw-deep` | `#14344D` | The deep field, primary buttons |
-| `--tw-ink` | `#0E2233` | Text |
-| `--tw-ground` | `#EEF3F6` | Page background |
+| `--tw-deep` | `#15335F` | The deep field, primary buttons |
+| `--tw-ink` | `#0D1F3A` | Text |
+| `--tw-ground` | `#F4F7FC` | Page background |
 | `--tw-surface` | `#FFFFFF` | Cards, the feed |
-| `--tw-text-2` | `#34495a` | Secondary text |
-| `--tw-signal` | `#F0B429` | The signal: mark, focus ring, banner border, progress |
-| `--tw-signal-soft` | `#FFF3D1` | Banner background, "continued anyway" row |
-| `--tw-ok` | `#17553b` | "They stopped", "On" |
+| `--tw-text-2` | `#354a68` | Secondary text |
+| `--tw-signal` | `#4F7FE8` | The accent: mark, focus ring, banner border, progress |
+| `--tw-signal-soft` | `#EAF1FE` | Banner background, "continued anyway" row |
+| `--tw-ok` | `#1c48b0` | "They stopped", "On" |
 
-Route dots: green (on device), orange (redacted, then cloud), blue (no on-device AI), gray (rules only). A dot never stands alone; the words beside it say the same thing.
+Route dots: solid blue (on device), a blue ring (redacted, then cloud), slate blue (no on-device AI), gray (rules only). A dot never stands alone; the words beside it say the same thing.
 
 ## Type
 
@@ -59,4 +59,4 @@ Every verdict carries a route line. When anything was sent, "See exactly what wa
 
 ## Accessibility
 
-Focus ring 4px amber (deep blue on the amber banner). Targets 44px or larger. The pause is an `alertdialog`; the banner is a polite live region. Motion is a 200 to 280ms fade or drop on arrival only, removed under `prefers-reduced-motion`.
+Focus ring 4px bright blue (deep blue on the pale-blue banner). Targets 44px or larger. The pause is an `alertdialog`; the banner is a polite live region. Motion is a 200 to 280ms fade or drop on arrival only, removed under `prefers-reduced-motion`.

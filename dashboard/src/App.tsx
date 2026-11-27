@@ -223,16 +223,16 @@ export function AlertRow({ alert }: { alert: Alert }) {
       <div className="tw-alert__outcome">
         <p className={`tw-outcome${continued ? ' tw-outcome--continued' : ''}`}>
           {continued ? (
-            <NoticeIcon color="#6b4100" />
+            <NoticeIcon color="#1d43a6" />
           ) : (
-            <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#17553b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1c48b0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" />
               <polyline points="7,12.5 10.5,16 17,8.5" />
             </svg>
           )}
           <span>{continued ? feed.continued : feed.stopped}</span>
         </p>
-        <p className="tw-small" style={continued ? { color: '#4A3A12' } : undefined}>
+        <p className="tw-small" style={continued ? { color: '#1C3765' } : undefined}>
           {continued ? feed.continuedAdvice : feed.stoppedAdvice}
         </p>
       </div>
@@ -369,7 +369,7 @@ export function App() {
     <Shell
       actions={
         <>
-          <button type="button" className="tw-link tw-link--on-deep" style={{ color: '#F4F8FA' }} onClick={() => setPairing(true)}>
+          <button type="button" className="tw-link tw-link--on-deep" style={{ color: '#F5F8FD' }} onClick={() => setPairing(true)}>
             {DASHBOARD.feed.addAnother}
           </button>
           {out}

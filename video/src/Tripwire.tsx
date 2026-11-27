@@ -2,14 +2,14 @@ import React from 'react';
 import {AbsoluteFill, Easing, interpolate, spring, useCurrentFrame, useVideoConfig} from 'remotion';
 
 // Tripwire's own palette (src/ui/tripwire.css): calm deep blue, one warm signal, one green for "private".
-const GROUND = '#EEF3F6';
+const GROUND = '#F4F7FC';
 const SURFACE = '#FFFFFF';
-const INK = '#0E2233';
-const TEXT2 = '#34495A';
-const DEEP = '#14344D';
-const LINE = '#C9D6DE';
-const SIGNAL = '#F0B429';
-const OK = '#17553B';
+const INK = '#0D1F3A';
+const TEXT2 = '#354A68';
+const DEEP = '#15335F';
+const LINE = '#CBD6E8';
+const SIGNAL = '#4F7FE8';
+const OK = '#1C48B0';
 const FONT = 'Atkinson, system-ui, sans-serif';
 
 // One rule, borrowed from the Ferrari film: every scene ends on the shape the next one starts with.
@@ -296,7 +296,7 @@ export const Tripwire: React.FC = () => {
             transform: `scale(${f < 300 ? pillUp : 1})`,
           }}
         >
-          {/* the amber pill stays on as the alert's accent bar */}
+          {/* the accent pill stays on as the alert's accent bar */}
           <div style={{position: 'absolute', left: 0, top: 0, bottom: 0, width: lerp(f < 354 ? pill.w : line.w, 12, fly), background: SIGNAL, opacity: 1 - fold}} />
           <div style={{position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontSize: 36, fontWeight: 700, color: INK, opacity: 1 - r(f, 300, 306)}}>Hang up now.</div>
           <div style={{position: 'absolute', left: 48, top: 40, right: 30, opacity: alertText * (1 - fold)}}>

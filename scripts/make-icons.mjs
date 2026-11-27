@@ -3,8 +3,8 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { deflateSync } from 'node:zlib';
 
-const DEEP = [0x14, 0x34, 0x4d];
-const AMBER = [0xf0, 0xb4, 0x29];
+const DEEP = [0x15, 0x33, 0x5f];
+const AMBER = [0xff, 0xff, 0xff]; // the mark, drawn white
 const SS = 4; // supersampling per axis
 
 const table = Array.from({ length: 256 }, (_, n) => {

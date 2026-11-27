@@ -25,7 +25,7 @@ Fraud losses reported by older adults in the US rose from about $600 million in 
 Tripwire is a Chrome extension with three states.
 
 - **Safe:** nothing is shown. No badge, no banner.
-- **Caution:** a calm amber banner with one plain sentence and a "Why?" button.
+- **Caution:** a calm pale-blue banner with one plain sentence and a "Why?" button.
 - **Tripped:** a full-page pause that asks one question: *did someone call, text, or email you and ask you to do this?* "Stop and stay safe" is the large button; "I'm sure, continue" is a quiet link.
 
 **The urgency breaker.** Scams run on one weapon: "act now." For the asks that are never legitimate when someone contacts you (buying gift cards, sending crypto or a wire, installing a remote-access program), the pause holds "continue" for five minutes: *"Real emergencies can wait 5 minutes. Scams can't."* It tells the person to hang up first, then call the number on their card. Nothing can make the hold shorter, a reload does not restart or skip it (it is kept per tab and page in the extension, out of the page's reach), and "I'm still not sure" adds five more minutes. Ordinary shopping never sees it ([src/ui/hold.ts](src/ui/hold.ts)).

@@ -97,8 +97,8 @@ function SettingsPage() {
           {SETTINGS.trusted.title}
         </h2>
         <p>{SETTINGS.trusted.body}</p>
-        <p className="tw-notice" style={{ color: '#4a3a12' }}>
-          <NoticeIcon color="#6b4100" />
+        <p className="tw-notice" style={{ color: '#1c3765' }}>
+          <NoticeIcon color="#1d43a6" />
           <span>{SETTINGS.trusted.warning}</span>
         </p>
         <form className="tw-row" onSubmit={addSite} noValidate>

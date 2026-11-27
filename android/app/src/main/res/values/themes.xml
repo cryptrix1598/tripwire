@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="tripwire_deep">#14344D</color>
-    <color name="tripwire_ground">#EEF3F6</color>
-    <color name="tripwire_signal">#F0B429</color>
+    <color name="tripwire_deep">#15335F</color>
+    <color name="tripwire_ground">#F4F7FC</color>
+    <color name="tripwire_signal">#4F7FE8</color>
 
     <style name="Theme.Tripwire" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">@color/tripwire_ground</item>
