@@ -10,10 +10,24 @@ import { applySensitivity, loadSettings } from '../../config/settings';
 import { loadConfig } from '../../config/store';
 import { refreshRemoteConfig } from '../../config/remoteConfig';
 import { isFirebaseConfigured } from '../../firebase/config';
-import { createPairingCode, decidePending, disconnectGuardians, guardianCount, guardianLinks, retirePairingCode, sendAlert, sendHeartbeat } from '../../guardian/device';
+import {
+  createPairingCode,
+  decidePending,
+  disconnectGuardians,
+  endHold,
+  familyDecision,
+  guardianCount,
+  guardianLinks,
+  retirePairingCode,
+  sendAlert,
+  sendHeartbeat,
+  startHold,
+} from '../../guardian/device';
+import { withTimeout } from '../../inference/engine';
 import type { AiEngine } from '../../inference/engine';
 import { firebaseEngine, onDeviceStatus } from '../../inference/firebaseEngine';
-import { assess } from '../../inference/router';
+import { createCloudCache } from '../../inference/cloudCache';
+import { assess, assessTransfer } from '../../inference/router';
 import type { PairingReply, StatusReply, ToOffscreen } from '../../messaging';
 import { applyLocale } from '../../ui/locale';
 
@@ -26,6 +40,8 @@ const unconfiguredEngine: AiEngine = {
 };
 
 const engine: AiEngine = isFirebaseConfigured() ? firebaseEngine : unconfiguredEngine;
+/** Lives as long as this document: remembered cloud answers, in memory only. */
+const cloudCache = createCloudCache();
 try {
   applyLocale(chrome.i18n.getUILanguage());
 } catch {
@@ -95,7 +111,11 @@ async function handle(msg: ToOffscreen): Promise<unknown> {
   switch (msg.type) {
     case 'assess': {
       const config = applySensitivity(await loadConfig(), (await loadSettings()).sensitivity);
-      return oneAtATime(() => assess(msg.input, { engine, config }));
+      return oneAtATime(() => assess(msg.input, { engine, config, cloudCache }));
+    }
+    case 'assess-transfer': {
+      const config = applySensitivity(await loadConfig(), (await loadSettings()).sensitivity);
+      return oneAtATime(() => assessTransfer(msg.input, { engine, config }));
     }
     case 'status':
       return status();
@@ -138,6 +158,26 @@ async function handle(msg: ToOffscreen): Promise<unknown> {
       } catch {
         return { ok: false };
       }
+    case 'hold-start':
+      // Tell the family only when someone is paired; the clock never waits for this.
+      if (!isFirebaseConfigured()) return { told: false };
+      try {
+        if ((await withTimeout(guardianCount(), 8000, 'guardians')) === 0) return { told: false };
+        await withTimeout(startHold(msg.action, msg.endsAt), 8000, 'hold start');
+        return { told: true };
+      } catch {
+        return { told: false };
+      }
+    case 'hold-check':
+      if (!isFirebaseConfigured()) return { decision: null };
+      try {
+        return { decision: await withTimeout(familyDecision(), 4000, 'hold check') };
+      } catch {
+        return { decision: null };
+      }
+    case 'hold-end':
+      if (isFirebaseConfigured()) await withTimeout(endHold(), 8000, 'hold end').catch(() => undefined);
+      return { ok: true };
     case 'refresh-config':
       await refreshConfig();
       return { ok: true };

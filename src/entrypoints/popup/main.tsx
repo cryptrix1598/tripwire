@@ -67,7 +67,8 @@ function Popup() {
                   <span>{POPUP.trustedDetail}</span>
                 </p>
               ) : (
-                <RouteLine route={verdict?.route ?? 'not_checked'} sent={(verdict?.bytesSentToCloud ?? 0) > 0} wrongSide={verdict?.wrongSide} downloading={verdict?.modelDownloading} />
+                // Only for a page that was checked; otherwise the line above already says so.
+                verdict && <RouteLine route={verdict.route} sent={verdict.bytesSentToCloud > 0} wrongSide={verdict.wrongSide} downloading={verdict.modelDownloading} />
               ))}
           </dd>
         </div>

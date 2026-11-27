@@ -48,6 +48,41 @@ export function detectShape(text: string): Shape {
   };
 }
 
+/** Common short words of the three languages the word lists cover (English, Spanish, French). */
+const COVERED_WORDS = new Set(
+  'the and you your to of is for this that with on are it in we our be have from will not can el la los las de que y en un una su por para con es lo le les des et vous votre pour dans est une du au pas sur ne'.split(' '),
+);
+
+/** Common short words of other languages written in Latin letters (German, Portuguese, Italian, Dutch, Polish, Turkish...). */
+const OTHER_WORDS = new Set(
+  'der die das und ist nicht sie ich mit für auf ein eine ihr ihre ihren sich zu den dem des bitte wir uns wird oder não você seu sua com os do da dos das ao pelo pela são uma il della che non per sono gli nel alla del si het een van niet je jouw uw wij ons zijn bij nie jest się że jak ten ve bir bu için ile değil'.split(' '),
+);
+
+/**
+ * The page is written in a language the built-in word lists do not cover (German, Portuguese,
+ * Chinese, Arabic...), so the lists cannot be the gate for it. Judged from how many of its words
+ * are the commonest short words of English, Spanish and French, and whether it is in Latin letters.
+ */
+export function outsideTheWordLists(text: string): boolean {
+  // Scripts other than Latin (Chinese, Arabic, Cyrillic...) may not separate words: count letters.
+  const letters = text.match(/\p{L}/gu) ?? [];
+  if (letters.length >= 60 && letters.filter((c) => !/\p{Script=Latin}/u.test(c)).length / letters.length >= 0.5) return true;
+  const words = text.toLowerCase().match(/\p{L}+/gu) ?? [];
+  if (words.length < 30) return false;
+  const latin = words.filter((w) => /^[a-zà-ÿœæ]+$/.test(w)).length;
+  if (latin / words.length < 0.5) return true;
+  // Few of the covered languages' commonest words, and clearly another language's (a checkout page
+  // of product names and prices has few short words of any language, and is not "another language").
+  const covered = words.filter((w) => COVERED_WORDS.has(w)).length / words.length;
+  const other = words.filter((w) => OTHER_WORDS.has(w)).length / words.length;
+  return other >= 0.05 && other > covered;
+}
+
+/** At least one of the five features of a scam ask. */
+export function anyWarningSign(shape: Shape): boolean {
+  return shape.moneyAsk || shape.pressure || shape.secrecy || shape.credentialAsk || shape.hasPhone || shape.sensitiveAsk;
+}
+
 /**
  * Worth a look by the ON-DEVICE model. Deliberately generous: a look costs a
  * few seconds of this computer's time and sends nothing anywhere.

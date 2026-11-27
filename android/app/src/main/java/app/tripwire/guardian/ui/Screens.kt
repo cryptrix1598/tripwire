@@ -64,6 +64,7 @@ import app.tripwire.guardian.AdviceState
 import app.tripwire.guardian.AdviceWriter
 import app.tripwire.guardian.Alert
 import app.tripwire.guardian.DayLabel
+import app.tripwire.guardian.Hold
 import app.tripwire.guardian.Labels
 import app.tripwire.guardian.PairError
 import app.tripwire.guardian.Person
@@ -94,6 +95,7 @@ fun GuardianScreen(
     onPair: (code: String, nickname: String, fallbackName: String) -> Unit,
     onAdvice: (alert: Alert, scamLabel: String, fixed: String) -> Unit,
     onDownloadModel: () -> Unit,
+    onAnswerHold: (Boolean) -> Unit,
 ) {
     Column(Modifier.fillMaxSize().background(Tw.Ground)) {
         Row(
@@ -112,7 +114,7 @@ fun GuardianScreen(
                     PrimaryButton(stringResource(R.string.retry), onClick = onRetry)
                 }
                 state.showPairing -> PairScreen(state, onPair, onBack = { onShowPairing(false) })
-                else -> FeedScreen(state, onSelect, onAdd = { onShowPairing(true) }, onAdvice, onDownloadModel)
+                else -> FeedScreen(state, onSelect, onAdd = { onShowPairing(true) }, onAdvice, onDownloadModel, onAnswerHold)
             }
         }
     }
@@ -193,6 +195,7 @@ private fun FeedScreen(
     onAdd: () -> Unit,
     onAdvice: (Alert, String, String) -> Unit,
     onDownloadModel: () -> Unit,
+    onAnswerHold: (Boolean) -> Unit,
 ) {
     val person = state.selected ?: return
     val alerts = state.alerts
@@ -211,6 +214,12 @@ private fun FeedScreen(
                 if (alerts != null && !state.alertsFailed) {
                     DotLine(Tw.Ok, stringResource(R.string.feed_live), bold = true, color = Tw.Ok)
                 }
+            }
+        }
+        state.hold?.let { hold ->
+            val now = System.currentTimeMillis()
+            if (hold.running(now) || hold.answeredRecently(now)) {
+                item(key = "hold") { HoldCard(hold, now, state.holdBusy, state.holdFailed, onAnswerHold) }
             }
         }
         when {
@@ -233,6 +242,38 @@ private fun FeedScreen(
             OutlinedButton(onClick = onAdd, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp), shape = RoundedCornerShape(14.dp)) {
                 Text(stringResource(R.string.feed_add_another), style = MaterialTheme.typography.labelLarge)
             }
+        }
+    }
+}
+
+/**
+ * A hold running on their computer. Answered once: keep it on hold (the safe default, first), or let it
+ * go through after talking to them. The security rules allow only these two answers, only while it runs.
+ */
+@Composable
+private fun HoldCard(hold: Hold, now: Long, busy: Boolean, failed: Boolean, onAnswer: (Boolean) -> Unit) {
+    Surface(shape = RoundedCornerShape(16.dp), color = Tw.SignalSoft, modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            if (!hold.running(now)) {
+                Text(
+                    stringResource(if (hold.decision == "released") R.string.hold_released else R.string.hold_extended),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                )
+                return@Column
+            }
+            Text(stringResource(R.string.hold_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+            val until = TIME.format(Instant.ofEpochMilli(hold.endsAtMillis).atZone(ZoneId.systemDefault()))
+            Text(stringResource(R.string.hold_body, stringResource(Labels.action(hold.action)), until))
+            Text(stringResource(R.string.hold_advice), color = Tw.Text2)
+            PrimaryButton(stringResource(R.string.hold_extend), enabled = !busy) { onAnswer(false) }
+            OutlinedButton(
+                onClick = { onAnswer(true) },
+                enabled = !busy,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                shape = RoundedCornerShape(12.dp),
+            ) { Text(stringResource(R.string.hold_release), style = MaterialTheme.typography.labelLarge) }
+            if (failed) Notice(stringResource(R.string.hold_failed))
         }
     }
 }
@@ -288,25 +329,26 @@ private fun AlertCard(alert: Alert, advice: AdviceState?, onAdvice: (Alert, Stri
         is DayLabel.Earlier -> DATE.format(label.date)
     }
     val scamLabel = stringResource(Labels.scam(alert.scamType))
+    val actionLabel = stringResource(Labels.action(alert.action))
     val fixed = stringResource(if (alert.continued) R.string.advice_fixed_continued else R.string.advice_fixed_stopped)
     val outcomeColor = if (alert.continued) Tw.SignalText else Tw.Ok
 
     Surface(shape = RoundedCornerShape(16.dp), color = if (alert.continued) Tw.SignalSoft else Tw.Surface, modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("$day · ${TIME.format(at)}", style = MaterialTheme.typography.bodyMedium, color = Tw.Text2)
-            Text(scamLabel, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+            Text(if (alert.aboutAStep) actionLabel else scamLabel, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
             Text(alert.summary)
-            Text(stringResource(Labels.action(alert.action)), style = MaterialTheme.typography.bodyMedium, color = Tw.Text2)
+            if (!alert.aboutAStep) Text(actionLabel, style = MaterialTheme.typography.bodyMedium, color = Tw.Text2)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutcomeIcon(alert.continued, outcomeColor)
                 Text(
-                    stringResource(if (alert.continued) R.string.feed_continued else R.string.feed_stopped),
+                    stringResource(if (alert.changed) R.string.feed_changed else if (alert.continued) R.string.feed_continued else R.string.feed_stopped),
                     style = MaterialTheme.typography.titleMedium,
                     color = outcomeColor,
                 )
             }
             Text(
-                stringResource(if (alert.continued) R.string.feed_continued_advice else R.string.feed_stopped_advice),
+                stringResource(if (alert.changed) R.string.feed_changed_advice else if (alert.continued) R.string.feed_continued_advice else R.string.feed_stopped_advice),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Tw.Text2,
             )

@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-11-27T17:20:10.072Z",
+  "ranAt": "2026-11-27T20:37:45.646Z",
   "browser": "Chromium (Playwright), extension loaded",
   "steps": [
     {
@@ -28,7 +28,7 @@
     },
     {
       "state": "pass",
-      "name": "your own bank: adding a new payee pauses with the money question and the hold"
+      "name": "your own bank: a new payee gets one plain question; after a warning it gets the hold"
     },
     {
       "state": "pass",

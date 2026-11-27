@@ -12,6 +12,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   getFirestore,
   serverTimestamp,
@@ -20,7 +21,8 @@ import {
   updateDoc,
 } from 'firebase/firestore/lite';
 import { getFirebaseApp } from '../firebase/app';
-import type { ScamType, AlertAction } from '../inference/schemas';
+import type { ScamType, AlertAction, Trigger } from '../inference/schemas';
+import type { FamilyDecision } from '../ui/hold';
 import type { Outcome } from '../ui/copy';
 import { buildAlert, applyDecision, choosePending, generatePairingCode, GUARDIAN_NAME_PATTERN, PAIRING_TTL_MS } from './model';
 
@@ -172,4 +174,33 @@ export async function sendHeartbeat(): Promise<void> {
   const user = await ensureSignedIn();
   const db = getFirestore(getFirebaseApp());
   await setDoc(doc(db, 'devices', user.uid), { lastSeenAt: serverTimestamp() }, { merge: true });
+}
+
+/**
+ * A five-minute hold has started: one document the family can see and answer ("let it go through"
+ * or "keep it on hold"). Only the kind of step and the times; never the page.
+ */
+export async function startHold(action: Trigger, endsAt: number): Promise<void> {
+  const user = await ensureSignedIn();
+  const db = getFirestore(getFirebaseApp());
+  await setDoc(doc(db, 'devices', user.uid, 'holds', 'current'), {
+    action,
+    startedAt: serverTimestamp(),
+    endsAt: Timestamp.fromMillis(endsAt),
+    decision: 'waiting',
+  });
+}
+
+/** The family's answer to the running hold, if any. */
+export async function familyDecision(): Promise<FamilyDecision | null> {
+  const user = await ensureSignedIn();
+  const snap = await getDoc(doc(getFirestore(getFirebaseApp()), 'devices', user.uid, 'holds', 'current'));
+  const decision = snap.data()?.decision;
+  return decision === 'released' || decision === 'extended' ? decision : null;
+}
+
+/** The person stopped or continued: the family page stops offering to answer. */
+export async function endHold(): Promise<void> {
+  const user = await ensureSignedIn();
+  await updateDoc(doc(getFirestore(getFirebaseApp()), 'devices', user.uid, 'holds', 'current'), { decision: 'done' });
 }

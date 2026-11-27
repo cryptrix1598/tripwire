@@ -59,4 +59,4 @@ Every verdict carries a route line. When anything was sent, "See exactly what wa
 
 ## Accessibility
 
-Focus ring 4px bright blue (deep blue on the pale-blue banner). Targets 44px or larger. The pause is an `alertdialog`; the banner is a polite live region. Motion is a 200 to 280ms fade or drop on arrival only, removed under `prefers-reduced-motion`.
+Focus ring 4px bright blue (white on the deep-blue warning band). Targets 44px or larger. The pause is an `alertdialog`; the banner is a polite live region. Motion is a 200 to 280ms fade or drop on arrival only, removed under `prefers-reduced-motion`.

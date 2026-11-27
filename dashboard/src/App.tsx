@@ -8,7 +8,7 @@
  * stated on the page, because that promise is the product.
  */
 import { GoogleAuthProvider, onAuthStateChanged, signInAnonymously, signInWithPopup, signOut, type User } from 'firebase/auth';
-import { collection, doc, getDoc, limit, onSnapshot, orderBy, query, serverTimestamp, setDoc, writeBatch, type Timestamp } from 'firebase/firestore';
+import { collection, doc, getDoc, limit, onSnapshot, orderBy, query, serverTimestamp, setDoc, updateDoc, writeBatch, type Timestamp } from 'firebase/firestore';
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { PAIRING_CODE_PATTERN } from '../../src/guardian/model';
 import type { ProtectionAction, ScamType, Trigger } from '../../src/inference/schemas';
@@ -166,7 +166,6 @@ export function Pair({ uid, onDone }: { uid: string; onDone: (deviceId: string) 
             inputMode="numeric"
             autoComplete="one-time-code"
             maxLength={9}
-            placeholder="00000000"
             value={code}
             onChange={(e) => setCode(e.target.value)}
             aria-invalid={error ? true : undefined}
@@ -274,6 +273,78 @@ function LastSeen({ deviceId }: { deviceId: string }) {
   return <p className="tw-small">{feed.lastSeen(plain)}</p>;
 }
 
+/**
+ * A five-minute hold running on their computer right now. An approved family member may answer it
+ * once: let it go through (after talking to them), or keep it on hold for half an hour so there is
+ * time to call. firestore.rules allows exactly these two answers, only while the hold is running.
+ */
+function HoldCard({ deviceId }: { deviceId: string }) {
+  type Hold = { action: Trigger; endsAt: Timestamp; decision: string; decidedAt?: Timestamp };
+  const [hold, setHold] = useState<Hold | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [, setTick] = useState(0);
+  const feed = DASHBOARD.feed;
+  useEffect(
+    () =>
+      onSnapshot(
+        doc(db!, 'devices', deviceId, 'holds', 'current'),
+        (snap) => setHold((snap.data({ serverTimestamps: 'estimate' }) as Hold | undefined) ?? null),
+        () => setHold(null),
+      ),
+    [deviceId],
+  );
+  // Re-render now and then, so a hold that runs out disappears on its own.
+  useEffect(() => {
+    const t = setInterval(() => setTick((n) => n + 1), 15_000);
+    return () => clearInterval(t);
+  }, []);
+  if (!hold) return null;
+  if (hold.decision === 'released' || hold.decision === 'extended') {
+    const recent = hold.decidedAt && Date.now() - hold.decidedAt.toMillis() < 30 * 60_000;
+    return recent ? (
+      <p className="tw-notice" role="status">
+        <Tick />
+        <span>{hold.decision === 'released' ? feed.holdReleased : feed.holdExtended}</span>
+      </p>
+    ) : null;
+  }
+  if (hold.decision !== 'waiting' || hold.endsAt.toMillis() <= Date.now()) return null;
+  const answer = async (decision: 'released' | 'extended') => {
+    setBusy(true);
+    setFailed(false);
+    try {
+      await updateDoc(doc(db!, 'devices', deviceId, 'holds', 'current'), { decision, decidedAt: serverTimestamp() });
+    } catch {
+      setFailed(true);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const until = hold.endsAt.toDate().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  return (
+    <section className="tw-hold tw-hold--family" aria-labelledby="hold-title">
+      <h2 id="hold-title" className="tw-hold__lead">{feed.holdTitle}</h2>
+      <p>{feed.holdBody(TRIGGER_LABEL[hold.action] ?? TRIGGER_LABEL.passive, until)}</p>
+      <p>{feed.holdAdvice}</p>
+      <div className="tw-row" style={{ gap: 12, flexWrap: 'wrap' }}>
+        <button type="button" className="tw-btn" disabled={busy} onClick={() => void answer('extended')}>
+          {feed.holdExtend}
+        </button>
+        <button type="button" className="tw-btn tw-btn--outline" disabled={busy} onClick={() => void answer('released')}>
+          {feed.holdRelease}
+        </button>
+      </div>
+      {failed && (
+        <p className="tw-notice" role="alert">
+          <NoticeIcon />
+          <span>{feed.holdFailed}</span>
+        </p>
+      )}
+    </section>
+  );
+}
+
 function Feed({ person }: { person: Person }) {
   const [alerts, setAlerts] = useState<Alert[] | null>(null);
   const [failed, setFailed] = useState(false);
@@ -320,6 +391,7 @@ function Feed({ person }: { person: Person }) {
           </p>
         )}
       </div>
+      {!waiting && <HoldCard deviceId={person.deviceId} />}
       {waiting ? (
         <p className="tw-muted" role="status">{feed.waitingApproval}</p>
       ) : failed ? (

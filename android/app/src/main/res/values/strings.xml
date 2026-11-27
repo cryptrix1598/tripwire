@@ -171,4 +171,17 @@
     <string name="watch_on_body">On: alerts arrive within seconds, even while the app is closed. A small notification stays while this is on.</string>
     <string name="watch_channel">Watching for alerts</string>
     <string name="watch_running">Tripwire Guardian is watching for alerts</string>
+    <string name="action_money_transfer">Started sending money from their bank</string>
+    <string name="action_trusted_site">Marked a website as trusted</string>
+    <string name="action_setting_lowered">Turned Tripwire’s warnings down</string>
+    <string name="feed_changed">Their protection changed</string>
+    <string name="feed_changed_advice">If they did not mean to, or someone on the phone told them to, give them a call.</string>
+    <string name="hold_title">Tripwire is holding something right now</string>
+    <string name="hold_body">%1$s. Tripwire is asking them to wait until %2$s.</string>
+    <string name="hold_advice">Call them. If no stranger is on the phone with them and this is really their own idea, you can let it go through.</string>
+    <string name="hold_extend">Keep it on hold for 30 minutes</string>
+    <string name="hold_release">I talked to them: let it go through</string>
+    <string name="hold_released">You let it go through</string>
+    <string name="hold_extended">You asked them to wait 30 more minutes</string>
+    <string name="hold_failed">That did not reach their computer. Check your internet and try again.</string>
 </resources>

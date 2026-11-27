@@ -24,6 +24,18 @@ const NOT_TRANSFER = /e-?mail|message|memo|note|gift|search|coupon|promo|passwor
 const NEW_PAYEE =
   /\b(?:add|new|enroll|set up)\s+(?:a\s+)?(?:new\s+)?(?:payee|recipient|beneficiary)\b|\bnew\s+(?:payee|recipient|beneficiary)\b|\bfirst time sending\b|\bnuevo destinatario\b|\bagregar (?:un )?destinatario\b|\bnouveau bénéficiaire\b|\bajouter un bénéficiaire\b/i;
 
+/**
+ * The stories scam transfers are told with, in the form or the page around it: a "safe account",
+ * moving all your savings, protecting your funds, crypto, gift cards, a refund or "verification"
+ * transfer. Used only at the transfer moment, not to judge ordinary pages.
+ */
+const SCAM_TRANSFER_STORY =
+  /\b(?:safe|secure|protected|safety|holding)\s+account\b|\b(?:move|transfer|send)\s+(?:all\s+)?(?:of\s+)?your\s+(?:money|savings|funds|balance)\b|\bprotect\s+your\s+(?:money|savings|funds)\b|\b(?:bitcoin|crypto(?:currency)?|gift\s*cards?)\b|\b(?:verification|refund|release)\s+(?:transfer|payment|fee)\b|\bcuenta\s+segura\b|\bproteger\s+su\s+dinero\b|\bcompte\s+s[ée]curis[ée]|\bprot[ée]ger\s+votre\s+argent\b/i;
+
+export function tellsAScamTransferStory(text: string): boolean {
+  return SCAM_TRANSFER_STORY.test(text);
+}
+
 /** How long a scam warning or a phone-call check counts as "just now". */
 export const RECENT_RISK_MS = 60 * 60_000;
 

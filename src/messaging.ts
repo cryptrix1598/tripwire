@@ -5,9 +5,17 @@
  */
 import type { TripwireConfig } from './config/defaults';
 import type { OnDeviceStatus } from './inference/engine';
-import type { AssessInput } from './inference/router';
+import type { AssessInput, TransferInput } from './inference/router';
 import type { ScamType, AlertAction, Trigger, Verdict } from './inference/schemas';
 import type { Outcome } from './ui/copy';
+import type { FamilyDecision } from './ui/hold';
+
+/** The background's answer to "hold": when it ends, and whether the family was told or has answered. */
+export interface HoldReply {
+  endsAt: number;
+  told?: boolean;
+  family?: FamilyDecision;
+}
 
 /* ---------- content script / pages → service worker ---------- */
 
@@ -18,9 +26,9 @@ export type ToBackground =
   | { target: 'background'; type: 'outcome'; scamType: ScamType; trigger: Trigger; outcome: Outcome; hostname: string; page?: string; downloadId?: number }
   | { target: 'background'; type: 'leave' }
   // The five-minute hold on a never-safe pause: when it ends (and "wait longer").
-  | { target: 'background'; type: 'hold'; page: string; extend?: boolean }
+  | { target: 'background'; type: 'hold'; page: string; extend?: boolean; action?: Trigger }
   // Did a scam warning or a phone-call check happen on this computer within the last hour?
-  | { target: 'background'; type: 'transfer-risk' }
+  | { target: 'background'; type: 'assess-transfer'; input: TransferInput }
   // Open the phone-call check (from a pause, the menu, the shortcut).
   | { target: 'background'; type: 'open-call' }
   // The page keeps removing the warning: show the pause on an extension page instead.
@@ -45,6 +53,10 @@ export type ToOffscreen =
   | { target: 'offscreen'; type: 'family-disconnect' }
   | { target: 'offscreen'; type: 'alert'; scamType: ScamType; trigger: AlertAction; outcome: Outcome }
   | { target: 'offscreen'; type: 'heartbeat' }
+  | { target: 'offscreen'; type: 'assess-transfer'; input: TransferInput }
+  | { target: 'offscreen'; type: 'hold-start'; action: Trigger; endsAt: number }
+  | { target: 'offscreen'; type: 'hold-check' }
+  | { target: 'offscreen'; type: 'hold-end' }
   | { target: 'offscreen'; type: 'refresh-config' };
 
 /* ---------- service worker → content script (top frame) ---------- */

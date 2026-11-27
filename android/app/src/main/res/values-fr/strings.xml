@@ -153,4 +153,17 @@
     <string name="watch_on_body">Activé : les alertes arrivent en quelques secondes, même application fermée. Une petite notification reste affichée tant que c’est activé.</string>
     <string name="watch_channel">Surveillance des alertes</string>
     <string name="watch_running">Tripwire Guardian surveille les alertes</string>
+    <string name="action_money_transfer">A commencé à envoyer de l’argent depuis sa banque</string>
+    <string name="action_trusted_site">A marqué un site comme fiable</string>
+    <string name="action_setting_lowered">A baissé les avertissements de Tripwire</string>
+    <string name="feed_changed">Sa protection a changé</string>
+    <string name="feed_changed_advice">Si ce n’était pas voulu, ou si quelqu’un au téléphone le lui a demandé, appelez cette personne.</string>
+    <string name="hold_title">Tripwire retient quelque chose en ce moment</string>
+    <string name="hold_body">%1$s. Tripwire lui demande d’attendre jusqu’à %2$s.</string>
+    <string name="hold_advice">Appelez cette personne. Si aucun inconnu n’est au téléphone avec elle et que c’est vraiment son idée, vous pouvez laisser passer.</string>
+    <string name="hold_extend">Retenir encore 30 minutes</string>
+    <string name="hold_release">Je lui ai parlé : laisser passer</string>
+    <string name="hold_released">Vous avez laissé passer</string>
+    <string name="hold_extended">Vous lui avez demandé d’attendre 30 minutes de plus</string>
+    <string name="hold_failed">Cela n’est pas arrivé jusqu’à son ordinateur. Vérifiez votre connexion internet et réessayez.</string>
 </resources>

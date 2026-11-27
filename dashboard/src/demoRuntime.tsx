@@ -16,8 +16,9 @@
 import { configured } from './firebase'; // first: App Check must be set up before any AI call
 import { DEFAULT_CONFIG } from '../../src/config/defaults';
 import type { AiEngine } from '../../src/inference/engine';
+import { createCloudCache } from '../../src/inference/cloudCache';
 import { firebaseEngine } from '../../src/inference/firebaseEngine';
-import { assess, type AssessInput } from '../../src/inference/router';
+import { assess, assessTransfer, type AssessInput, type TransferInput } from '../../src/inference/router';
 import type { ContentScriptContext } from './wxtShim';
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -69,24 +70,25 @@ async function start(): Promise<void> {
 
   const continued = new Set<string>();
   const engine = configured ? firebaseEngine : rulesOnly;
+  const cloudCache = createCloudCache();
 
   // The handful of extension APIs the content script touches, answered in the page.
   (globalThis as unknown as { chrome: unknown }).chrome = {
     runtime: {
       getURL: (path: string) => path,
       onMessage: { addListener: () => undefined },
-      sendMessage: async (message: { type: string; input?: AssessInput; page?: string; outcome?: string }) => {
+      sendMessage: async (message: { type: string; input?: AssessInput & TransferInput; page?: string; outcome?: string }) => {
         switch (message.type) {
           case 'assess': {
-            const verdict = await assess(message.input!, { engine, config: DEFAULT_CONFIG });
+            const verdict = await assess(message.input!, { engine, config: DEFAULT_CONFIG, cloudCache });
             if (verdict.route === 'rules_only') noteRulesOnly();
             return { verdict, acknowledged: continued.has(message.page ?? '') };
           }
           case 'outcome':
             if (message.outcome === 'continued') continued.add(message.page ?? '');
             return { ok: true };
-          case 'transfer-risk':
-            return { recent: false };
+          case 'assess-transfer':
+            return assessTransfer(message.input!, { engine, config: DEFAULT_CONFIG });
           case 'leave':
             location.href = '/stopped.html';
             return { ok: true };

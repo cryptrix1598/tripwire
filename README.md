@@ -32,7 +32,7 @@ page, email or phone call
 | The same held-out set, no Gemini Nano (cloud-only path) | 23 / 28 | 0 / 39 | |
 | The same held-out set, built-in rules only (no AI) | 3 / 28 | 0 / 39 | 0 |
 
-233 unit tests (plus 35 on Android), 35 security-rules tests, a 15-step end-to-end run with 0 accessibility problems, a live run against the real Firebase project. Details are in [Test results](#test-results).
+246 unit tests (plus 35 on Android), 40 security-rules tests, a 15-step end-to-end run with 0 accessibility problems, a live run against the real Firebase project. Details are in [Test results](#test-results).
 
 ## Why this matters
 
@@ -59,12 +59,17 @@ Browsers block known bad sites and warn about dangerous pages, and Chrome's Enha
 | State | What the person sees |
 | --- | --- |
 | Safe | Nothing at all. No badge, no banner. |
-| Caution | A calm pale-blue banner with one plain sentence, a "Why?" button and "Dismiss". |
+| Caution | A deep-blue warning band ("Warning from Tripwire") with one plain sentence, a "Why?" button and "Dismiss". |
 | Tripped | A full-page pause. "Stop and stay safe" is the big button; "I'm sure, continue" is a quiet link. |
 
-**The urgency breaker.** Scams run on one weapon: "act now." For the asks that are never legitimate when someone contacts you (buying gift cards, sending crypto or a wire, installing a remote-access program), the pause holds "continue" for five minutes: *"Real emergencies can wait 5 minutes. Scams can't."* It tells the person to hang up first, then call the number on their card. Nothing can make the hold shorter, a reload does not restart or skip it (it is kept per tab and page in the extension, out of the page's reach), and "I'm still not sure" adds five more minutes. Ordinary shopping never sees it ([src/ui/hold.ts](src/ui/hold.ts)).
+**The urgency breaker.** Scams run on one weapon: "act now." For the asks that are never legitimate when someone contacts you (buying gift cards, sending crypto or a wire, installing a remote-access program), the pause holds "continue" for five minutes: *"Real emergencies can wait 5 minutes. Scams can't."* It tells the person to hang up first, then call the number on their card. Nothing can make the hold shorter, a reload does not restart or skip it (it is kept per tab and page in the extension, out of the page's reach), and "I'm still not sure" adds five more minutes. If someone in the family is paired, they see the hold on their family page or phone and can answer it once: **"Keep it on hold for 30 minutes"** so there is time to call, or, after talking to them, **"Let it go through"**. The wait becomes a second opinion from a person they trust, not just a timer. The security rules allow exactly those two answers, only from an approved family member, only while the hold runs, and the hold record holds nothing but the kind of step and the times ([firestore.rules](firestore.rules)). Ordinary shopping never sees it ([src/ui/hold.ts](src/ui/hold.ts)).
 
-**Your own bank.** The costliest scams end on the person's real bank site: "your account is compromised, move your savings to a safe account." Nothing on that page looks wrong, so Tripwire watches the moment instead. When someone starts a transfer (a payee, routing, wire or amount box in a form about sending money) to a **new payee**, or within an hour of a scam warning or a phone-call check on this computer, it pauses with one question: *"Is someone on the phone telling you to move money?"* It says plainly that a bank never asks you to move money to keep it safe, and it holds "continue" for five minutes. A transfer to a payee they have paid before, with nothing suspicious that hour, is never interrupted ([src/tripwires/transfer.ts](src/tripwires/transfer.ts); practice page: `transfer.html`).
+**Your own bank.** The costliest scams end on the person's real bank site: "your account is compromised, move your savings to a safe account." Nothing on that page looks wrong, so Tripwire watches the moment instead, and the firmness of the pause depends on it. When someone starts a transfer (a payee, routing, wire or amount box in a form about sending money):
+- to someone they have paid before, with nothing suspicious that hour: no pause;
+- to a **new payee**: Gemini Nano reads the transfer form **on the device only** (this is their bank; nothing goes to the cloud here). An ordinary form gets one plain question, *"Is someone on the phone telling you to move money?"*, with "continue" right there. If the model, or a built-in rule for the stories scammers use (a "safe account", moving all your savings, crypto, gift cards, a refund transfer), sees a scam transfer, the pause also holds "continue" for five minutes;
+- within an hour of a scam warning or a phone-call check on this computer: the five-minute hold, whatever the form says.
+
+The pause says plainly that a bank never asks you to move money to keep it safe ([src/tripwires/transfer.ts](src/tripwires/transfer.ts), `assessTransfer` in [src/inference/router.ts](src/inference/router.ts); practice page: `transfer.html`).
 
 **When protection is turned down.** Scammers coach people into switching protection off: "add our site to your safe list", "turn that warning down", "remove that program." Paired family members get an alert when a site is marked as trusted or the warning level is lowered, each with its own fixed sentence pinned in the security rules. The computer also says "still here" twice a day, so the family page shows when Tripwire last checked in and, after three silent days, suggests a call. If Tripwire is removed, Chrome opens a page that says: if someone on the phone told you to do this, that call is a scam; hang up.
 
@@ -89,6 +94,10 @@ The first picture was captured in desktop Chrome 157 with Gemini Nano answering,
 | Caution | Tripped |
 | --- | --- |
 | ![Caution banner with its reasons open](docs/screenshots/caution-banner-why.png) | ![Full-page pause](docs/screenshots/pause.png) |
+
+| A new payee on their own bank: one question | The same transfer soon after a warning: the hold |
+| --- | --- |
+| ![Transfer pause with "continue" right there](docs/screenshots/pause-transfer-check.png) | ![Transfer pause with the five-minute hold](docs/screenshots/pause-transfer.png) |
 
 | After stopping | A paused download |
 | --- | --- |
@@ -132,7 +141,7 @@ Every verdict carries a `route`, shown to the person in plain words:
 
 - **Checked on your device · nothing left your computer**
 - **Personal info removed · sent for a deeper check**
-- **Your device doesn't support on-device AI · personal info removed before checking**
+- **Checked online · personal info removed first** (no on-device model on this computer)
 - **Checked with built-in safety rules · nothing left your computer** (offline, or no model reachable)
 - If a deeper check was sent but no usable answer came back (a timeout or an unreadable answer), the badge does not say "nothing left your computer": it says "personal info removed, then it may have been sent", and "See exactly what was sent" shows the text.
 
@@ -141,6 +150,8 @@ What decides each step (all of this was changed after a held-out test, see "Test
 - **The gate is the shape of the request, not just keywords.** A page is worth a look when it asks for money or credentials and adds pressure, secrecy or a number to call ([src/inference/shape.ts](src/inference/shape.ts)). The on-device look is generous, because it sends nothing. With no on-device model the bar is higher, because something would leave the device.
 - **Models read an excerpt, not the page.** A long page is cut to its opening plus the sentences that carry the ask (at most 1,800 characters). This keeps the on-device model to a few seconds and means less can ever be sent.
 - **On-device redaction lists, code replaces.** The on-device model returns the personal details it finds; the replacing is done in code, so nothing can be paraphrased or dropped, and it is several times faster than asking a small model to rewrite the text.
+- **The word lists are not the only gate.** A page in a language the built-in lists do not cover (German, Portuguese, Chinese, Arabic...), or one with a password, card or code box and any one warning sign, also gets a look by Gemini Nano. On the device only, never the cloud, and the model alone may then raise at most a caution, and only when it is sure (score 80 or more, confident). Without an on-device model such a page is not checked rather than sent anywhere.
+- **The cloud path is built for a free quota.** The same redacted request is never sent twice in half an hour: the answer is remembered, in memory only, keyed by a SHA-256 of the request, so rescans, an email opened twice or the same scam on several tabs cost one call. After the cloud says "over quota", it is left alone for a minute and pages are decided at once by the built-in rules with the fail-safe bar, instead of each waiting for a call that will fail ([src/inference/cloudCache.ts](src/inference/cloudCache.ts)).
 - **A page that is about scams never trips on the small model alone.** Advice pages and encyclopaedia articles contain every scam phrase there is; the cloud model has to agree.
 
 Details worth knowing:
@@ -359,8 +370,8 @@ The latest run told people to hang up on one ordinary call: a delivery driver sa
 
 ### Everything else
 
-- Unit tests: 233 passing (extension), 35 (Android). Both redactors run the same cases ([corpus/redaction-fixtures.json](corpus/redaction-fixtures.json)); the Android routing (wrong side, listing failed, timeout, retry) is tested with fake model calls. Security-rules tests: 30 against the emulator plus 2 that keep the rules and the app copy in step, 32 passing ([eval-results/rules-tests.json](eval-results/rules-tests.json)). Typecheck, unit tests, the rules-only corpus, the build and the rules tests also run in CI on every push ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
-- End-to-end in Chromium (`npm run e2e`): 15 of 15 steps, including a bank transfer to a new payee, the phone-call check, settings, the paused download, and a page that keeps deleting the warning. Result file: [eval-results/e2e.json](eval-results/e2e.json).
+- Unit tests: 246 passing (extension), 35 (Android). Both redactors run the same cases ([corpus/redaction-fixtures.json](corpus/redaction-fixtures.json)); the Android routing (wrong side, listing failed, timeout, retry) is tested with fake model calls. Security-rules tests: 30 against the emulator plus 2 that keep the rules and the app copy in step, 32 passing ([eval-results/rules-tests.json](eval-results/rules-tests.json)). Typecheck, unit tests, the rules-only corpus, the build and the rules tests also run in CI on every push ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
+- End-to-end in Chromium (`npm run e2e`): 15 of 15 steps, including a bank transfer (one question for a new payee, the hold soon after a warning), the phone-call check, settings, the paused download, and a page that keeps deleting the warning. Result file: [eval-results/e2e.json](eval-results/e2e.json).
 - Live against the real project (`npm run live`): App Check token, hybrid call, Spanish explanations, pairing, single-use code, family alert. Result file: [eval-results/live-checks.json](eval-results/live-checks.json).
 - **App Check refuses robots, including ours.** On 16 Nov the hosted site began rejecting the automated test browser ("App attestation failed" from reCAPTCHA Enterprise), so pairing failed and the hosted demo fell back to built-in rules, with the badge saying so. The hosted demo was checked in an ordinary browser the same day and got its cloud answer. The automated runs of the hosted site now present the project's App Check debug token (read from `.env`, set only inside the test browser, never deployed); `--recaptcha` runs them as a robot. `node scripts/hosted-appcheck.mjs` shows the refusal, and the family page now says the browser could not be confirmed instead of blaming the internet.
 - Hosted demo with no extension (`npm run hosted`): the practice pages are flagged in a plain browser, the phone number on the page is absent from what was sent, the ordinary checkout stays silent, and a phone link clicked before the check has answered is held with a "checking this page" notice. Result file: [eval-results/hosted-demo.json](eval-results/hosted-demo.json).
@@ -376,6 +387,8 @@ Stated plainly so nobody is surprised:
 - **The Android app has not been run.** It builds and its unit tests pass, but the machine it was built on cannot start the Android emulator and no phone was attached.
 - **App Check in the release build, inside the extension.** Verified: a real browser gets a token from `/attest.html` (checked in a desktop browser on 18 Nov), and the release build loads that page in its hidden frame and gets its answer back (checked by automation, where reCAPTCHA refuses the automated browser, as it should). Not yet verified by me: the whole path in a person's own Chrome. [docs/STORE.md](docs/STORE.md) has the one-minute check.
 - **Chrome Web Store.** Not published (the developer registration has a fee). The release build is in the repo instead ([release/tripwire-chrome.zip](release/tripwire-chrome.zip)), and [docs/STORE.md](docs/STORE.md) has everything needed to publish it later.
+- **A family member answering a hold, end to end.** The security rules are tested on the emulator (only an approved family member, only "let it go through" or "keep it on hold", only while it runs) and the extension and both family apps build, but nobody has yet answered a real hold from a phone against the live project.
+- **More cloud quota.** Remembering answers and resting after "over quota" stretch the free tier; a paid plan, or per-user limits set in the Firebase console, are account decisions that have not been made.
 - **Real users.** Nobody in the target age group has used it yet.
 - **Scale.** The corpora are small (50 tuning samples, 28 held-out scams, 39 real pages). They are enough to catch design mistakes, as above, not to state an accuracy figure.
 - **Speed.** A check takes about 3 to 4 seconds on the device and 5 to 7 seconds when the cloud is also asked, on a desktop with an RTX 4060. Reading a page is never blocked by this, but a pause can appear a few seconds after the page does.

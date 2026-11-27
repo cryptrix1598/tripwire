@@ -9,9 +9,9 @@ import { DEFAULT_CONFIG } from '../config/defaults';
 import { applySensitivity, isTrusted, loadSettings } from '../config/settings';
 import { loadConfig } from '../config/store';
 import type { AiEngine } from '../inference/engine';
-import { assess, escalateForAction } from '../inference/router';
+import { assess, escalateForAction, type TransferAssessment } from '../inference/router';
 import { DOWNLOAD_PAUSE, POPUP, RULE_FLAG } from '../ui/copy';
-import { HOLD_MS, nextHoldEnd } from '../ui/hold';
+import { FAMILY_HOLD_MS, HOLD_MS, nextHoldEnd, type FamilyDecision } from '../ui/hold';
 import { riskIsRecent } from '../tripwires/transfer';
 import { dashboardUrl } from '../firebase/config';
 import { SENSITIVITY, SettingsSchema } from '../config/settings';
@@ -170,7 +170,15 @@ async function handleAssess(msg: Extract<ToBackground, { type: 'assess' }>, tabI
   return { verdict, acknowledged };
 }
 
+const ACTIVE_HOLD_KEY = 'hold:active';
+
 async function handleOutcome(msg: Extract<ToBackground, { type: 'outcome' }>, tabId: number | undefined): Promise<void> {
+  // The person stopped or went on: a hold the family could answer is over.
+  const active = (await chrome.storage.session.get(ACTIVE_HOLD_KEY))[ACTIVE_HOLD_KEY];
+  if (typeof active === 'string' && tabId !== undefined && active.startsWith(`hold:${tabId}:`)) {
+    await chrome.storage.session.remove(ACTIVE_HOLD_KEY);
+    void toOffscreen({ target: 'offscreen', type: 'hold-end' });
+  }
   if (msg.outcome === 'continued' && tabId !== undefined) {
     await chrome.storage.session.set({ [ACK_KEY(tabId, msg.page ?? msg.hostname)]: Date.now() });
   }
@@ -217,18 +225,42 @@ async function handle(msg: ToBackground, sender: chrome.runtime.MessageSender): 
     case 'outcome':
       await handleOutcome(msg, tabId);
       return { ok: true };
-    case 'transfer-risk': {
+    case 'assess-transfer': {
+      // A warning or call check in this browser within the hour counts, whichever tab it was in.
       const at = (await chrome.storage.session.get(RISK_KEY))[RISK_KEY];
-      return { recent: riskIsRecent(typeof at === 'number' ? at : undefined, Date.now()) };
+      const input = { ...msg.input, recentRisk: msg.input.recentRisk || riskIsRecent(typeof at === 'number' ? at : undefined, Date.now()) };
+      const plain: TransferAssessment = { firmness: input.recentRisk ? 'hold' : input.newPayee ? 'check' : 'none', route: 'not_checked', redFlags: [], scamType: 'none', elapsedMs: 0 };
+      if (plain.firmness !== 'check') return plain;
+      // A new payee and nothing else: Gemini Nano reads the form, on the device, to decide how firmly to pause.
+      return (await toOffscreen<TransferAssessment>({ target: 'offscreen', type: 'assess-transfer', input })) ?? plain;
     }
     case 'hold': {
       // Kept per tab and page in session storage, so a reload neither restarts nor skips it.
       const key = `hold:${tabId ?? 'none'}:${msg.page}`;
-      const stored = await chrome.storage.session.get([key, 'test:holdMs']);
+      const familyKey = `holdFamily:${key}`;
+      const stored = await chrome.storage.session.get([key, familyKey, 'test:holdMs']);
       const holdMs = typeof stored['test:holdMs'] === 'number' ? (stored['test:holdMs'] as number) : HOLD_MS;
-      const endsAt = nextHoldEnd(stored[key] as number | undefined, Date.now(), msg.extend === true, holdMs);
+      const existing = stored[key] as number | undefined;
+      const family = (stored[familyKey] as { told?: boolean; decision?: FamilyDecision; checkedAt?: number } | undefined) ?? {};
+      let endsAt = nextHoldEnd(existing, Date.now(), msg.extend === true, holdMs);
+      if (existing === undefined && msg.action) {
+        // A new hold: a paired family member can answer it from their page. Not awaited, so the clock never waits.
+        await chrome.storage.session.set({ [ACTIVE_HOLD_KEY]: key });
+        void toOffscreen<{ told: boolean }>({ target: 'offscreen', type: 'hold-start', action: msg.action, endsAt }).then(async (r) => {
+          if (r?.told) await chrome.storage.session.set({ [familyKey]: { told: true } });
+        });
+      } else if (family.told && !family.decision && Date.now() - (family.checkedAt ?? 0) >= 4000) {
+        // The pause asks every few seconds; look for the family's answer at most that often.
+        const r = await toOffscreen<{ decision: FamilyDecision | null }>({ target: 'offscreen', type: 'hold-check' });
+        family.checkedAt = Date.now();
+        if (r?.decision) {
+          family.decision = r.decision;
+          endsAt = r.decision === 'released' ? Date.now() : Math.max(endsAt, Date.now()) + FAMILY_HOLD_MS;
+        }
+        await chrome.storage.session.set({ [familyKey]: family });
+      }
       await chrome.storage.session.set({ [key]: endsAt });
-      return { endsAt };
+      return { endsAt, told: family.told === true, ...(family.decision ? { family: family.decision } : {}) };
     }
     case 'open-call':
       await openCallCheck();

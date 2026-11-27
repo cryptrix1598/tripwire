@@ -75,6 +75,9 @@ object Labels {
         "gift_card" -> R.string.action_gift_card
         "crypto_wire" -> R.string.action_crypto_wire
         "live_call" -> R.string.action_live_call
+        "money_transfer" -> R.string.action_money_transfer
+        "trusted_site" -> R.string.action_trusted_site
+        "setting_lowered" -> R.string.action_setting_lowered
         else -> R.string.action_passive
     }
 }

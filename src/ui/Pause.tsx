@@ -9,8 +9,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Trigger, Verdict } from '../inference/schemas';
 import { INTERSTITIAL, POPUP, TRANSFER, TRIP_LEAD } from './copy';
-import { HOLD_MS, HOLD_TRIGGERS, clock } from './hold';
-import { send } from '../messaging';
+import { HOLD_MS, HOLD_TRIGGERS, clock, type FamilyDecision } from './hold';
+import { send, type HoldReply } from '../messaging';
 import { Brand, RouteLine, SentReceipt, byPerson, flagsFor, routeExplanation } from './kit';
 
 /** What the pause is really about. A passive trip still gets the most specific reading we can honestly give. */
@@ -33,30 +33,43 @@ export function leadFor(verdict: Verdict): string {
 
 /**
  * The hold: when it ends, from the background (so it survives a reload), ticking once a second.
+ * Every few seconds it asks again, which is how a family member's answer arrives
+ * ("let it go through" ends it; "keep it on hold" adds half an hour).
  * Without an extension (the hosted demo) it is kept in the page.
  */
-function useHold(active: boolean) {
+function useHold(active: boolean, action: Trigger) {
   const [endsAt, setEndsAt] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  const [family, setFamily] = useState<{ told: boolean; decision?: FamilyDecision }>({ told: false });
+  // How long the clock may show at most: five minutes, plus five for each "wait longer", so it cannot open at "5:01".
+  const [cap, setCap] = useState(HOLD_MS);
   const page = typeof location === 'undefined' ? '' : location.href.split('#')[0] + (location.pathname.endsWith('pause.html') ? location.hash : '');
-  const ask = (extend: boolean) =>
-    send<{ endsAt?: number }>({ target: 'background', type: 'hold', page, extend })
+  const local = (prev: number | null, extend: boolean) => (extend ? Math.max(prev ?? Date.now(), Date.now()) + HOLD_MS : prev ?? Date.now() + HOLD_MS);
+  const ask = (extend: boolean) => {
+    if (extend) setCap((c) => c + HOLD_MS);
+    return send<HoldReply>({ target: 'background', type: 'hold', page, extend, action })
       .then((r) => {
-        // Measure from the moment the answer arrives, so the clock never starts above 5:00.
+        // Measure from the moment the answer arrives.
         setNow(Date.now());
-        return r;
+        setEndsAt((prev) => r?.endsAt ?? local(prev, extend));
+        if (r) setFamily({ told: r.told === true, ...(r.family ? { decision: r.family } : {}) });
+        if (r?.family === 'extended') setCap(Number.MAX_SAFE_INTEGER);
       })
-      .then((r) => setEndsAt((prev) => r?.endsAt ?? (extend ? Math.max(prev ?? Date.now(), Date.now()) + HOLD_MS : prev ?? Date.now() + HOLD_MS)))
-      .catch(() => setEndsAt((prev) => (extend ? Math.max(prev ?? Date.now(), Date.now()) + HOLD_MS : prev ?? Date.now() + HOLD_MS)));
+      .catch(() => setEndsAt((prev) => local(prev, extend)));
+  };
   useEffect(() => {
     if (!active) return;
     void ask(false);
-    const t = setInterval(() => setNow(Date.now()), 1000);
+    let ticks = 0;
+    const t = setInterval(() => {
+      setNow(Date.now());
+      if (++ticks % 5 === 0) void ask(false);
+    }, 1000);
     return () => clearInterval(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active]);
-  const left = active ? (endsAt === null ? HOLD_MS : Math.max(0, endsAt - now)) : 0;
-  return { left, extend: () => void ask(true) };
+  const left = active ? Math.min(cap, endsAt === null ? HOLD_MS : Math.max(0, endsAt - now)) : 0;
+  return { left, family, extend: () => void ask(true) };
 }
 
 export function Pause({
@@ -77,8 +90,8 @@ export function Pause({
 }) {
   const [open, setOpen] = useState(false);
   const stopRef = useRef<HTMLButtonElement>(null);
-  const held = HOLD_TRIGGERS.has(tripFor(verdict));
-  const hold = useHold(held);
+  const held = verdict.hold ?? HOLD_TRIGGERS.has(tripFor(verdict));
+  const hold = useHold(held, tripFor(verdict));
   const Title = heading;
   const Question = heading === 'h1' ? 'h2' : 'h3';
   const transfer = tripFor(verdict) === 'money_transfer';
@@ -110,13 +123,6 @@ export function Pause({
               <span>{topFlag}</span>
             </p>
           )}
-          {held && (
-            <div className="tw-hold" role="note">
-              <p className="tw-hold__lead">{INTERSTITIAL.holdLead}</p>
-              <p>{INTERSTITIAL.holdHangUp}</p>
-              <p>{INTERSTITIAL.holdCall}</p>
-            </div>
-          )}
           <Question className="tw-h2">{transfer ? TRANSFER.question : INTERSTITIAL.question}</Question>
           <p className="tw-body">{transfer ? TRANSFER.reassurance : INTERSTITIAL.reassurance}</p>
           {note}
@@ -124,9 +130,15 @@ export function Pause({
             <button ref={stopRef} type="button" className="tw-btn tw-btn--xl" onClick={byPerson(onStop)}>
               {INTERSTITIAL.primary}
             </button>
+            {held && hold.family.decision && (
+              <p className="tw-hold__family" role="status">
+                {hold.family.decision === 'released' ? INTERSTITIAL.holdFamilyReleased : INTERSTITIAL.holdFamilyExtended}
+              </p>
+            )}
             {held && hold.left > 0 ? (
               <>
                 <p className="tw-hold__wait" aria-live="off">{INTERSTITIAL.holdWait(clock(hold.left))}</p>
+                {hold.family.told && !hold.family.decision && <p className="tw-muted">{INTERSTITIAL.holdFamilyTold}</p>}
                 <button type="button" className="tw-link" onClick={byPerson(hold.extend)}>
                   {INTERSTITIAL.holdLonger}
                 </button>
@@ -137,6 +149,14 @@ export function Pause({
               </button>
             )}
           </div>
+          {/* After the safe button, so "Stop" stays on screen on short laptops. */}
+          {held && (
+            <div className="tw-hold" role="note">
+              <p className="tw-hold__lead">{INTERSTITIAL.holdLead}</p>
+              <p>{INTERSTITIAL.holdHangUp}</p>
+              <p>{INTERSTITIAL.holdCall}</p>
+            </div>
+          )}
           {onPhone && PHONE_TRIGGERS.has(tripFor(verdict)) && (
             <button type="button" className="tw-btn tw-btn--outline" onClick={byPerson(onPhone)} style={{ alignSelf: 'flex-start' }}>
               {POPUP.callCheck}

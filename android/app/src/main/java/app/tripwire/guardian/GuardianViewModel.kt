@@ -28,6 +28,9 @@ data class UiState(
     val pairError: PairError? = null,
     val alerts: List<Alert>? = null,
     val alertsFailed: Boolean = false,
+    val hold: Hold? = null,
+    val holdBusy: Boolean = false,
+    val holdFailed: Boolean = false,
     val advice: Map<String, AdviceState> = emptyMap(),
     val model: AdviceWriter.ModelState = AdviceWriter.ModelState.UNKNOWN,
 ) {
@@ -43,6 +46,7 @@ class GuardianViewModel(app: Application) : AndroidViewModel(app) {
 
     private var uid: String? = null
     private var alertsJob: Job? = null
+    private var holdJob: Job? = null
     private var watching: String? = null
     private var seen: Set<String>? = null
 
@@ -80,9 +84,13 @@ class GuardianViewModel(app: Application) : AndroidViewModel(app) {
         if (person?.deviceId == watching) return
         watching = person?.deviceId
         alertsJob?.cancel()
+        holdJob?.cancel()
         seen = null
-        _state.update { it.copy(alerts = null, alertsFailed = false) }
+        _state.update { it.copy(alerts = null, alertsFailed = false, hold = null, holdFailed = false) }
         if (person == null) return
+        holdJob = viewModelScope.launch {
+            repository.hold(person.deviceId).catch { emit(null) }.collect { hold -> _state.update { it.copy(hold = hold) } }
+        }
         alertsJob = viewModelScope.launch {
             repository.alertsOnceAllowed(person.deviceId)
                 .catch { _state.update { s -> s.copy(alertsFailed = true) } }
@@ -92,6 +100,16 @@ class GuardianViewModel(app: Application) : AndroidViewModel(app) {
                     seen = alerts.map { it.id }.toSet()
                     _state.update { it.copy(alerts = alerts, alertsFailed = false) }
                 }
+        }
+    }
+
+    /** "Let it go through" or "Keep it on hold", for the selected person's running hold. */
+    fun answerHold(release: Boolean) {
+        val person = _state.value.selected ?: return
+        _state.update { it.copy(holdBusy = true, holdFailed = false) }
+        viewModelScope.launch {
+            val ok = repository.answerHold(person.deviceId, if (release) "released" else "extended")
+            _state.update { it.copy(holdBusy = false, holdFailed = !ok) }
         }
     }
 

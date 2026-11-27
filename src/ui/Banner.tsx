@@ -1,7 +1,7 @@
 /**
  * The "caution" state: a calm banner over the page. It states one thing in
  * plain words, never blocks the page, and keeps the detail behind "Why?".
- * One pale-blue surface; the page underneath stays usable.
+ * A deep-blue band so it reads as a warning, not a notice; the page underneath stays usable.
  */
 import { useState } from 'react';
 import type { Verdict } from '../inference/schemas';
@@ -17,8 +17,9 @@ export function Banner({ verdict, onDismiss }: { verdict: Verdict; onDismiss: ()
     <section className="tw tw-banner" role="region" aria-label={BANNER.regionLabel} aria-live="polite">
       <div className="tw-banner__row">
         <div className="tw-banner__text">
-          <Mark size={40} color="#15335F" label="Tripwire" />
+          <Mark size={40} color="#A9C4FA" label="Tripwire" />
           <div>
+            <p className="tw-banner__eyebrow">{BANNER.eyebrow}</p>
             <h2 className="tw-banner__title">{headline}</h2>
             <p className="tw-banner__sub">{sub}</p>
           </div>

@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-11-26T21:10:02.712Z",
+  "ranAt": "2026-11-27T20:47:08.901Z",
   "mode": "live-extension-page (Chrome 159.0.0.0)",
   "promptVersion": "v1",
   "scams": 25,
@@ -10,22 +10,22 @@
   "detectionRate": 1,
   "falsePositiveRate": 0,
   "routes": {
-    "cloud_fallback": 35,
-    "not_checked": 15
+    "cloud_fallback": 38,
+    "not_checked": 12
   },
-  "totalBytesSentToCloud": 22018,
+  "totalBytesSentToCloud": 23330,
   "rows": [
     {
       "id": "scam-01-tech-support-popup",
       "label": "scam",
       "category": "tech_support",
       "state": "tripped",
-      "riskScore": 100,
+      "riskScore": 95,
       "route": "cloud_fallback",
       "bytesSentToCloud": 634,
       "redactionCount": 2,
       "failSafe": false,
-      "elapsedMs": 1075,
+      "elapsedMs": 1162,
       "correct": true
     },
     {
@@ -33,12 +33,12 @@
       "label": "scam",
       "category": "tech_support",
       "state": "tripped",
-      "riskScore": 100,
+      "riskScore": 99,
       "route": "cloud_fallback",
       "bytesSentToCloud": 567,
       "redactionCount": 1,
       "failSafe": false,
-      "elapsedMs": 4561,
+      "elapsedMs": 4032,
       "correct": true
     },
     {
@@ -51,7 +51,7 @@
       "bytesSentToCloud": 548,
       "redactionCount": 5,
       "failSafe": false,
-      "elapsedMs": 4730,
+      "elapsedMs": 4345,
       "correct": true
     },
     {
@@ -64,7 +64,7 @@
       "bytesSentToCloud": 723,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4720,
+      "elapsedMs": 4280,
       "correct": true
     },
     {
@@ -77,7 +77,7 @@
       "bytesSentToCloud": 586,
       "redactionCount": 4,
       "failSafe": false,
-      "elapsedMs": 4851,
+      "elapsedMs": 4330,
       "correct": true
     },
     {
@@ -85,12 +85,12 @@
       "label": "scam",
       "category": "bank_impersonation",
       "state": "tripped",
-      "riskScore": 100,
+      "riskScore": 99,
       "route": "cloud_fallback",
       "bytesSentToCloud": 660,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4403,
+      "elapsedMs": 3930,
       "correct": true
     },
     {
@@ -98,12 +98,12 @@
       "label": "scam",
       "category": "bank_impersonation",
       "state": "tripped",
-      "riskScore": 95,
+      "riskScore": 99,
       "route": "cloud_fallback",
       "bytesSentToCloud": 641,
       "redactionCount": 2,
       "failSafe": false,
-      "elapsedMs": 5062,
+      "elapsedMs": 4060,
       "correct": true
     },
     {
@@ -116,7 +116,7 @@
       "bytesSentToCloud": 508,
       "redactionCount": 3,
       "failSafe": false,
-      "elapsedMs": 1288,
+      "elapsedMs": 4383,
       "correct": true
     },
     {
@@ -129,7 +129,7 @@
       "bytesSentToCloud": 636,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 5212,
+      "elapsedMs": 4094,
       "correct": true
     },
     {
@@ -142,7 +142,7 @@
       "bytesSentToCloud": 608,
       "redactionCount": 2,
       "failSafe": false,
-      "elapsedMs": 3076,
+      "elapsedMs": 4298,
       "correct": true
     },
     {
@@ -150,12 +150,12 @@
       "label": "scam",
       "category": "gift_card",
       "state": "tripped",
-      "riskScore": 99,
+      "riskScore": 100,
       "route": "cloud_fallback",
       "bytesSentToCloud": 570,
       "redactionCount": 2,
       "failSafe": false,
-      "elapsedMs": 4373,
+      "elapsedMs": 4234,
       "correct": true
     },
     {
@@ -168,7 +168,7 @@
       "bytesSentToCloud": 594,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4143,
+      "elapsedMs": 4351,
       "correct": true
     },
     {
@@ -181,7 +181,7 @@
       "bytesSentToCloud": 624,
       "redactionCount": 2,
       "failSafe": false,
-      "elapsedMs": 8265,
+      "elapsedMs": 4155,
       "correct": true
     },
     {
@@ -194,7 +194,7 @@
       "bytesSentToCloud": 594,
       "redactionCount": 2,
       "failSafe": false,
-      "elapsedMs": 4211,
+      "elapsedMs": 4117,
       "correct": true
     },
     {
@@ -207,7 +207,7 @@
       "bytesSentToCloud": 655,
       "redactionCount": 2,
       "failSafe": false,
-      "elapsedMs": 4056,
+      "elapsedMs": 3988,
       "correct": true
     },
     {
@@ -220,7 +220,7 @@
       "bytesSentToCloud": 695,
       "redactionCount": 2,
       "failSafe": false,
-      "elapsedMs": 4257,
+      "elapsedMs": 4486,
       "correct": true
     },
     {
@@ -233,7 +233,7 @@
       "bytesSentToCloud": 646,
       "redactionCount": 1,
       "failSafe": false,
-      "elapsedMs": 4379,
+      "elapsedMs": 4159,
       "correct": true
     },
     {
@@ -246,7 +246,7 @@
       "bytesSentToCloud": 562,
       "redactionCount": 2,
       "failSafe": false,
-      "elapsedMs": 4027,
+      "elapsedMs": 4081,
       "correct": true
     },
     {
@@ -259,7 +259,7 @@
       "bytesSentToCloud": 691,
       "redactionCount": 1,
       "failSafe": false,
-      "elapsedMs": 4392,
+      "elapsedMs": 4250,
       "correct": true
     },
     {
@@ -272,7 +272,7 @@
       "bytesSentToCloud": 715,
       "redactionCount": 1,
       "failSafe": false,
-      "elapsedMs": 4129,
+      "elapsedMs": 4321,
       "correct": true
     },
     {
@@ -285,7 +285,7 @@
       "bytesSentToCloud": 712,
       "redactionCount": 2,
       "failSafe": false,
-      "elapsedMs": 4238,
+      "elapsedMs": 5174,
       "correct": true
     },
     {
@@ -298,7 +298,7 @@
       "bytesSentToCloud": 639,
       "redactionCount": 1,
       "failSafe": false,
-      "elapsedMs": 4100,
+      "elapsedMs": 3074,
       "correct": true
     },
     {
@@ -311,7 +311,7 @@
       "bytesSentToCloud": 737,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4273,
+      "elapsedMs": 4323,
       "correct": true
     },
     {
@@ -324,7 +324,7 @@
       "bytesSentToCloud": 560,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4252,
+      "elapsedMs": 4352,
       "correct": true
     },
     {
@@ -337,7 +337,7 @@
       "bytesSentToCloud": 621,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4233,
+      "elapsedMs": 4194,
       "correct": true
     },
     {
@@ -376,7 +376,7 @@
       "bytesSentToCloud": 806,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 3883,
+      "elapsedMs": 3889,
       "correct": true
     },
     {
@@ -441,7 +441,7 @@
       "bytesSentToCloud": 526,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 8654,
+      "elapsedMs": 4319,
       "correct": true
     },
     {
@@ -454,7 +454,7 @@
       "bytesSentToCloud": 416,
       "redactionCount": 1,
       "failSafe": false,
-      "elapsedMs": 4156,
+      "elapsedMs": 4361,
       "correct": true
     },
     {
@@ -467,7 +467,7 @@
       "bytesSentToCloud": 789,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4172,
+      "elapsedMs": 4105,
       "correct": true
     },
     {
@@ -475,12 +475,12 @@
       "label": "benign",
       "category": "remote_access",
       "state": "safe",
-      "riskScore": 5,
+      "riskScore": 10,
       "route": "cloud_fallback",
       "bytesSentToCloud": 598,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4299,
+      "elapsedMs": 4039,
       "correct": true
     },
     {
@@ -493,7 +493,7 @@
       "bytesSentToCloud": 593,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4136,
+      "elapsedMs": 4056,
       "correct": true
     },
     {
@@ -506,7 +506,7 @@
       "bytesSentToCloud": 708,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4240,
+      "elapsedMs": 4214,
       "correct": true
     },
     {
@@ -545,7 +545,7 @@
       "bytesSentToCloud": 566,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4216,
+      "elapsedMs": 4404,
       "correct": true
     },
     {
@@ -558,7 +558,7 @@
       "bytesSentToCloud": 612,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4208,
+      "elapsedMs": 4071,
       "correct": true
     },
     {
@@ -579,12 +579,12 @@
       "label": "benign",
       "category": "account",
       "state": "safe",
-      "riskScore": 0,
-      "route": "not_checked",
-      "bytesSentToCloud": 0,
-      "redactionCount": 0,
+      "riskScore": 10,
+      "route": "cloud_fallback",
+      "bytesSentToCloud": 443,
+      "redactionCount": 1,
       "failSafe": false,
-      "elapsedMs": 0,
+      "elapsedMs": 4198,
       "correct": true
     },
     {
@@ -593,11 +593,11 @@
       "category": "account",
       "state": "safe",
       "riskScore": 0,
-      "route": "not_checked",
-      "bytesSentToCloud": 0,
-      "redactionCount": 0,
+      "route": "cloud_fallback",
+      "bytesSentToCloud": 418,
+      "redactionCount": 1,
       "failSafe": false,
-      "elapsedMs": 1,
+      "elapsedMs": 4318,
       "correct": true
     },
     {
@@ -606,11 +606,11 @@
       "category": "utility",
       "state": "safe",
       "riskScore": 0,
-      "route": "not_checked",
-      "bytesSentToCloud": 0,
-      "redactionCount": 0,
+      "route": "cloud_fallback",
+      "bytesSentToCloud": 451,
+      "redactionCount": 1,
       "failSafe": false,
-      "elapsedMs": 0,
+      "elapsedMs": 4202,
       "correct": true
     },
     {
@@ -636,7 +636,7 @@
       "bytesSentToCloud": 0,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 0,
+      "elapsedMs": 1,
       "correct": true
     },
     {
@@ -644,12 +644,12 @@
       "label": "benign",
       "category": "education",
       "state": "safe",
-      "riskScore": 0,
+      "riskScore": 2,
       "route": "cloud_fallback",
       "bytesSentToCloud": 678,
       "redactionCount": 0,
       "failSafe": false,
-      "elapsedMs": 4098,
+      "elapsedMs": 4125,
       "correct": true
     },
     {

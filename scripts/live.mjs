@@ -130,9 +130,9 @@ try {
       // Until the person allows it, the family page waits and sees nothing.
       await family.getByText('Waiting for them to tap').waitFor({ timeout: 30_000 });
       // The person sees who is asking before allowing.
-      await setup.getByRole('heading', { name: 'Sam just typed your code.' }).waitFor({ timeout: 30_000 });
+      await setup.getByRole('heading', { name: 'Sam just typed your code' }).waitFor({ timeout: 30_000 });
       await setup.getByRole('button', { name: 'Yes, allow' }).click({ timeout: 30_000 });
-      await family.getByRole('heading', { name: 'All quiet.' }).waitFor({ timeout: 30_000 });
+      await family.getByRole('heading', { name: 'All quiet' }).waitFor({ timeout: 30_000 });
     } catch (err) {
       // Say what the page was showing, so a failure here can be diagnosed from the record.
       const seen = (await family.locator('body').innerText().catch(() => '')).replace(/\s+/g, ' ').slice(0, 400);

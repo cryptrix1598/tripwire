@@ -22,6 +22,25 @@ data class Alert(
     val outcome: String,
 ) {
     val continued: Boolean get() = outcome == "continued"
+    /** A protection setting changed (a trusted site, warnings turned down): not a scam step. */
+    val changed: Boolean get() = outcome == "changed"
+    /** Alerts about a step rather than a scam type; the step is the title. */
+    val aboutAStep: Boolean get() = action in setOf("money_transfer", "trusted_site", "setting_lowered")
+}
+
+/**
+ * The five-minute hold running on their computer (devices/{deviceId}/holds/current). The family
+ * may answer it once while it runs: "released" (let it go through) or "extended" (30 more minutes).
+ */
+data class Hold(
+    val action: String,
+    val endsAtMillis: Long,
+    val decision: String,
+    val decidedAtMillis: Long?,
+) {
+    fun running(now: Long): Boolean = decision == "waiting" && endsAtMillis > now
+    fun answeredRecently(now: Long): Boolean =
+        (decision == "released" || decision == "extended") && decidedAtMillis != null && now - decidedAtMillis < 30 * 60_000L
 }
 
 object Pairing {

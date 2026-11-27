@@ -72,7 +72,7 @@ const ago = (hours: number) => Timestamp.fromMillis(Date.now() - hours * 3_600_0
 const alerts = [
   { id: '0', createdAt: ago(0.2), scamType: 'none', summary: '', action: 'trusted_site', outcome: 'changed' },
   { id: '1', createdAt: ago(0.5), scamType: 'none', summary: '', action: 'money_transfer', outcome: 'stopped' },
-  { id: '2', createdAt: ago(4), scamType: 'bank_impersonation', summary: ALERT_SUMMARY.bank_impersonation, action: 'card_entry', outcome: 'stopped' },
+  { id: '2', createdAt: ago(4), scamType: 'bank_impersonation', summary: ALERT_SUMMARY.bank_impersonation, action: 'card_entry', outcome: 'continued' },
   { id: '3', createdAt: ago(26), scamType: 'gift_card', summary: ALERT_SUMMARY.gift_card, action: 'gift_card', outcome: 'stopped' },
 ];
 

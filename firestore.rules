@@ -185,6 +185,33 @@ service cloud.firestore {
         // Alerts are an immutable record.
         allow update, delete: if false;
       }
+
+      // The five-minute hold, so an approved family member can be a second opinion: one document,
+      // written by the device when a hold starts or ends; the family may only answer it, once,
+      // while it is running, with "let it go through" or "keep it on hold". No page content.
+      match /holds/{holdId} {
+        allow read: if isDevice(deviceId) || isGuardianOf(deviceId);
+        allow create, update: if isDevice(deviceId)
+          && holdId == 'current'
+          && request.resource.data.keys().hasOnly(['action', 'startedAt', 'endsAt', 'decision', 'decidedAt'])
+          && request.resource.data.action in ['gift_card', 'crypto_wire', 'remote_download', 'money_transfer']
+          && ((request.resource.data.decision == 'waiting'
+                && request.resource.data.keys().hasOnly(['action', 'startedAt', 'endsAt', 'decision'])
+                && request.resource.data.startedAt == request.time
+                && request.resource.data.endsAt is timestamp
+                && request.resource.data.endsAt > request.time
+                && request.resource.data.endsAt <= request.time + duration.value(31, 'm'))
+              || (request.resource.data.decision == 'done'
+                && resource != null
+                && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['decision'])));
+        allow update: if isGuardianOf(deviceId)
+          && resource.data.decision == 'waiting'
+          && resource.data.endsAt > request.time
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['decision', 'decidedAt'])
+          && request.resource.data.decision in ['released', 'extended']
+          && request.resource.data.decidedAt == request.time;
+        allow delete: if isDevice(deviceId);
+      }
     }
 
     // ── A guardian's own list of the people they look out for ────────────

@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-11-26T19:52:53.227Z",
+  "ranAt": "2026-11-27T20:39:05.315Z",
   "where": "the built extension in Chrome/158.0.8127.88, headless, Gemini Nano on the device",
   "steps": [
     {
@@ -10,7 +10,7 @@
     {
       "state": "pass",
       "name": "a scam message is stopped, and the route is reported",
-      "note": "tripped via device_then_cloud, 336 bytes sent, risk 95"
+      "note": "tripped via device_then_cloud, 336 bytes sent, risk 97"
     },
     {
       "state": "pass",
@@ -20,17 +20,12 @@
     {
       "state": "pass",
       "name": "a phone call the person describes is checked, the on-device model first",
-      "note": "Hang up now. | Personal info removed · sent for a deeper check"
+      "note": "Hang up now | Personal info removed · sent for a deeper check"
     },
     {
       "state": "pass",
       "name": "an ordinary shop page stays silent",
       "note": ""
-    },
-    {
-      "state": "pass",
-      "name": "corpus: 50 samples through the router inside the extension",
-      "note": "scams 25/25, false alarms 0/25, routes {\"on_device\":34,\"device_then_cloud\":8,\"not_checked\":8}, bytes 4207"
     }
   ]
 }

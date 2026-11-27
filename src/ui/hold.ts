@@ -8,6 +8,12 @@ import type { Trigger } from '../inference/schemas';
 
 export const HOLD_MS = 5 * 60_000;
 
+/** "Keep it on hold" from a family member: half an hour more, so they have time to call. */
+export const FAMILY_HOLD_MS = 30 * 60_000;
+
+/** A family member's answer to a running hold (firestore.rules: devices/{id}/holds/current). */
+export type FamilyDecision = 'released' | 'extended';
+
 /** The pauses that get the hold. */
 export const HOLD_TRIGGERS: ReadonlySet<Trigger> = new Set<Trigger>(['gift_card', 'crypto_wire', 'remote_download', 'money_transfer']);
 

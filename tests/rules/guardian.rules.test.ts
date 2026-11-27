@@ -268,3 +268,51 @@ describe("a guardian's list of people", () => {
     await assertFails(setDoc(mine, { nickname: 'n'.repeat(41), addedAt: serverTimestamp() }));
   });
 });
+
+describe('the hold a family member can answer', () => {
+  const holdRef = (uid: string) => doc(as(uid), 'devices', DEVICE, 'holds', 'current');
+  const startHold = (uid = DEVICE, over: Record<string, unknown> = {}) =>
+    setDoc(holdRef(uid), { action: 'money_transfer', startedAt: serverTimestamp(), endsAt: inMinutes(5), decision: 'waiting', ...over });
+
+  it('the device may start a hold with only the step and the times', async () => {
+    await assertSucceeds(startHold());
+    await assertFails(startHold(DEVICE, { page: 'https://bank.example/transfer' }));
+    await assertFails(startHold(DEVICE, { action: 'passive' }));
+    await assertFails(startHold(DEVICE, { endsAt: inMinutes(90) }));
+    await assertFails(startHold(DEVICE, { decision: 'released' }));
+    await assertFails(setDoc(doc(as(DEVICE), 'devices', DEVICE, 'holds', 'other'), { action: 'gift_card', startedAt: serverTimestamp(), endsAt: inMinutes(5), decision: 'waiting' }));
+    await assertFails(startHold(GUARDIAN));
+  });
+
+  it('an approved guardian can answer once, with one of two answers, while it runs', async () => {
+    await seedLink(true);
+    await startHold();
+    await assertFails(updateDoc(holdRef(GUARDIAN), { decision: 'done', decidedAt: serverTimestamp() }));
+    await assertFails(updateDoc(holdRef(GUARDIAN), { decision: 'released', decidedAt: serverTimestamp(), endsAt: inMinutes(1) }));
+    await assertSucceeds(updateDoc(holdRef(GUARDIAN), { decision: 'released', decidedAt: serverTimestamp() }));
+    await assertFails(updateDoc(holdRef(GUARDIAN), { decision: 'extended', decidedAt: serverTimestamp() }));
+  });
+
+  it('nobody else can answer: not a stranger, not a guardian the device has not allowed', async () => {
+    await seedLink(false);
+    await startHold();
+    await assertFails(getDoc(holdRef(GUARDIAN)));
+    await assertFails(updateDoc(holdRef(GUARDIAN), { decision: 'released', decidedAt: serverTimestamp() }));
+    await assertFails(getDoc(holdRef(STRANGER)));
+    await assertFails(updateDoc(holdRef(STRANGER), { decision: 'released', decidedAt: serverTimestamp() }));
+  });
+
+  it('a hold that has run out cannot be answered', async () => {
+    await seedLink(true);
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'devices', DEVICE, 'holds', 'current'), { action: 'gift_card', startedAt: Timestamp.now(), endsAt: inMinutes(-1), decision: 'waiting' });
+    });
+    await assertFails(updateDoc(holdRef(GUARDIAN), { decision: 'extended', decidedAt: serverTimestamp() }));
+  });
+
+  it('the device may mark it done, changing nothing else', async () => {
+    await startHold();
+    await assertSucceeds(updateDoc(holdRef(DEVICE), { decision: 'done' }));
+    await assertFails(updateDoc(holdRef(DEVICE), { decision: 'released' }));
+  });
+});

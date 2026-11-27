@@ -29,6 +29,7 @@ import type { TripwireConfig } from '../config/defaults';
 import { redactForCloud, type ModelRedactor } from '../redaction/pipeline';
 import { EXPLANATION, RULE_FLAG } from '../ui/copy';
 import { PrivacyInvariantError, withTimeout, type AiEngine, type OnDeviceStatus } from './engine';
+import type { CloudCache } from './cloudCache';
 import { DEFAULT_TIMEOUTS } from './timeouts';
 import {
   buildCloudPrompt,
@@ -59,10 +60,13 @@ import {
   salientExcerpt,
   scamTalk,
   triesToSteerTheChecker,
+  anyWarningSign,
+  outsideTheWordLists,
   worthACloudLook,
   worthALocalLook,
 } from './shape';
 import { describeSignals, detectSignals, worthChecking, type Signals } from './signals';
+import { tellsAScamTransferStory } from '../tripwires/transfer';
 
 export interface AssessInput {
   /** Visible text of the page or opened email. */
@@ -84,6 +88,8 @@ export interface AssessInput {
   neverSafe?: boolean;
   /** The caller has asked for nothing yet and is not pressing (see call/describe.ts): nothing to judge. */
   nothingAskedYet?: boolean;
+  /** The page has a box for a password, a card number or a one-time code (read from the page's fields, never their values). */
+  secretField?: boolean;
 }
 
 export interface RouterDeps {
@@ -94,6 +100,8 @@ export interface RouterDeps {
   now?: () => number;
   /** Per-call time limits, overridable in tests. */
   timeouts?: { onDeviceMs: number; cloudMs: number };
+  /** Remembered cloud answers and the quiet minute after "over quota" (cloudCache.ts). */
+  cloudCache?: CloudCache;
 }
 
 
@@ -259,10 +267,16 @@ function readPage(input: AssessInput, config: TripwireConfig) {
 function gate(input: AssessInput, read: ReturnType<typeof readPage>) {
   const { signals, shape, asks } = read;
   const asked = input.source === 'call';
+  const localLook = asked || worthChecking(signals) || worthALocalLook(shape);
   return {
     asked,
     // Keyword lists alone were too narrow (see shape.ts), so the shape of the request counts too.
-    localLook: asked || worthChecking(signals) || worthALocalLook(shape),
+    localLook,
+    // The word lists cannot be the only gate: a page in a language they do not cover, or one with
+    // a password, card or code box and any one warning sign, gets a look by Gemini Nano too. On the
+    // device only (never the cloud), and it may warn only when the model is sure (see stage 4).
+    wideLook:
+      !localLook && input.trigger === 'passive' && (outsideTheWordLists(read.text) || (input.secretField === true && anyWarningSign(shape))),
     // An ordinary checkout always has a price and a card number box, so when the person is
     // typing a card (or similar) those two prove nothing: only secrecy plus pressure does.
     cloudLook:
@@ -397,8 +411,8 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
   };
 
   // ── Stage 2: the gate. A passive scan with no warning signs never reaches a model. ──
-  const { asked, localLook, cloudLook } = gate(input, read);
-  if (input.trigger === 'passive' && !localLook) {
+  const { asked, localLook, wideLook, cloudLook } = gate(input, read);
+  if (input.trigger === 'passive' && !localLook && !wideLook) {
     return finish({ score: 0, scamType: 'none', redFlags: [], explanation: '', confidence: 1, route: 'not_checked' });
   }
   if (asked && input.nothingAskedYet && !input.neverSafe) {
@@ -439,11 +453,26 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
       return { kind: 'gate_closed' };
     }
     const prompt = buildCloudPrompt(redaction.text, ctx);
+    const cache = deps.cloudCache;
+    const key = `${config.promptVersion}
+${config.cloudModel}
+${prompts.cloudSystem}
+${prompt}`;
+    // The same request answered in the last half hour: the same answer, and nothing is sent again.
+    const remembered = await cache?.get(key);
+    if (remembered) return { kind: 'ok', analysis: remembered, bytes: utf8Bytes(prompt), redactionCount: redaction.redactionCount, sent: prompt };
+    // Over quota a moment ago: do not send, and do not make the page wait; the rules decide.
+    if (cache?.resting()) {
+      cloudFailure = 'quota';
+      return { kind: 'unreachable' };
+    }
     const result = await callValidated(
       () => withTimeout(engine.analyzeInCloud(prompts.cloudSystem, prompt, config.cloudModel), timeouts.cloudMs, 'cloud analysis'),
       CloudAnalysisSchema,
       deps.cloudBackoffMs,
     );
+    if (result.ok) await cache?.set(key, result.value);
+    else if (result.reason !== 'wrong_side' && result.quota) cache?.overQuota();
     if (!result.ok) {
       cloudFailure =
         result.reason === 'wrong_side' || result.reason === 'invalid' ? 'invalid' : result.timedOut ? 'timeout' : result.quota ? 'quota' : 'network';
@@ -493,6 +522,11 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
     });
   };
 
+  const notChecked = (wrongSide = false) =>
+    finish({ score: 0, scamType: 'none', redFlags: [], explanation: '', confidence: 1, route: 'not_checked', ...(wrongSide ? { wrongSide } : {}) });
+  // The wider look is for the on-device model only: without it, such a page is not checked at all.
+  if (wideLook && status !== 'available') return notChecked();
+
   // ── Stage 3: no on-device model. The cloud alone, and only past the stricter gate. ──
   if (status !== 'available') {
     // Without a private on-device check, a card field alone is not enough
@@ -516,6 +550,26 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
       ),
     TriageSchema,
   );
+
+  if (wideLook) {
+    // Let in only by the wider look: nothing goes to the cloud, the rules (which found nothing) have
+    // no say, and the model alone may raise at most a caution, and only when it is sure.
+    if (!triage.ok) return notChecked(triage.reason === 'wrong_side');
+    const t = triage.value;
+    const sure = t.riskScore >= config.thresholds.high && t.confidence >= config.thresholds.minTripConfidence && !aboutScams;
+    if (!sure) return finish({ score: Math.min(t.riskScore, config.thresholds.low - 1), scamType: 'none', redFlags: [], explanation: '', confidence: t.confidence, route: 'on_device' });
+    return finish(
+      await localise({
+        score: Math.min(t.riskScore, config.thresholds.high - 1),
+        scamType: t.scamType,
+        redFlags: t.redFlags,
+        explanation: EXPLANATION.localCaution,
+        confidence: t.confidence,
+        route: 'on_device',
+        allowTrip: false,
+      }),
+    );
+  }
 
   if (!triage.ok && triage.reason === 'wrong_side') {
     // Chrome says the private check ran in the cloud. Stop here: no second model, nothing more
@@ -644,4 +698,90 @@ export function escalateForAction(verdict: Verdict, trigger: Trigger, config: Tr
   if (trigger === 'passive') return verdict;
   if (verdict.riskScore < config.thresholds.low && !verdict.failSafe) return { ...verdict, trigger };
   return { ...verdict, trigger, state: 'tripped' };
+}
+
+/* ── Money transfers on the person's own bank site (src/tripwires/transfer.ts) ── */
+
+/** How firmly a transfer is paused: not at all, one plain question, or the five-minute hold. */
+export type TransferFirmness = 'none' | 'check' | 'hold';
+
+export interface TransferInput {
+  /** The transfer form's own text (labels, headings, notes on the page), capped. Never what was typed. */
+  formText: string;
+  hostname: string;
+  /** The form adds someone the person has not paid before. */
+  newPayee: boolean;
+  /** A scam warning or a phone-call check on this computer within the last hour. */
+  recentRisk: boolean;
+}
+
+export interface TransferAssessment {
+  firmness: TransferFirmness;
+  route: Route;
+  /** Reasons the model or the rules found in the form itself (English); empty for a plain check. */
+  redFlags: string[];
+  scamType: ScamType;
+  wrongSide?: boolean;
+  elapsedMs: number;
+}
+
+/** What the on-device model is told about this moment, on top of the usual triage instructions. */
+const TRANSFER_BRIEF =
+  'The reader is adding a new payee on what appears to be their own bank website. Judge only the transfer form and the text around it. ' +
+  'Score high when it tells the story of a scam transfer: moving money to a "safe" or "secure" account, protecting funds from fraud or hackers, ' +
+  'paying the bank, the police, a government agency or tech support, a refund or "verification" transfer, crypto, gift cards, secrecy, or a deadline. ' +
+  'An ordinary transfer, bill payment or payee form scores low';
+
+/** The built-in rules' reason when the form tells a scam-transfer story (src/tripwires/transfer.ts). */
+const TRANSFER_STORY_FLAG = 'It tells the story scammers use to make people move money: a “safe account”, crypto, gift cards, or a refund.';
+
+/** The model's score at which, together with its confidence, a new-payee transfer gets the hold. */
+export const TRANSFER_HOLD_SCORE = 60;
+
+/**
+ * The bank page itself looks normal in the scams that matter most, so the moment decides:
+ * - nobody new and nothing suspicious this hour: no pause;
+ * - a scam warning or call check in the last hour: the five-minute hold, whatever the form says;
+ * - a new payee: Gemini Nano reads the form ON THE DEVICE ONLY (this is the person's bank; nothing
+ *   goes to the cloud here). If it, or the built-in rules, see the story of a scam transfer, the hold;
+ *   otherwise one plain question with "continue" right there.
+ */
+export async function assessTransfer(input: TransferInput, deps: RouterDeps): Promise<TransferAssessment> {
+  const now = deps.now ?? Date.now;
+  const started = now();
+  const done = (a: Omit<TransferAssessment, 'elapsedMs'>): TransferAssessment => ({ ...a, elapsedMs: now() - started });
+  if (!input.newPayee && !input.recentRisk) return done({ firmness: 'none', route: 'not_checked', redFlags: [], scamType: 'none' });
+  if (input.recentRisk) return done({ firmness: 'hold', route: 'not_checked', redFlags: [], scamType: 'none' });
+
+  const { engine, config } = deps;
+  const timeouts = deps.timeouts ?? DEFAULT_TIMEOUTS;
+  const text = input.formText.replace(/\s+/g, ' ').trim().slice(0, 4000);
+  const signals = detectSignals(text, config);
+  const story = tellsAScamTransferStory(text);
+  const rulesSee = story || signals.ruleScore >= config.thresholds.rulesOnlyCaution;
+  const rulesFlags = () => dedupe([...(story ? [TRANSFER_STORY_FLAG] : []), ...ruleFlags(signals)], 3);
+  const byRules = (extra: Partial<TransferAssessment> = {}) =>
+    done({ firmness: rulesSee ? 'hold' : 'check', route: 'rules_only', redFlags: rulesSee ? rulesFlags() : [], scamType: 'none', ...extra });
+
+  const status = await engine.onDeviceStatus().catch((): OnDeviceStatus => 'unavailable');
+  if (status !== 'available' || text.length === 0) return byRules();
+
+  const prompts = promptSet(config.promptVersion);
+  const ctx: PromptContext = { hostname: input.hostname, trigger: 'money_transfer', signalSummary: `${TRANSFER_BRIEF}. ${describeSignals(signals)}` };
+  const triage = await callValidated(
+    () => withTimeout(engine.triageOnDevice(prompts.triageSystem, buildTriagePrompt(text, ctx)), timeouts.onDeviceMs, 'on-device triage'),
+    TriageSchema,
+  );
+  // Chrome answered in the cloud: stop using the model for this, as everywhere else.
+  if (!triage.ok) return byRules(triage.reason === 'wrong_side' ? { wrongSide: true } : {});
+
+  const t = triage.value;
+  const modelSees = t.riskScore >= TRANSFER_HOLD_SCORE && t.confidence >= config.thresholds.minTripConfidence;
+  const hold = modelSees || rulesSee;
+  return done({
+    firmness: hold ? 'hold' : 'check',
+    route: 'on_device',
+    redFlags: hold ? dedupe([...(modelSees ? t.redFlags : []), ...(rulesSee ? rulesFlags() : [])], 3) : [],
+    scamType: modelSees ? t.scamType : 'none',
+  });
 }

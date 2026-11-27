@@ -19,6 +19,7 @@ import kotlinx.coroutines.tasks.await
  *   pairingCodes/{code}                 read once to find the device
  *   devices/{deviceId}/guardians/{uid}  the link (the security rules re-check the code)
  *   devices/{deviceId}/alerts/{id}      read-only feed
+ *   devices/{deviceId}/holds/current    a running hold the guardian may answer once
  *   guardians/{uid}/people/{deviceId}   the guardian's own list
  */
 class GuardianRepository {
@@ -57,6 +58,38 @@ class GuardianRepository {
                 trySend(snapshot.documents.map(::toAlert))
             }
         awaitClose { registration.remove() }
+    }
+
+    /** The hold running on their computer, if any (see Hold). */
+    fun hold(deviceId: String): Flow<Hold?> = callbackFlow {
+        val registration = db.collection("devices").document(deviceId).collection("holds").document("current")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    trySend(null)
+                    return@addSnapshotListener
+                }
+                val data = snapshot?.takeIf { it.exists() }
+                trySend(
+                    data?.let {
+                        Hold(
+                            action = it.getString("action").orEmpty(),
+                            endsAtMillis = it.getTimestamp("endsAt")?.toDate()?.time ?: 0L,
+                            decision = it.getString("decision").orEmpty(),
+                            decidedAtMillis = it.getTimestamp("decidedAt", DocumentSnapshot.ServerTimestampBehavior.ESTIMATE)?.toDate()?.time,
+                        )
+                    },
+                )
+            }
+        awaitClose { registration.remove() }
+    }
+
+    /** Answer the running hold: "released" or "extended". The security rules allow nothing else. */
+    suspend fun answerHold(deviceId: String, decision: String): Boolean = try {
+        db.collection("devices").document(deviceId).collection("holds").document("current")
+            .update(mapOf("decision" to decision, "decidedAt" to FieldValue.serverTimestamp())).await()
+        true
+    } catch (_: Exception) {
+        false
     }
 
     /** The linked people, read once (for the background worker). */

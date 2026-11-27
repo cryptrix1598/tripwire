@@ -21,6 +21,7 @@ import { demoUrl } from '../../firebase/config';
 import type { Trigger, Verdict } from '../../inference/schemas';
 import { MAX_CHECK_MS } from '../../inference/timeouts';
 import { HOLD_TRIGGERS } from '../../ui/hold';
+import type { TransferAssessment, TransferInput } from '../../inference/router';
 import { send, type AssessReply, type ToContent } from '../../messaging';
 import { describeField, isCardField, mayInspectValue, valueIsCardNumber } from '../../tripwires/cardField';
 import { addsNewPayee, isTransferField, transferContext } from '../../tripwires/transfer';
@@ -303,14 +304,20 @@ function startTopFrame(ctx: ContentScriptContext): void {
     if (view.kind !== 'pause') return;
     acknowledged = true;
     // A held step the person waited out stays allowed on this page.
-    if (HOLD_TRIGGERS.has(view.verdict.trigger)) heldDone.add(view.verdict.trigger);
+    // (A transfer the person chose to go on with is never asked about again on this page, held or not.)
+    if ((view.verdict.hold ?? HOLD_TRIGGERS.has(view.verdict.trigger)) || view.verdict.trigger === 'money_transfer') heldDone.add(view.verdict.trigger);
     void report(view.verdict, 'continued');
     hide();
   }
 
+  /** A box for a password, card number or one-time code anywhere on the page. Only the fields' kind is read. */
+  function hasSecretField(): boolean {
+    return document.querySelector('input[type="password" i], input[autocomplete^="cc-" i], input[autocomplete="one-time-code" i]') !== null;
+  }
+
   async function assess(trigger: Trigger): Promise<AssessReply | null> {
     const text = readVisibleText().slice(0, MAX_TEXT);
-    const reply = await send<AssessReply>({ target: 'background', type: 'assess', input: { text, hostname, trigger, language: uiLanguage }, page: pageKey() });
+    const reply = await send<AssessReply>({ target: 'background', type: 'assess', input: { text, hostname, trigger, language: uiLanguage, secretField: hasSecretField() }, page: pageKey() });
     return ctx.isValid ? reply : null;
   }
 
@@ -358,22 +365,31 @@ function startTopFrame(ctx: ContentScriptContext): void {
    * Money leaving the account. On a real bank page nothing looks wrong, so the moment decides:
    * a new payee, or a warning or a call check on this computer within the last hour.
    */
-  async function onTransfer(newPayee: boolean): Promise<void> {
+  async function onTransfer(newPayee: boolean, formText: string): Promise<void> {
     if (heldDone.has('money_transfer') || view.kind === 'pause') return;
     const now = Date.now();
     if (now - (lastAction.get('money_transfer') ?? 0) < ACTION_COOLDOWN_MS) return;
     lastAction.set('money_transfer', now);
-    const risk = await send<{ recent?: boolean }>({ target: 'background', type: 'transfer-risk' }).catch(() => null);
-    if (!ctx.isValid || (view as View).kind === 'pause') return;
-    const recent = risk?.recent === true || (last !== null && last.state !== 'safe');
-    if (!newPayee && !recent) return;
-    const redFlags = [newPayee ? TRANSFER.newPayee : '', recent ? TRANSFER.recentWarning : ''].filter(Boolean);
+    const recentHere = last !== null && last.state !== 'safe';
+    // Even with nobody new and nothing risky on this page, a warning in another tab within the hour counts (the background knows).
+    const input: TransferInput = { formText, hostname, newPayee, recentRisk: recentHere };
+    const fallback: TransferAssessment = { firmness: recentHere ? 'hold' : newPayee ? 'check' : 'none', route: 'not_checked', redFlags: [], scamType: 'none', elapsedMs: 0 };
+    const result = (await send<TransferAssessment>({ target: 'background', type: 'assess-transfer', input }).catch(() => null)) ?? fallback;
+    if (!ctx.isValid || (view as View).kind === 'pause' || result.firmness === 'none') return;
+    const hold = result.firmness === 'hold';
+    const recent = recentHere || (hold && result.route === 'not_checked');
+    // The model writes its reasons in English; in Spanish or French a fixed, translated reason is shown instead.
+    const english = !/^(?:es|fr)(?:-|$)/i.test(navigator.language);
+    const formFlags = result.redFlags.length === 0 ? [] : english ? result.redFlags : [TRANSFER.formSigns];
+    // The strongest reason first: a warning this hour, then what the form itself says, then "someone new".
+    const redFlags = [recent ? TRANSFER.recentWarning : '', ...formFlags, newPayee ? TRANSFER.newPayee : ''].filter(Boolean);
     show({
       kind: 'pause',
       verdict: {
-        state: 'tripped', riskScore: 0, scamType: last && last.state !== 'safe' ? last.scamType : 'none', redFlags,
-        explanation: TRANSFER.explanation, confidence: 1, route: 'not_checked', trigger: 'money_transfer',
-        bytesSentToCloud: 0, redactionCount: 0, failSafe: false, cloudUnreachable: false, promptVersion: '', elapsedMs: 0,
+        state: 'tripped', riskScore: 0, scamType: result.scamType !== 'none' ? result.scamType : recentHere && last ? last.scamType : 'none', redFlags,
+        explanation: TRANSFER.explanation, confidence: 1, route: result.route, trigger: 'money_transfer', hold,
+        bytesSentToCloud: 0, redactionCount: 0, failSafe: false, cloudUnreachable: false, promptVersion: '', elapsedMs: result.elapsedMs,
+        ...(result.wrongSide ? { wrongSide: true } : {}),
       },
     });
   }
@@ -413,7 +429,7 @@ function startTopFrame(ctx: ContentScriptContext): void {
         if (GIFT_FIELD.test(hay)) return held('gift_card', 'code');
         if (WALLET_FIELD.test(hay)) return held('crypto_wire', 'code');
         const context = transferContext(el);
-        if (isTransferField(info, context)) return void onTransfer(addsNewPayee(context));
+        if (isTransferField(info, context)) return void onTransfer(addsNewPayee(context), context);
       } catch {
         /* ignore */
       }

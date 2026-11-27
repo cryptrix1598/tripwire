@@ -50,6 +50,7 @@ class MainActivity : ComponentActivity() {
                     onPair = viewModel::pair,
                     onAdvice = viewModel::writeAdvice,
                     onDownloadModel = viewModel::downloadModel,
+                    onAnswerHold = viewModel::answerHold,
                 )
             }
         }

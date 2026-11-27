@@ -442,10 +442,10 @@
   width: min(900px, calc(100vw - 32px));
   max-height: calc(100vh - 32px);
   overflow: auto;
-  background: var(--tw-signal-soft);
-  border: 1px solid var(--tw-signal);
+  background: var(--tw-surface);
+  border: 1px solid var(--tw-deep);
   border-radius: var(--tw-radius-lg);
-  box-shadow: var(--tw-shadow-float);
+  box-shadow: 0 16px 40px rgba(14, 34, 51, 0.28);
   animation: tw-drop 0.28s var(--tw-ease);
 }
 .tw-banner :focus-visible {
@@ -453,6 +453,8 @@
   outline-offset: 3px;
 }
 .tw-banner__row {
+  background: var(--tw-deep);
+  color: var(--tw-on-deep);
   padding: 20px 24px;
   display: flex;
   flex-wrap: wrap;
@@ -466,15 +468,26 @@
   align-items: flex-start;
   gap: 16px;
 }
+.tw-banner__row :focus-visible {
+  outline-color: var(--tw-on-deep);
+}
+.tw-banner__eyebrow {
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 700;
+  color: var(--tw-ok-on-deep);
+  margin-bottom: 4px;
+}
 .tw-banner__title {
   font-size: 24px;
   line-height: 1.25;
   font-weight: 700;
+  color: var(--tw-on-deep);
 }
 .tw-banner__sub {
   font-size: 18px;
   line-height: 1.45;
-  color: var(--tw-signal-ink);
+  color: var(--tw-on-deep-2);
   margin-top: 6px;
 }
 .tw-banner__actions {
@@ -488,15 +501,19 @@
   padding: 0 28px;
   border-radius: 12px;
   box-shadow: none;
+  background: var(--tw-on-deep);
+  color: var(--tw-deep);
+}
+.tw-banner .tw-btn:hover {
+  background: #ffffff;
 }
 .tw-banner .tw-link {
-  color: var(--tw-ink);
+  color: var(--tw-on-deep);
   min-height: 52px;
   padding: 0 8px;
 }
 .tw-banner__why {
   background: var(--tw-surface);
-  border-top: 2px solid var(--tw-signal);
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -1035,3 +1052,5 @@
 /* The clearest reason, on the pause's main screen */
 .tw .tw-topflag { display: grid; gap: 4px; font-size: 20px; line-height: 1.4; color: var(--tw-ink); }
 .tw .tw-topflag__label { font-size: 16px; color: var(--tw-text-2); }
+.tw .tw-hold__family { font-size: 18px; line-height: 1.45; font-weight: 700; color: var(--tw-signal-text); }
+.tw .tw-hold--family { margin-top: 24px; gap: 12px; }
