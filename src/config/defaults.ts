@@ -32,6 +32,14 @@ export const ThresholdsSchema = z.object({
   minCorroboration: z.number().min(0).max(100),
   /** Rule score needed for a caution when no AI model could be reached at all. */
   rulesOnlyCaution: z.number().min(0).max(100),
+  /** When the device was unsure and the cloud answered, the cloud model's share of the merged score (the device keeps the rest). */
+  cloudWeight: z.number().min(0).max(1),
+  /** How many times a page must say scam, scammer or victim to count as a page ABOUT scams. */
+  aboutScamsAt: z.number().int().min(1).max(50),
+  /** On a bank transfer, the on-device score at which the model's own reasons are shown. */
+  transferReasonScore: z.number().min(0).max(100),
+  /** How long a scam warning or call check counts as recent (transfers, pairing codes). */
+  recentRiskMinutes: z.number().min(1).max(24 * 60),
 });
 export type Thresholds = z.infer<typeof ThresholdsSchema>;
 
@@ -62,6 +70,10 @@ export const DEFAULT_CONFIG: TripwireConfig = {
     minTripConfidence: 0.6,
     minCorroboration: 40,
     rulesOnlyCaution: 60,
+    cloudWeight: 0.6,
+    aboutScamsAt: 5,
+    transferReasonScore: 60,
+    recentRiskMinutes: 60,
   },
   promptVersion: 'v1',
   // The cloud half of the pipeline. Firebase AI Logic's own default fallback model.

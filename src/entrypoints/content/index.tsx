@@ -373,7 +373,7 @@ function startTopFrame(ctx: ContentScriptContext): void {
     const recentHere = last !== null && last.state !== 'safe';
     // Even with nobody new and nothing risky on this page, a warning in another tab within the hour counts (the background knows).
     const input: TransferInput = { formText, hostname, newPayee, recentRisk: recentHere };
-    const fallback: TransferAssessment = { firmness: recentHere ? 'hold' : newPayee ? 'check' : 'none', route: 'not_checked', redFlags: [], scamType: 'none', elapsedMs: 0 };
+    const fallback: TransferAssessment = { firmness: recentHere || newPayee ? 'hold' : 'none', route: 'not_checked', redFlags: [], scamType: 'none', elapsedMs: 0 };
     const result = (await send<TransferAssessment>({ target: 'background', type: 'assess-transfer', input }).catch(() => null)) ?? fallback;
     if (!ctx.isValid || (view as View).kind === 'pause' || result.firmness === 'none') return;
     const hold = result.firmness === 'hold';

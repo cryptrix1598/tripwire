@@ -27,9 +27,13 @@ async function seedCode(expiresInMinutes = 5) {
     await setDoc(doc(ctx.firestore(), 'pairingCodes', CODE), { deviceId: DEVICE, createdAt: Timestamp.now(), expiresAt: inMinutes(expiresInMinutes) });
   });
 }
-async function seedLink(approved = true) {
+async function seedLink(approved = true, approvedHoursAgo = 48) {
   await env.withSecurityRulesDisabled(async (ctx) => {
-    await setDoc(doc(ctx.firestore(), 'devices', DEVICE, 'guardians', GUARDIAN), { code: CODE, pairedAt: Timestamp.now(), ...(approved ? { approved: true } : {}) });
+    await setDoc(doc(ctx.firestore(), 'devices', DEVICE, 'guardians', GUARDIAN), {
+      code: CODE,
+      pairedAt: Timestamp.now(),
+      ...(approved ? { approved: true, approvedAt: Timestamp.fromMillis(Date.now() - approvedHoursAgo * 3_600_000) } : {}),
+    });
     await setDoc(doc(ctx.firestore(), 'devices', DEVICE, 'alerts', 'a1'), { ...buildAlert('gift_card', 'gift_card', 'continued'), createdAt: Timestamp.now() });
   });
 }
@@ -220,6 +224,8 @@ describe('approval: a code alone is not enough', () => {
     await seedLink(false);
     await assertFails(updateDoc(linkRef(DEVICE), { approved: true, code: '111111' }));
     await assertFails(updateDoc(linkRef(DEVICE), { approved: false }));
+    await assertFails(updateDoc(linkRef(DEVICE), { approved: true, approvedAt: Timestamp.fromMillis(Date.now() - 7 * 86_400_000) }));
+    await assertSucceeds(updateDoc(linkRef(DEVICE), { approved: true, approvedAt: serverTimestamp() }));
   });
 
   it('the device can refuse a link by deleting it', async () => {
@@ -314,5 +320,22 @@ describe('the hold a family member can answer', () => {
     await startHold();
     await assertSucceeds(updateDoc(holdRef(DEVICE), { decision: 'done' }));
     await assertFails(updateDoc(holdRef(DEVICE), { decision: 'released' }));
+  });
+});
+
+describe('a scammer who gets paired cannot release a hold', () => {
+  const holdRef = (uid: string) => doc(as(uid), 'devices', DEVICE, 'holds', 'current');
+  it('family approved less than a day ago may keep a hold, but not let it go through', async () => {
+    await seedLink(true, 1);
+    await setDoc(holdRef(DEVICE), { action: 'money_transfer', startedAt: serverTimestamp(), endsAt: inMinutes(5), decision: 'waiting' });
+    await assertFails(updateDoc(holdRef(GUARDIAN), { decision: 'released', decidedAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(holdRef(GUARDIAN), { decision: 'extended', decidedAt: serverTimestamp() }));
+  });
+  it('a link with no approval time (approved by an older version) cannot release either', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'devices', DEVICE, 'guardians', GUARDIAN), { code: CODE, pairedAt: Timestamp.now(), approved: true });
+    });
+    await setDoc(holdRef(DEVICE), { action: 'gift_card', startedAt: serverTimestamp(), endsAt: inMinutes(5), decision: 'waiting' });
+    await assertFails(updateDoc(holdRef(GUARDIAN), { decision: 'released', decidedAt: serverTimestamp() }));
   });
 });

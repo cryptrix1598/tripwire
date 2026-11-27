@@ -40,6 +40,16 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
+        <!-- Optional: looks at new text and chat notifications on the phone (the person turns it on in Android settings). -->
+        <service
+            android:name=".check.MessageWatchService"
+            android:exported="true"
+            android:label="@string/watch_label"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
         <service
             android:name=".AlertWatchService"
             android:exported="false"

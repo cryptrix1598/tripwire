@@ -28,6 +28,7 @@ import type { AiEngine } from '../../inference/engine';
 import { firebaseEngine, onDeviceStatus } from '../../inference/firebaseEngine';
 import { createCloudCache } from '../../inference/cloudCache';
 import { assess, assessTransfer } from '../../inference/router';
+import { promptSet } from '../../inference/prompts';
 import type { PairingReply, StatusReply, ToOffscreen } from '../../messaging';
 import { applyLocale } from '../../ui/locale';
 
@@ -193,3 +194,20 @@ chrome.runtime.onMessage.addListener((msg: ToOffscreen, _sender, sendResponse) =
 });
 
 void refreshConfig();
+
+/**
+ * Warm Gemini Nano up once, while nothing is waiting: the first on-device call after Chrome starts
+ * loads the model, which is the slowest part of a check. A tiny, fixed text, run through the same
+ * one-at-a-time queue, so it never delays a real check by more than its own few seconds. Nothing
+ * from any page is involved, and a failure changes nothing.
+ */
+async function warmUp(): Promise<void> {
+  try {
+    if ((await engine.onDeviceStatus()) !== 'available') return;
+    const prompts = promptSet((await loadConfig()).promptVersion);
+    await oneAtATime(() => withTimeout(engine.triageOnDevice(prompts.triageSystem, 'Page text: """Welcome."""'), 20_000, 'warm-up')).catch(() => undefined);
+  } catch {
+    // No model, or not now.
+  }
+}
+setTimeout(() => void warmUp(), 1500);

@@ -165,5 +165,11 @@
     <string name="hold_release">Ya hablé con esa persona: dejarlo pasar</string>
     <string name="hold_released">Usted lo dejó pasar</string>
     <string name="hold_extended">Usted le pidió que espere 30 minutos más</string>
-    <string name="hold_failed">No llegó a su computadora. Revise su conexión a internet e inténtelo de nuevo.</string>
+    <string name="hold_failed">No se pudo. Un familiar conectado en el último día puede mantener la espera, pero no dejarlo pasar; si no es eso, revise su conexión e inténtelo de nuevo.</string>
+    <string name="watch_label">Tripwire: revisar mis mensajes</string>
+    <string name="watch_title_scam">Ese mensaje parece una estafa</string>
+    <string name="watch_title_careful">Tenga cuidado con ese mensaje</string>
+    <string name="watch_body">No responda, no devuelva la llamada y nunca lea un código en voz alta. Revisado en este teléfono; no se envió nada.</string>
+    <string name="watch_turn_on">Revisar mis mensajes automáticamente</string>
+    <string name="watch_on">Sus mensajes se revisan en este teléfono al llegar.</string>
 </resources>

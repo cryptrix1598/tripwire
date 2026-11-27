@@ -191,6 +191,8 @@ export interface Verdict {
   wrongSide?: boolean;
   /** Why a cloud check that was tried gave no usable answer: quota, timeout, network, invalid answer, or the privacy gate closed. */
   cloudFailure?: 'quota' | 'timeout' | 'network' | 'invalid' | 'gate_closed';
+  /** Which step of the router decided this verdict (src/inference/router.ts). */
+  decidedBy?: DecisionStep;
   /** Whether "continue" waits five minutes. Set only where the moment decides (a money transfer); otherwise the trigger does. */
   hold?: boolean;
   /** The on-device model exists on this computer but is still downloading, so the cloud path was used. */
@@ -206,3 +208,10 @@ export interface Verdict {
   /** Language code of `redFlags` and `explanation` when they are not in English. */
   explanationLanguage?: string;
 }
+
+/** The router's decision points, so every verdict can say what decided it. */
+export const DECISION_STEPS = [
+  'gate', 'nothing_asked', 'rules', 'cloud', 'not_checked', 'wide_unsure', 'wide_sure', 'device_safe',
+  'device_confirmed', 'device_then_cloud', 'about_scams', 'rules_overruled', 'device_alone',
+] as const;
+export type DecisionStep = (typeof DECISION_STEPS)[number];

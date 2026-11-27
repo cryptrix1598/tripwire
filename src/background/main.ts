@@ -228,10 +228,10 @@ async function handle(msg: ToBackground, sender: chrome.runtime.MessageSender): 
     case 'assess-transfer': {
       // A warning or call check in this browser within the hour counts, whichever tab it was in.
       const at = (await chrome.storage.session.get(RISK_KEY))[RISK_KEY];
-      const input = { ...msg.input, recentRisk: msg.input.recentRisk || riskIsRecent(typeof at === 'number' ? at : undefined, Date.now()) };
-      const plain: TransferAssessment = { firmness: input.recentRisk ? 'hold' : input.newPayee ? 'check' : 'none', route: 'not_checked', redFlags: [], scamType: 'none', elapsedMs: 0 };
-      if (plain.firmness !== 'check') return plain;
-      // A new payee and nothing else: Gemini Nano reads the form, on the device, to decide how firmly to pause.
+      const input = { ...msg.input, recentRisk: msg.input.recentRisk || riskIsRecent(typeof at === 'number' ? at : undefined, Date.now(), (await loadConfig()).thresholds.recentRiskMinutes * 60_000) };
+      const plain: TransferAssessment = { firmness: input.recentRisk || input.newPayee ? 'hold' : 'none', route: 'not_checked', redFlags: [], scamType: 'none', elapsedMs: 0 };
+      if (input.recentRisk || !input.newPayee) return plain;
+      // A new payee: Gemini Nano reads the form, on the device, for the most specific reason to show.
       return (await toOffscreen<TransferAssessment>({ target: 'offscreen', type: 'assess-transfer', input })) ?? plain;
     }
     case 'hold': {
@@ -290,11 +290,15 @@ async function handle(msg: ToBackground, sender: chrome.runtime.MessageSender): 
     }
     case 'get-status':
       return handleStatus();
-    case 'pairing-code':
+    case 'pairing-code': {
+      // "Connect your family" is a script scammers use too: no code within an hour of a warning.
+      const at = (await chrome.storage.session.get(RISK_KEY))[RISK_KEY];
+      if (riskIsRecent(typeof at === 'number' ? at : undefined, Date.now(), (await loadConfig()).thresholds.recentRiskMinutes * 60_000)) return { ok: false, reason: 'recent_risk' } satisfies PairingReply;
       return (
         (await toOffscreen<PairingReply>({ target: 'offscreen', type: 'pairing-code' })) ??
         ({ ok: false, reason: 'offline' } satisfies PairingReply)
       );
+    }
     case 'pairing-decide':
       return (await toOffscreen({ target: 'offscreen', type: 'pairing-decide', allow: msg.allow })) ?? { ok: false };
     case 'pairing-finish':

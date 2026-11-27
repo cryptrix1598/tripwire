@@ -1,7 +1,7 @@
 /** Small shared pieces used by every Tripwire surface. */
 import { useState, type ReactNode } from 'react';
 import type { Route, Verdict } from '../inference/schemas';
-import { BRAND, ROUTE_BADGE, WHY } from './copy';
+import { BRAND, DECIDED_BY, ROUTE_BADGE, WHY } from './copy';
 
 /** The Tripwire mark: two posts joined by a wire. */
 export function Mark({ size = 32, color = '#8DAEF5', label }: { size?: number; color?: string; label?: string }) {
@@ -70,6 +70,16 @@ export function RouteLine({ route, sent = false, wrongSide = false, downloading 
 }
 
 /** The longer, plain explanation of how a verdict was reached. */
+/** "What decided: Gemini Nano, confirmed by the built-in rules." */
+export function DecidedBy({ verdict }: { verdict: Verdict }) {
+  if (!verdict.decidedBy) return null;
+  return (
+    <p className="tw-muted">
+      <strong>{DECIDED_BY.label}:</strong> {DECIDED_BY[verdict.decidedBy]}
+    </p>
+  );
+}
+
 export function routeExplanation(verdict: Verdict): string {
   if (verdict.wrongSide) return WHY.wrongSide;
   const parts = [verdict.modelDownloading && verdict.route === 'cloud_fallback' ? WHY.downloading : ROUTE_BADGE[verdict.route].long];
@@ -105,9 +115,27 @@ export function SentReceipt({ verdict }: { verdict: Verdict }) {
   );
 }
 
+/**
+ * How specific a reason is, so the one shown on the main screen is the one most likely to persuade:
+ * a named ask (a PIN, gift cards, a "safe account", remote access) before a vague one ("act now").
+ */
+const SPECIFIC = [
+  /\b(?:pin|password|passcode|one-time|code|social security|ssn|contrase|mot de passe|c[oó]digo)\b/i,
+  /\b(?:gift ?cards?|crypto|bitcoin|wire|safe account|secure account|remote|anydesk|teamviewer|tarjetas? de regalo|cartes? cadeaux?)\b/i,
+  /\b(?:card number|bank|account|routing|payee|tarjeta|cuenta|carte|compte)\b/i,
+  /\b(?:call|phone|number|llam|appel)\w*/i,
+];
+const specificity = (flag: string) => {
+  const i = SPECIFIC.findIndex((re) => re.test(flag));
+  return i < 0 ? SPECIFIC.length : i;
+};
+
 export function flagsFor(verdict: Verdict): string[] {
   const flags = verdict.redFlags.filter((f) => typeof f === 'string' && f.trim().length > 0).slice(0, 4);
-  return flags.length > 0 ? flags : [WHY.noFlags];
+  if (flags.length === 0) return [WHY.noFlags];
+  // A transfer's reasons are already in order (the content script puts the strongest first).
+  if (verdict.trigger === 'money_transfer') return flags;
+  return flags.map((f, i) => ({ f, i, s: specificity(f) })).sort((a, b) => a.s - b.s || a.i - b.i).map((x) => x.f);
 }
 
 /** Deep field on the left, calm content on the right. Stacks on narrow screens. */

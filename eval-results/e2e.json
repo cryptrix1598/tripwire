@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-11-27T20:37:45.646Z",
+  "ranAt": "2026-11-27T21:10:29.895Z",
   "browser": "Chromium (Playwright), extension loaded",
   "steps": [
     {
@@ -28,7 +28,7 @@
     },
     {
       "state": "pass",
-      "name": "your own bank: a new payee gets one plain question; after a warning it gets the hold"
+      "name": "your own bank: a new payee gets the money question and the five-minute hold"
     },
     {
       "state": "pass",
@@ -60,12 +60,15 @@
     },
     {
       "state": "pass",
-      "name": "family page: connect screen and alert feed render (sample data)"
+      "name": "family page, caution banner and pause render (sample data)"
     }
   ],
   "accessibility": {
     "tool": "axe-core",
     "wcagAAProblems": [],
-    "aaaContrastNotes": []
+    "aaaContrastNotes": [
+      "caution-banner: color-contrast-enhanced [serious] x1: <p>Sample page content underneath the banner. Everything here is invented.</p>",
+      "caution-banner-why: color-contrast-enhanced [serious] x1: <p>Sample page content underneath the banner. Everything here is invented.</p>"
+    ]
   }
 }

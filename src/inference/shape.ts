@@ -110,8 +110,6 @@ const SCAM_TALK =
   /\b(?:scams?|scammers?|scammed|fraudsters?|victims?|phishing|con artists?|estafas?|estafadores?|víctimas?|arnaques?|arnaqueurs?|escroqueries?|escrocs?|victimes?|hameçonnage)\b/gi;
 /** "This is not a scam" is something scams say about themselves; it is not talk about scams. */
 const SELF_REASSURANCE = /\b(?:(?:this|it) is not a scam|not a scam|no es (?:una )?estafa|ce n.est pas une arnaque)\b/gi;
-/** A page that says "scam", "scammer" or "victim" this often is almost always describing scams, not running one. */
-export const ABOUT_SCAMS_AT = 5;
 
 /**
  * How often the page talks ABOUT scams. A held-out run paused the Wikipedia

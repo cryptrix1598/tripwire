@@ -46,6 +46,12 @@ service cloud.firestore {
     // exactly this sentence, an alert cannot carry free text of any kind.
     // The clock may stay as it is, or move to now if the last alert was over 15 seconds ago.
     // Once set it can never be removed or set to any other time.
+    // The guardian's link was approved more than 24 hours ago.
+    function approvedLongAgo(deviceId) {
+      return get(/databases/$(database)/documents/devices/$(deviceId)/guardians/$(request.auth.uid)).data.get('approvedAt', null) is timestamp
+        && get(/databases/$(database)/documents/devices/$(deviceId)/guardians/$(request.auth.uid)).data.approvedAt < request.time - duration.value(24, 'h');
+    }
+
     function alertClockOk(before, after) {
       return ('lastAlertAt' in after || !('lastAlertAt' in before))
         && (!('lastAlertAt' in after)
@@ -151,9 +157,11 @@ service cloud.firestore {
           // ...and this guardian must be the one who claimed the code, in this same write.
           && getAfter(/databases/$(database)/documents/pairingCodes/$(request.resource.data.code)).data.usedBy == request.auth.uid;
         // Only the device can approve a link, and approving is the only change allowed.
+        // approvedAt (the time of approval) decides who may let a hold go through (see holds below).
         allow update: if isDevice(deviceId)
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['approved'])
-          && request.resource.data.approved == true;
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['approved', 'approvedAt'])
+          && request.resource.data.approved == true
+          && (!('approvedAt' in request.resource.data) || request.resource.data.approvedAt == request.time);
         // Either side can end the link.
         allow delete: if isDevice(deviceId) || (signedIn() && request.auth.uid == guardianId);
       }
@@ -189,6 +197,8 @@ service cloud.firestore {
       // The five-minute hold, so an approved family member can be a second opinion: one document,
       // written by the device when a hold starts or ends; the family may only answer it, once,
       // while it is running, with "let it go through" or "keep it on hold". No page content.
+      // "Let it go through" needs a link approved more than a day ago: a scammer on the phone who
+      // talks the person into pairing them cannot then release the hold they are waiting out.
       match /holds/{holdId} {
         allow read: if isDevice(deviceId) || isGuardianOf(deviceId);
         allow create, update: if isDevice(deviceId)
@@ -209,7 +219,8 @@ service cloud.firestore {
           && resource.data.endsAt > request.time
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['decision', 'decidedAt'])
           && request.resource.data.decision in ['released', 'extended']
-          && request.resource.data.decidedAt == request.time;
+          && request.resource.data.decidedAt == request.time
+          && (request.resource.data.decision == 'extended' || approvedLongAgo(deviceId));
         allow delete: if isDevice(deviceId);
       }
     }

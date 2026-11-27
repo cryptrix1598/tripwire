@@ -99,7 +99,7 @@ object Redactor {
     private val PO_BOX = Regex("""\bP\.?\s?O\.?\s*Box\s+\d+\b""", RegexOption.IGNORE_CASE)
     private val CITY_STATE_ZIP = Regex("""\b[A-Z][a-z]+(?:\s[A-Z][a-z]+){0,2},\s*[A-Z]{2}\s+\d{5}(?:-\d{4})?\b""")
     private const val WORD = """[A-ZÀ-Ý][a-zà-ÿ]+(?:['-][A-ZÀ-Ý]?[a-zà-ÿ]+)?"""
-    private val GREETING = Regex("""\b(Dear|Hi|Hello|Hey|Hola|Bonjour|Querida|Querido|Estimado|Estimada|Cher|Chère)([ \t]+)($WORD(?:[ \t]+$WORD)?)""")
+    private val GREETING = Regex("""\b(Dear|Hi|Hello|Hey|Hola|Bonjour|Bonsoir|Querida|Querido|Estimado|Estimada|Cher|Chère),?([ \t]+)((?:(?:Sr|Sra|Srta|Mme|Mlle|Mr|Mrs|Ms|Dr)\.?[ \t]+|(?:Don|Doña|Madame|Monsieur)[ \t]+)?$WORD(?:[ \t]+$WORD){0,2})""")
     private val TITLED = Regex("""\b(?:Mr|Mrs|Ms|Miss|Dr|Sr|Sra|Mme)\.?\s+$WORD(?:\s+$WORD)?""")
     private val LABELED = Regex("""\b((?:Name|Customer|Account holder|Cardholder|Recipient|Nombre|Nom)\s*:\s*)($WORD(?:[ \t]+$WORD){0,2})""")
     private val SIGNOFF = Regex("""\b((?:Regards|Kind regards|Best|Thanks|Thank you|Sincerely|Cheers|Love|Saludos|Cordialement|Atentamente),?[ \t]*\r?\n[ \t]*)($WORD(?:[ \t]+$WORD)?)""")

@@ -29,6 +29,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -161,6 +162,15 @@ private fun CheckScreen(m: CheckViewModel) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(stringResource(R.string.check_title), style = MaterialTheme.typography.headlineMedium, color = Tw.Ink, modifier = Modifier.semantics { heading() })
+        // Optional: check incoming texts as they arrive, on this phone (Android asks the person to allow it).
+        val context = LocalContext.current
+        if (MessageWatch.isOn(context)) {
+            Text(stringResource(R.string.watch_on), color = Tw.Ok)
+        } else {
+            TextButton(onClick = { context.startActivity(MessageWatch.settingsIntent()) }, modifier = Modifier.heightIn(min = 48.dp)) {
+                Text(stringResource(R.string.watch_turn_on), fontSize = 18.sp)
+            }
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Choice(m.mode == Mode.MESSAGE, R.string.check_mode_message) { m.mode = Mode.MESSAGE; m.edited() }
             Choice(m.mode == Mode.CALL, R.string.check_mode_call) { m.mode = Mode.CALL; m.edited() }

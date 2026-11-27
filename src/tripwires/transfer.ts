@@ -13,7 +13,7 @@ import type { FieldInfo } from './cardField';
 
 /** Fields that only exist to move money to someone. */
 const TRANSFER_FIELD =
-  /\b(?:payee|recipient|beneficiary|send(?:ing)?\s*(?:money\s*)?to|pay\s*to|transfer\s*(?:to|from|amount)|amount\s*to\s*(?:send|transfer)|routing|wire|zelle|destinatario|beneficiario|transferencia|bénéficiaire|virement)\b/i;
+  /\b(?:iban|sort\s*code|swift|clabe|payee|recipient|beneficiary|send(?:ing)?\s*(?:money\s*)?to|pay\s*to|transfer\s*(?:to|from|amount)|amount\s*to\s*(?:send|transfer)|routing|wire|zelle|destinatario|beneficiario|transferencia|bénéficiaire|virement)\b/i;
 /** A plain "Amount" box counts only inside a form about sending money. */
 const AMOUNT_FIELD = /\b(?:amount|monto|cantidad|montant)\b/i;
 const TRANSFER_CONTEXT =
@@ -36,7 +36,7 @@ export function tellsAScamTransferStory(text: string): boolean {
   return SCAM_TRANSFER_STORY.test(text);
 }
 
-/** How long a scam warning or a phone-call check counts as "just now". */
+/** How long a scam warning or a phone-call check counts as "just now" (Remote Config: thresholds.recentRiskMinutes). */
 export const RECENT_RISK_MS = 60 * 60_000;
 
 export function isTransferField(info: FieldInfo, context: string): boolean {
@@ -54,8 +54,8 @@ export function addsNewPayee(context: string): boolean {
 }
 
 /** A warning or a call check happened recently enough that a transfer now fits the pattern of a scam. */
-export function riskIsRecent(lastRiskAt: number | undefined, now: number): boolean {
-  return typeof lastRiskAt === 'number' && now >= lastRiskAt && now - lastRiskAt <= RECENT_RISK_MS;
+export function riskIsRecent(lastRiskAt: number | undefined, now: number, windowMs = RECENT_RISK_MS): boolean {
+  return typeof lastRiskAt === 'number' && now >= lastRiskAt && now - lastRiskAt <= windowMs;
 }
 
 /** The text a transfer field sits in: its form, or failing that the page's title and main heading. Capped. */

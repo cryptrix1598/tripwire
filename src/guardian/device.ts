@@ -140,7 +140,7 @@ export async function decidePending(allow: boolean): Promise<number> {
   const { approve, remove } = applyDecision(choosePending(rows, liveCode, Date.now()), allow);
   const byId = new Map(links.docs.map((d) => [d.id, d.ref]));
   await Promise.all([
-    ...approve.map((id) => updateDoc(byId.get(id)!, { approved: true })),
+    ...approve.map((id) => updateDoc(byId.get(id)!, { approved: true, approvedAt: serverTimestamp() })),
     ...remove.map((id) => deleteDoc(byId.get(id)!)),
   ]);
   await retirePairingCode();

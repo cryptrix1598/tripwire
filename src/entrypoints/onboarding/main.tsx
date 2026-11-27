@@ -200,7 +200,7 @@ function Pairing({ paired, onConnected }: { paired: number; onConnected: () => v
       {refused && <p role="status">{copy.refused}</p>}
       {reply && !reply.ok && (
         <p className="tw-muted" role="status">
-          {copy.unavailable}
+          {reply.reason === 'recent_risk' ? copy.recentRisk : copy.unavailable}
         </p>
       )}
       <button type="button" className="tw-btn tw-btn--outline" style={{ alignSelf: 'flex-start' }} onClick={getCode} disabled={busy}>

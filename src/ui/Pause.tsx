@@ -11,7 +11,7 @@ import type { Trigger, Verdict } from '../inference/schemas';
 import { INTERSTITIAL, POPUP, TRANSFER, TRIP_LEAD } from './copy';
 import { HOLD_MS, HOLD_TRIGGERS, clock, type FamilyDecision } from './hold';
 import { send, type HoldReply } from '../messaging';
-import { Brand, RouteLine, SentReceipt, byPerson, flagsFor, routeExplanation } from './kit';
+import { Brand, RouteLine, SentReceipt, byPerson, flagsFor, routeExplanation, DecidedBy } from './kit';
 
 /** What the pause is really about. A passive trip still gets the most specific reading we can honestly give. */
 function tripFor(verdict: Verdict): Trigger {
@@ -177,6 +177,7 @@ export function Pause({
                   ))}
                 </ul>
                 <p className="tw-muted">{routeExplanation(verdict)}</p>
+                <DecidedBy verdict={verdict} />
                 <SentReceipt verdict={verdict} />
               </>
             )}

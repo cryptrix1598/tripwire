@@ -43,7 +43,8 @@ class ScamChecker(private val client: ModelClient = FirebaseModelClient()) {
     private val language: String = Locale.getDefault().getDisplayLanguage(Locale.ENGLISH)
     private var config: CheckConfig? = null
 
-    suspend fun check(text: String): CheckResult {
+    /** allowCloud = false (the automatic message watch): the phone's own model or the rules, nothing sent. */
+    suspend fun check(text: String, allowCloud: Boolean = true): CheckResult {
         val c = config ?: client.config().also { config = it }
         val signs = Rules.signs(text)
         val rules = CheckResult(Rules.verdict(signs), Route.RULES, signs)
@@ -59,6 +60,7 @@ class ScamChecker(private val client: ModelClient = FirebaseModelClient()) {
                 Reply.Nothing -> return rules
             }
         }
+        if (!allowCloud) return rules
         return cloud(text, signs, phone, c) ?: rules
     }
 

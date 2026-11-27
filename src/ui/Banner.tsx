@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import type { Verdict } from '../inference/schemas';
 import { BANNER, CAUTION_HEADLINE, WHY } from './copy';
-import { Mark, RouteLine, SentReceipt, byPerson, flagsFor, routeExplanation } from './kit';
+import { Mark, RouteLine, SentReceipt, byPerson, flagsFor, routeExplanation, DecidedBy } from './kit';
 
 export function Banner({ verdict, onDismiss }: { verdict: Verdict; onDismiss: () => void }) {
   const [open, setOpen] = useState(false);
@@ -52,6 +52,7 @@ export function Banner({ verdict, onDismiss }: { verdict: Verdict; onDismiss: ()
             <h3 className="tw-why__title">{WHY.routeLabel}</h3>
             <RouteLine route={verdict.route} sent={verdict.bytesSentToCloud > 0} wrongSide={verdict.wrongSide} downloading={verdict.modelDownloading} />
             <p className="tw-muted">{routeExplanation(verdict)}</p>
+                <DecidedBy verdict={verdict} />
             <SentReceipt verdict={verdict} />
           </div>
         </div>

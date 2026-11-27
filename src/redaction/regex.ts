@@ -82,14 +82,17 @@ const NOT_A_NAME = new Set(
     'winner', 'account', 'cardholder', 'subscriber', 'taxpayer', 'beneficiary', 'shopper', 'guest',
     'everyone', 'folks', 'neighbor', 'neighbour', 'applicant', 'recipient', 'patient', 'resident',
     'the', 'your', 'our', 'this', 'that', 'we', 'you', 'again', 'and',
+    'madame', 'monsieur', 'señor', 'señora', 'cliente', 'clientes', 'usuario', 'utilisateur', 'amigo', 'amiga', 'ami', 'amie',
+    'todos', 'tous', 'familia', 'famille', 'vecino', 'voisin',
   ],
 );
 // Latin letters with accents count too, so a surname such as Hernández or Lefèvre is removed whole.
 const NAME_WORD = String.raw`[A-ZÀ-ÖØ-Þ][a-zà-öø-ÿ]+(?:['-][A-ZÀ-ÖØ-Þ]?[a-zà-öø-ÿ]+)?`;
-const TITLE = String.raw`(?:Mr|Mrs|Ms|Miss|Mx|Dr|Prof)\.?`;
+// English, Spanish and French titles ("M." needs its full stop: a bare M is too common).
+const TITLE = String.raw`(?:(?:Mr|Mrs|Ms|Miss|Mx|Dr|Prof|Sr|Sra|Srta|Mme|Mlle)\.?|Don|Doña|Madame|Monsieur|Mademoiselle|M\.)`;
 const GREETING_RE = new RegExp(
-  String.raw`\b(Dear|Hi|Hello|Hey|Attention|Greetings|Good\s+(?:morning|afternoon|evening))(,?\s+)((?:${TITLE}\s+)?${NAME_WORD}(?:\s+${NAME_WORD}){0,2})(?=[\s,:;!.]|$)`,
-  'g',
+  String.raw`(?<![\p{L}])(Dear|Hi|Hello|Hey|Attention|Greetings|Good\s+(?:morning|afternoon|evening)|Hola|Buenos\s+días|Buenas\s+(?:tardes|noches)|Estimad[oa]s?|Querid[oa]s?|Bonjour|Bonsoir|Salut|Cher|Chère|Chers)(,?\s+)((?:${TITLE}\s+)?${NAME_WORD}(?:\s+${NAME_WORD}){0,2})(?=[\s,:;!.]|$)`,
+  'gu',
 );
 const TITLED_NAME_RE = new RegExp(String.raw`\b${TITLE}\s+${NAME_WORD}(?:\s+${NAME_WORD})?`, 'g');
 const LABELED_NAME_RE = new RegExp(

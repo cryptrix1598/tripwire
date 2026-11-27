@@ -183,5 +183,11 @@
     <string name="hold_release">I talked to them: let it go through</string>
     <string name="hold_released">You let it go through</string>
     <string name="hold_extended">You asked them to wait 30 more minutes</string>
-    <string name="hold_failed">That did not reach their computer. Check your internet and try again.</string>
+    <string name="hold_failed">That did not go through. Family connected in the last day can keep a hold but not let it go through; otherwise check your internet and try again.</string>
+    <string name="watch_label">Tripwire: check my messages</string>
+    <string name="watch_title_scam">That message looks like a scam</string>
+    <string name="watch_title_careful">Be careful with that message</string>
+    <string name="watch_body">Do not reply, do not call back, and never read out a code. Checked on this phone; nothing was sent.</string>
+    <string name="watch_turn_on">Check my texts automatically</string>
+    <string name="watch_on">Your texts are checked on this phone as they arrive.</string>
 </resources>

@@ -162,7 +162,7 @@ try {
     if ((await ui(page, '.tw-overlay').count()) !== 0) throw new Error('paused again after the person chose to continue');
   });
 
-  await step('your own bank: a new payee gets one plain question; after a warning it gets the hold', async () => {
+  await step('your own bank: a new payee gets the money question and the five-minute hold', async () => {
     // Start clean: the real five-minute hold, and no warning in the last hour (earlier steps showed some).
     await worker.evaluate(async () => {
       const all = await chrome.storage.session.get(null);
@@ -175,17 +175,6 @@ try {
     await page.locator('#amount').focus();
     await expectVisible(ui(page).getByText('Is someone on the phone telling you to move money?'));
     await expectVisible(ui(page).getByText('You are sending money to someone you have not paid before'));
-    // An ordinary new-payee form (judged on the device, or by the rules without Nano): no five-minute wait.
-    await expectVisible(ui(page).getByRole('button', { name: /sure, continue/ }));
-    if ((await ui(page).getByText('Real emergencies can wait 5 minutes').count()) !== 0) throw new Error('held an ordinary new payee for five minutes');
-    await page.screenshot({ path: 'docs/screenshots/pause-transfer-check.png' });
-
-    // The same transfer soon after a scam warning on this computer: the hold.
-    await worker.evaluate(async () => chrome.storage.session.set({ 'risk:lastAt': Date.now() }));
-    await page.reload();
-    await page.waitForTimeout(1500);
-    await page.locator('#amount').focus();
-    await expectVisible(ui(page).getByText('Tripwire warned you about a possible scam on this computer within the last hour'));
     await expectVisible(ui(page).getByText('Real emergencies can wait 5 minutes'));
     await expectVisible(ui(page).getByText(/You can continue in [0-4]:[0-9]{2}|You can continue in 5:00/));
     await page.screenshot({ path: 'docs/screenshots/pause-transfer.png' });
@@ -307,7 +296,7 @@ try {
     return result.slice(0, 120);
   });
 
-  await step('family page: connect screen and alert feed render (sample data)', async () => {
+  await step('family page, caution banner and pause render (sample data)', async () => {
     const fam = await context.newPage();
     await fam.goto('http://localhost:5174/preview.html?page=pair');
     await expectVisible(fam.getByRole('heading', { name: 'Connect to their Tripwire' }));
@@ -317,6 +306,20 @@ try {
     await expectVisible(fam.getByText('They continued anyway'));
     await fam.waitForTimeout(500);
     await shot(fam, 'family-alerts');
+    // The caution banner and the full pause, from the same components with sample verdicts. (With a
+    // live model the fake bank page pauses on reading, so those two screens are not otherwise shown.)
+    await fam.setViewportSize({ width: 1280, height: 800 });
+    await fam.goto('http://localhost:5174/preview.html?page=banner&lang=en');
+    await expectVisible(fam.getByText('Warning from Tripwire'));
+    await fam.waitForTimeout(400);
+    await shot(fam, 'caution-banner');
+    await fam.getByRole('button', { name: 'Why?' }).click();
+    await fam.waitForTimeout(300);
+    await shot(fam, 'caution-banner-why');
+    await fam.goto('http://localhost:5174/preview.html?page=pause&lang=en');
+    await expectVisible(fam.getByRole('button', { name: 'Stop and stay safe' }));
+    await fam.waitForTimeout(400);
+    await shot(fam, 'pause');
     await fam.close();
   });
 } finally {

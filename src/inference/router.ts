@@ -46,6 +46,7 @@ import {
   TranslationSchema,
   TriageSchema,
   type CloudAnalysis,
+  type DecisionStep,
   type Route,
   type ScamType,
   type Triage,
@@ -54,7 +55,6 @@ import {
   type VerdictState,
 } from './schemas';
 import {
-  ABOUT_SCAMS_AT,
   detectShape,
   directedAsks,
   salientExcerpt,
@@ -208,6 +208,8 @@ function ruleFlags(signals: Signals): string[] {
 }
 
 interface Draft {
+  /** Which step of the router decided (shown under "Why", and tested as a table). */
+  step?: DecisionStep;
   score: number;
   scamType: ScamType;
   redFlags: string[];
@@ -256,8 +258,8 @@ function readPage(input: AssessInput, config: TripwireConfig) {
     signals,
     mentions,
     // Describing scams (third person) is not the same as using scam words while telling the reader what to do.
-    aboutScams: mentions >= ABOUT_SCAMS_AT && asks < 2,
-    scamWordsPlusAsks: mentions >= ABOUT_SCAMS_AT && asks >= 2,
+    aboutScams: mentions >= config.thresholds.aboutScamsAt && asks < 2,
+    scamWordsPlusAsks: mentions >= config.thresholds.aboutScamsAt && asks >= 2,
     // Text aimed at an automated checker. A model's "safe" is never the last word on such a page.
     steering: triesToSteerTheChecker(page),
   };
@@ -380,6 +382,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
       ...(d.wrongSide ? { wrongSide: true } : {}),
       ...(cloudFailure ? { cloudFailure } : {}),
       ...(d.modelDownloading ? { modelDownloading: true } : {}),
+      ...(d.step ? { decidedBy: d.step } : {}),
       promptVersion: config.promptVersion,
       elapsedMs: now() - started,
       ...(d.language && finalState !== 'safe' ? { explanationLanguage: d.language } : {}),
@@ -395,7 +398,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
     const cautionAt = failSafe ? low : rulesOnlyCaution;
     // With no model to tell the difference, a page that is plainly about scams is left alone.
     const flagged = signals.ruleScore >= cautionAt && !(aboutScams && input.trigger === 'passive');
-    return finish({
+    return finish({ step: 'rules',
       // Rules alone never trip a passive scan: map into the caution band.
       score: flagged ? Math.max(low, Math.min(signals.ruleScore, config.thresholds.high - 1)) : Math.min(signals.ruleScore, low - 1),
       scamType: signals.suggestedType,
@@ -413,10 +416,10 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
   // ── Stage 2: the gate. A passive scan with no warning signs never reaches a model. ──
   const { asked, localLook, wideLook, cloudLook } = gate(input, read);
   if (input.trigger === 'passive' && !localLook && !wideLook) {
-    return finish({ score: 0, scamType: 'none', redFlags: [], explanation: '', confidence: 1, route: 'not_checked' });
+    return finish({ step: 'gate', score: 0, scamType: 'none', redFlags: [], explanation: '', confidence: 1, route: 'not_checked' });
   }
   if (asked && input.nothingAskedYet && !input.neverSafe) {
-    return finish({
+    return finish({ step: 'nothing_asked',
       score: 0,
       scamType: 'none',
       redFlags: [],
@@ -506,7 +509,7 @@ ${prompt}`;
       );
     }
     const a = cloud.analysis;
-    return finish({
+    return finish({ step: 'cloud',
       score: a.riskScore,
       scamType: a.scamType,
       redFlags: a.redFlags,
@@ -523,7 +526,7 @@ ${prompt}`;
   };
 
   const notChecked = (wrongSide = false) =>
-    finish({ score: 0, scamType: 'none', redFlags: [], explanation: '', confidence: 1, route: 'not_checked', ...(wrongSide ? { wrongSide } : {}) });
+    finish({ step: 'not_checked', score: 0, scamType: 'none', redFlags: [], explanation: '', confidence: 1, route: 'not_checked', ...(wrongSide ? { wrongSide } : {}) });
   // The wider look is for the on-device model only: without it, such a page is not checked at all.
   if (wideLook && status !== 'available') return notChecked();
 
@@ -533,7 +536,7 @@ ${prompt}`;
     // reason to send a (redacted) checkout page anywhere.
     // With no on-device model something would have to leave the device, so the bar is higher.
     if (!cloudLook) {
-      return finish({ score: 0, scamType: 'none', redFlags: [], explanation: '', confidence: 1, route: 'not_checked' });
+      return finish({ step: 'not_checked', score: 0, scamType: 'none', redFlags: [], explanation: '', confidence: 1, route: 'not_checked' });
     }
     // This page passed the stricter gate. If the cloud cannot answer (quota, network, timeout),
     // the rules decide with the fail-safe (lower) caution bar, not the normal one.
@@ -557,9 +560,9 @@ ${prompt}`;
     if (!triage.ok) return notChecked(triage.reason === 'wrong_side');
     const t = triage.value;
     const sure = t.riskScore >= config.thresholds.high && t.confidence >= config.thresholds.minTripConfidence && !aboutScams;
-    if (!sure) return finish({ score: Math.min(t.riskScore, config.thresholds.low - 1), scamType: 'none', redFlags: [], explanation: '', confidence: t.confidence, route: 'on_device' });
+    if (!sure) return finish({ step: 'wide_unsure', score: Math.min(t.riskScore, config.thresholds.low - 1), scamType: 'none', redFlags: [], explanation: '', confidence: t.confidence, route: 'on_device' });
     return finish(
-      await localise({
+      await localise({ step: 'wide_sure',
         score: Math.min(t.riskScore, config.thresholds.high - 1),
         scamType: t.scamType,
         redFlags: t.redFlags,
@@ -593,7 +596,7 @@ ${prompt}`;
   // or when the page is trying to talk its way past a checker.
   const overruled = steering || signals.ruleScore >= config.thresholds.rulesOnlyCaution;
   if (t.riskScore < low && !overruled) {
-    return finish({
+    return finish({ step: 'device_safe',
       score: t.riskScore,
       scamType: 'none',
       redFlags: [],
@@ -615,7 +618,7 @@ ${prompt}`;
   if (t.riskScore >= high && corroborated && !aboutScams && !scamWordsPlusAsks) {
     // Local verdict. Nothing leaves the device.
     return finish(
-      await localise({
+      await localise({ step: 'device_confirmed',
         score: t.riskScore,
         scamType: t.scamType,
         redFlags: t.redFlags.length ? t.redFlags : ruleFlags(signals),
@@ -636,8 +639,8 @@ ${prompt}`;
     // device vote must never turn an ordinary page into a warning.
     const cleared = a.riskScore < low && a.confidence >= minTripConfidence && !steering;
     // Otherwise the cloud model leads and the device model keeps a vote.
-    const merged = cleared ? a.riskScore : Math.round(0.6 * a.riskScore + 0.4 * t.riskScore);
-    return finish({
+    const merged = cleared ? a.riskScore : Math.round(config.thresholds.cloudWeight * a.riskScore + (1 - config.thresholds.cloudWeight) * t.riskScore);
+    return finish({ step: 'device_then_cloud',
       score: merged,
       scamType: cleared ? 'none' : a.scamType !== 'none' ? a.scamType : t.scamType,
       // In another language only the cloud wrote translated reasons; do not mix in English ones.
@@ -656,11 +659,11 @@ ${prompt}`;
   // ── Stage 6: no second opinion (offline, invalid, or the privacy gate closed). ──
   // For a page about scams the small model's word alone is not enough to interrupt someone reading.
   if (aboutScams && input.trigger === 'passive') {
-    return finish({ score: Math.min(t.riskScore, low - 1), scamType: 'none', redFlags: [], explanation: '', confidence: t.confidence, route: 'on_device' });
+    return finish({ step: 'about_scams', score: Math.min(t.riskScore, low - 1), scamType: 'none', redFlags: [], explanation: '', confidence: t.confidence, route: 'on_device' });
   }
   // The device said "safe" but was overruled, and there is no second opinion: the rules decide, as a caution.
   if (t.riskScore < low) {
-    return finish({
+    return finish({ step: 'rules_overruled',
       score: Math.max(low, Math.min(signals.ruleScore, high - 1)),
       scamType: signals.suggestedType,
       redFlags: ruleFlags(signals),
@@ -674,7 +677,7 @@ ${prompt}`;
   }
   // Otherwise the on-device verdict stands on its own, and nothing was sent.
   return finish(
-    await localise({
+    await localise({ step: 'device_alone',
       score: t.riskScore,
       scamType: t.scamType,
       redFlags: t.redFlags.length ? t.redFlags : ruleFlags(signals),
@@ -702,8 +705,8 @@ export function escalateForAction(verdict: Verdict, trigger: Trigger, config: Tr
 
 /* ── Money transfers on the person's own bank site (src/tripwires/transfer.ts) ── */
 
-/** How firmly a transfer is paused: not at all, one plain question, or the five-minute hold. */
-export type TransferFirmness = 'none' | 'check' | 'hold';
+/** A transfer is either left alone or paused with the five-minute hold. */
+export type TransferFirmness = 'none' | 'hold';
 
 export interface TransferInput {
   /** The transfer form's own text (labels, headings, notes on the page), capped. Never what was typed. */
@@ -735,16 +738,14 @@ const TRANSFER_BRIEF =
 /** The built-in rules' reason when the form tells a scam-transfer story (src/tripwires/transfer.ts). */
 const TRANSFER_STORY_FLAG = 'It tells the story scammers use to make people move money: a “safe account”, crypto, gift cards, or a refund.';
 
-/** The model's score at which, together with its confidence, a new-payee transfer gets the hold. */
-export const TRANSFER_HOLD_SCORE = 60;
 
 /**
- * The bank page itself looks normal in the scams that matter most, so the moment decides:
- * - nobody new and nothing suspicious this hour: no pause;
- * - a scam warning or call check in the last hour: the five-minute hold, whatever the form says;
- * - a new payee: Gemini Nano reads the form ON THE DEVICE ONLY (this is the person's bank; nothing
- *   goes to the cloud here). If it, or the built-in rules, see the story of a scam transfer, the hold;
- *   otherwise one plain question with "continue" right there.
+ * The bank page itself looks normal in the scams that matter most (the story is told on the phone),
+ * so a new payee always gets the five-minute hold, and so does any transfer within an hour of a
+ * warning. Nobody new and nothing suspicious this hour: no pause.
+ * For a new payee Gemini Nano reads the form ON THE DEVICE ONLY (this is the person's bank; nothing
+ * goes to the cloud here) to find the most specific reason to show, together with a built-in rule
+ * for the stories scam transfers are told with.
  */
 export async function assessTransfer(input: TransferInput, deps: RouterDeps): Promise<TransferAssessment> {
   const now = deps.now ?? Date.now;
@@ -761,7 +762,7 @@ export async function assessTransfer(input: TransferInput, deps: RouterDeps): Pr
   const rulesSee = story || signals.ruleScore >= config.thresholds.rulesOnlyCaution;
   const rulesFlags = () => dedupe([...(story ? [TRANSFER_STORY_FLAG] : []), ...ruleFlags(signals)], 3);
   const byRules = (extra: Partial<TransferAssessment> = {}) =>
-    done({ firmness: rulesSee ? 'hold' : 'check', route: 'rules_only', redFlags: rulesSee ? rulesFlags() : [], scamType: 'none', ...extra });
+    done({ firmness: 'hold', route: 'rules_only', redFlags: rulesSee ? rulesFlags() : [], scamType: 'none', ...extra });
 
   const status = await engine.onDeviceStatus().catch((): OnDeviceStatus => 'unavailable');
   if (status !== 'available' || text.length === 0) return byRules();
@@ -776,10 +777,10 @@ export async function assessTransfer(input: TransferInput, deps: RouterDeps): Pr
   if (!triage.ok) return byRules(triage.reason === 'wrong_side' ? { wrongSide: true } : {});
 
   const t = triage.value;
-  const modelSees = t.riskScore >= TRANSFER_HOLD_SCORE && t.confidence >= config.thresholds.minTripConfidence;
+  const modelSees = t.riskScore >= config.thresholds.transferReasonScore && t.confidence >= config.thresholds.minTripConfidence;
   const hold = modelSees || rulesSee;
   return done({
-    firmness: hold ? 'hold' : 'check',
+    firmness: 'hold',
     route: 'on_device',
     redFlags: hold ? dedupe([...(modelSees ? t.redFlags : []), ...(rulesSee ? rulesFlags() : [])], 3) : [],
     scamType: modelSees ? t.scamType : 'none',

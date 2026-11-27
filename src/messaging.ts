@@ -95,7 +95,7 @@ export interface TabStateReply {
   trusted: boolean;
 }
 
-export type PairingReply = { ok: true; code: string; expiresAt: number } | { ok: false; reason: 'not_configured' | 'offline' };
+export type PairingReply = { ok: true; code: string; expiresAt: number } | { ok: false; reason: 'not_configured' | 'offline' | 'recent_risk' };
 
 export interface PendingDownloadReply {
   verdict: Verdict | null;

@@ -102,6 +102,24 @@ export const TRIP_LEAD: Record<Trigger, string> = {
   money_transfer: 'You are about to move money out of your account.',
 };
 
+/** What decided a verdict, one plain line under "Why" (Verdict.decidedBy). */
+export const DECIDED_BY = {
+  label: 'What decided',
+  gate: 'No warning signs, so no model was asked.',
+  nothing_asked: 'The caller has not asked for anything yet.',
+  rules: 'The built-in rules, because no model could answer.',
+  cloud: 'The cloud model, after personal info was removed (no on-device model on this computer).',
+  not_checked: 'Nothing: the check was not allowed to send anything off this computer.',
+  wide_unsure: 'Gemini Nano looked and was not sure enough to warn.',
+  wide_sure: 'Gemini Nano was sure, though the built-in lists found nothing.',
+  device_safe: 'Gemini Nano found nothing worrying.',
+  device_confirmed: 'Gemini Nano, confirmed by the built-in rules.',
+  device_then_cloud: 'Gemini Nano was unsure, so the cloud model was asked; both had a say.',
+  about_scams: 'This page is about scams, and Gemini Nano alone never warns on such a page.',
+  rules_overruled: 'Gemini Nano said it looked fine, but the built-in rules found strong signs.',
+  device_alone: 'Gemini Nano, with no second opinion available.',
+};
+
 /** The money-transfer pause: a real bank page at a risky moment (src/tripwires/transfer.ts). */
 export const TRANSFER = {
   question: 'Is someone on the phone telling you to move money?',
@@ -255,6 +273,7 @@ export const ONBOARDING = {
     getCode: 'Show a pairing code',
     newCode: 'Get a new code',
     paired: 'A family member is connected.',
+    recentRisk: 'Tripwire warned about a possible scam on this computer in the last hour, so it will not show a code right now. If someone on the phone asked you to connect a family member, hang up. You can try again in an hour.',
     unavailable: 'Family alerts need an internet connection and a finished Tripwire setup. You can turn them on later from the Tripwire menu.',
     optional: 'You can skip this',
     connectedTitle: 'A family member is connected.',
@@ -263,7 +282,7 @@ export const ONBOARDING = {
     working: 'Getting a code…',
     approveTitle: 'Someone just typed your code',
     approveNamed: (name: string) => `${name} just typed your code`,
-    approveBody: 'Allow them only if you gave this code to a family member yourself, just now. If you are not sure, choose No.',
+    approveBody: 'Allow them only if you gave this code to a family member yourself, just now. If you are not sure, choose No. If someone on the phone asked you for this code, hang up.',
     allow: 'Yes, allow',
     deny: 'No, this wasn’t them',
     refused: 'Removed. Nobody can see your alerts. You can show a new code at any time.',
@@ -554,7 +573,7 @@ export const DASHBOARD = {
     holdExtend: 'Keep it on hold for 30 minutes',
     holdReleased: 'You let it go through',
     holdExtended: 'You asked them to wait 30 more minutes',
-    holdFailed: 'That did not reach their computer. Check your internet and try again.',
+    holdFailed: 'That did not go through. Family connected in the last day can keep a hold but not let it go through; otherwise check your internet and try again.',
     quiet: (when: string) =>
       `Tripwire has not checked in from their computer since ${when}. The computer may just be off, or Tripwire may have been removed. A quick call can tell.`,
     addAnother: 'Connect another person',

@@ -58,6 +58,49 @@
       "keep": [
         "Charles Schwab"
       ]
+    },
+    {
+      "id": "greeting-es",
+      "text": "Hola Rosario, su cuenta ha sido bloqueada. Llame al 1-855-555-0142.",
+      "remove": [
+        "Rosario",
+        "555-0142"
+      ],
+      "keep": [
+        "cuenta"
+      ]
+    },
+    {
+      "id": "greeting-fr",
+      "text": "Bonjour Gisèle, votre colis est en attente de paiement.",
+      "remove": [
+        "Gisèle"
+      ],
+      "keep": [
+        "colis"
+      ]
+    },
+    {
+      "id": "greeting-fr-title",
+      "text": "Chère Madame Bernadette Lefèvre, votre compte sera fermé demain.",
+      "remove": [
+        "Bernadette",
+        "Lefèvre"
+      ],
+      "keep": [
+        "compte"
+      ]
+    },
+    {
+      "id": "greeting-es-title",
+      "text": "Estimado Sr. Joaquín Hernández, su tarjeta fue bloqueada por seguridad.",
+      "remove": [
+        "Joaquín",
+        "Hernández"
+      ],
+      "keep": [
+        "tarjeta"
+      ]
     }
   ]
 }
