@@ -33,7 +33,7 @@ const verdict: Verdict = {
   explanation: '',
   confidence: 0.9,
   route: (params.get('route') as Verdict['route']) ?? 'device_then_cloud',
-  trigger: page === 'banner' ? 'passive' : 'card_entry',
+  trigger: page === 'banner' ? 'passive' : ((params.get('trigger') as Verdict['trigger']) ?? 'card_entry'),
   bytesSentToCloud: 412,
   redactionCount: 4,
   failSafe: false,

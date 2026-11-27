@@ -58,7 +58,7 @@ try {
   await step('"Stop and stay safe" goes to the "you stopped" page', async () => {
     await page.locator('tripwire-ui').getByRole('button', { name: 'Stop and stay safe' }).click();
     await page.waitForURL(/stopped\.html/, { timeout: 15_000 });
-    await page.getByRole('heading', { name: 'That was the right call.' }).waitFor({ timeout: 15_000 });
+    await page.getByRole('heading', { name: 'That was the right call' }).waitFor({ timeout: 15_000 });
   });
 
   await step('ordinary checkout stays silent, even with a card number typed', async () => {

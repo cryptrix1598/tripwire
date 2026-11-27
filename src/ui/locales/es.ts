@@ -30,19 +30,19 @@ export const ES: LocaleBundle = {
     },
   },
   CAUTION_HEADLINE: {
-    none: 'Mire esta página con cuidado.',
-    tech_support: 'Esto parece una falsa alerta de computadora.',
-    gift_card: 'Este mensaje pide tarjetas de regalo. Tenga cuidado.',
-    bank_impersonation: 'Puede que esto no sea realmente de su banco.',
-    government_impersonation: 'Puede que esto no sea realmente del gobierno.',
-    delivery: 'Puede que este aviso de entrega no sea real.',
-    shopping_impersonation: 'Puede que esto no sea realmente de la tienda que nombra.',
-    investment_crypto: 'Esta oferta de dinero tiene señales de alerta.',
-    prize_lottery: 'Esta oferta de premio tiene señales de alerta.',
-    romance: 'Esta petición de dinero tiene señales de alerta.',
-    payment_request: 'Esta petición de pago tiene señales de alerta.',
-    phishing_login: 'Puede que esta página intente obtener su contraseña.',
-    other: 'Algo en esta página no parece estar bien.',
+    none: 'Mire esta página con cuidado',
+    tech_support: 'Esto parece una falsa alerta de computadora',
+    gift_card: 'Tenga cuidado: este mensaje pide tarjetas de regalo',
+    bank_impersonation: 'Puede que esto no sea realmente de su banco',
+    government_impersonation: 'Puede que esto no sea realmente del gobierno',
+    delivery: 'Puede que este aviso de entrega no sea real',
+    shopping_impersonation: 'Puede que esto no sea realmente de la tienda que nombra',
+    investment_crypto: 'Esta oferta de dinero tiene señales de alerta',
+    prize_lottery: 'Esta oferta de premio tiene señales de alerta',
+    romance: 'Esta petición de dinero tiene señales de alerta',
+    payment_request: 'Esta petición de pago tiene señales de alerta',
+    phishing_login: 'Puede que esta página intente obtener su contraseña',
+    other: 'Algo en esta página no parece estar bien',
   },
   BANNER: {
     regionLabel: 'Aviso de Tripwire',
@@ -68,7 +68,7 @@ export const ES: LocaleBundle = {
   },
   INTERSTITIAL: {
     dialogLabel: 'Tripwire detuvo esta página',
-    title: 'Hagamos una pausa.',
+    title: 'Hagamos una pausa',
     question: '¿Alguien le llamó, le escribió o le envió un correo para pedirle que hiciera esto?',
     reassurance:
       'Los estafadores meten prisa para que no haya tiempo de pensar. Un banco, una tienda o una oficina del gobierno de verdad siempre le dejará tomarse su tiempo.',
@@ -77,7 +77,7 @@ export const ES: LocaleBundle = {
     holdLead: 'Las emergencias de verdad pueden esperar 5 minutos. Las estafas no.',
     holdHangUp: 'Si alguien está al teléfono con usted, cuelgue primero.',
     holdCall: 'Luego llame al número que está detrás de su tarjeta o en una factura que ya tenga. Nunca a un número que le dieron.',
-    holdWait: (time: string) => `Podrá continuar en ${time}.`,
+    holdWait: (time: string) => `Podrá continuar en ${time}`,
     holdLonger: 'Aún no estoy seguro: esperar 5 minutos más',
     why: '¿Por qué me detuvo Tripwire?',
     hideWhy: 'Ocultar los motivos',
@@ -123,13 +123,13 @@ export const ES: LocaleBundle = {
     neverSafe: 'Un banco, una oficina del gobierno o una empresa de verdad no pide esto por teléfono. Cuelgue y llame a un número que ya conozca.',
   },
   SAFE_PAGE: {
-    title: 'Hizo lo correcto.',
+    title: 'Hizo lo correcto',
     body: 'No se envió nada y no se instaló nada.',
     nextTitle: 'Esto es lo que puede hacer ahora.',
     steps: [
       { title: 'Cuelgue o deje de responder.', body: 'Si alguien está al teléfono o le escribe, simplemente puede terminar. No le debe ninguna explicación.' },
       {
-        title: 'Llame usted mismo al número de verdad.',
+        title: 'Llame usted mismo al número de verdad',
         body: 'Si le preocupa su banco o una cuenta, use el número impreso en su tarjeta o en un extracto. Nunca use un número del mensaje.',
       },
       { title: 'Cuénteselo a alguien de confianza.', body: 'Dos pares de ojos ven más. Los estafadores cuentan con que la gente se lo calle.' },
@@ -150,7 +150,7 @@ export const ES: LocaleBundle = {
     finish: 'Terminar',
     skip: 'Omitir por ahora',
     what: {
-      title: 'Tripwire interviene en el momento que importa.',
+      title: 'Tripwire interviene en el momento que importa',
       body: 'Las estafas no le quitan el dinero cuando usted las lee. Se lo quitan cuando usted actúa. Tripwire no dice nada hasta ese momento.',
       moments: [
         'Escribir un número de tarjeta en una página que no parece segura',
@@ -161,7 +161,7 @@ export const ES: LocaleBundle = {
       momentsLabel: 'Le hace una pausa antes de:',
     },
     privacy: {
-      title: 'Sus correos nunca salen de su computadora sin quitarles antes los datos personales.',
+      title: 'Sus correos nunca salen de su computadora sin quitarles antes los datos personales',
       body: 'Tripwire lee las páginas en su propia computadora. Si quiere una segunda opinión, primero quita nombres, teléfonos, correos, direcciones y números de tarjeta, y solo entonces pregunta.',
       modelTitle: 'Revisión privada en esta computadora',
       modelReady: 'Listo. Las revisiones se hacen en esta computadora.',
@@ -198,7 +198,7 @@ export const ES: LocaleBundle = {
       refused: 'Eliminado. Nadie puede ver sus avisos. Puede mostrar un código nuevo cuando quiera.',
     },
     done: {
-      title: 'Está protegido.',
+      title: 'Está protegido',
       body: 'Puede cerrar esta pestaña. Tripwire no le molestará hasta que algo parezca raro.',
       demo: 'Ver un ejemplo de práctica',
       close: 'Cerrar esta pestaña',
@@ -206,14 +206,14 @@ export const ES: LocaleBundle = {
     },
   },
   POPUP: {
-    on: 'Tripwire está atento a las estafas.',
+    on: 'Tripwire está atento a las estafas',
     thisPage: 'Esta página',
-    pageSafe: 'No se encontraron señales de alerta.',
-    pageCaution: 'Se encontraron algunas señales de alerta.',
-    pageTripped: 'Tripwire puso en pausa esta página.',
-    pageUnknown: 'Tripwire no revisa este tipo de página.',
-    pageNotYet: 'Nada en esta página ha necesitado una revisión todavía.',
-    pageTrusted: 'Usted marcó este sitio como de confianza.',
+    pageSafe: 'No se encontraron señales de alerta',
+    pageCaution: 'Se encontraron algunas señales de alerta',
+    pageTripped: 'Tripwire puso en pausa esta página',
+    pageUnknown: 'Tripwire no revisa este tipo de página',
+    pageNotYet: 'Nada en esta página ha necesitado una revisión todavía',
+    pageTrusted: 'Usted marcó este sitio como de confianza',
     trustedDetail: 'Tripwire no lo revisa',
     settings: 'Ajustes',
     privateNotSetUp: 'Solo reglas propias',
@@ -231,7 +231,7 @@ export const ES: LocaleBundle = {
   },
   SETTINGS: {
     pageTitle: 'Ajustes',
-    side: 'Estas opciones se quedan en esta computadora.',
+    side: 'Estas opciones se quedan en esta computadora',
     saved: 'Guardado.',
     careful: {
       title: '¿Qué tan cuidadoso debe ser Tripwire?',
@@ -320,7 +320,7 @@ export const ES: LocaleBundle = {
   DASHBOARD: {
     title: 'Página familiar de Tripwire',
     signIn: {
-      title: 'Cuide de alguien sin mirar por encima de su hombro.',
+      title: 'Cuide de alguien sin mirar por encima de su hombro',
       body: 'Cuando Tripwire intervenga en su computadora, verá que pasó y qué tipo de estafa parecía. Nunca ve sus correos, las páginas que visita ni lo que escribe.',
       google: 'Continuar con Google',
       guest: 'Continuar sin una cuenta',
@@ -371,7 +371,7 @@ export const ES: LocaleBundle = {
       noItems: ['Sus correos o mensajes', 'Las páginas que visita', 'Nada de lo que escribe'],
     },
     notSetUp: {
-      title: 'Esta página familiar todavía no está conectada.',
+      title: 'Esta página familiar todavía no está conectada',
       body: 'Quien preparó esta copia de Tripwire tiene que añadir sus ajustes de Firebase. Los pasos están en el README del proyecto.',
     },
   },
@@ -415,7 +415,7 @@ export const ES: LocaleBundle = {
     addingReasons: 'Tripwire está añadiendo los motivos…',
     again: 'Revisar otra llamada',
     close: 'Cerrar esta pestaña',
-    doneTitle: 'Muy bien.',
+    doneTitle: 'Muy bien',
     doneBody: 'Colgar fue lo correcto. Si dio algún dato, llame a su banco al número de su tarjeta.',
   },
 };

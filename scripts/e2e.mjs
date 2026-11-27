@@ -71,7 +71,7 @@ try {
 
   await step('setup opens on install and walks through three screens', async () => {
     const page = context.pages().find((p) => p.url().includes('onboarding.html')) ?? (await context.waitForEvent('page', { predicate: (p) => p.url().includes('onboarding.html'), timeout: 10_000 }));
-    await expectVisible(page.getByRole('heading', { name: 'Tripwire steps in at the moment it matters.' }));
+    await expectVisible(page.getByRole('heading', { name: 'Tripwire steps in at the moment it matters' }));
     await shot(page, 'onboarding-1-what');
     await page.getByRole('button', { name: 'Continue' }).click();
     await expectVisible(page.getByText('The most that is ever sent'));
@@ -127,7 +127,7 @@ try {
   await step('"Stop and stay safe" leaves the page for the "you stopped" screen', async () => {
     await ui(page).getByRole('button', { name: 'Stop and stay safe' }).click();
     await page.waitForURL(/safe\.html/, { timeout: 10_000 });
-    await expectVisible(page.getByRole('heading', { name: 'That was the right call.' }));
+    await expectVisible(page.getByRole('heading', { name: 'That was the right call' }));
     await shot(page, 'you-stopped');
   });
 
@@ -191,7 +191,7 @@ try {
     await shot(page, 'pause-moved-to-extension-page');
   });
 
-  await step('fake tech support: the phone link pauses instead of dialling', async () => {
+  await step('fake tech support: the phone link pauses instead of dialing', async () => {
     await page.goto(`${DEMO}/support.html`);
     await expectVisible(ui(page, '.tw-banner, .tw-overlay'));
     if ((await ui(page, '.tw-overlay').count()) === 0) await page.getByRole('link', { name: 'Call support now' }).click();
@@ -247,7 +247,7 @@ try {
     const popup = await context.newPage();
     await popup.setViewportSize({ width: 380, height: 560 });
     await popup.goto(ext('popup.html'));
-    await expectVisible(popup.getByRole('heading', { name: 'Tripwire is watching for scams.' }));
+    await expectVisible(popup.getByRole('heading', { name: 'Tripwire is watching for scams' }));
     await expectVisible(popup.getByText('Family alerts'));
     await popup.waitForTimeout(800);
     await shot(popup, 'popup');

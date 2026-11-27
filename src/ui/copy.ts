@@ -10,7 +10,7 @@ import type { Route, ScamType, Trigger } from '../inference/schemas';
 
 export const BRAND = {
   name: 'Tripwire',
-  tagline: 'A calm second look before you act.',
+  tagline: 'A calm second look before you act',
 } as const;
 
 /* ------------------------------------------------------------------ */
@@ -57,19 +57,19 @@ export const ROUTE_BADGE: Record<Route, { tone: RouteTone; label: string; detail
 /* ------------------------------------------------------------------ */
 
 export const CAUTION_HEADLINE: Record<ScamType, string> = {
-  none: 'Take a careful look at this page.',
-  tech_support: 'This looks like a fake computer warning.',
-  gift_card: 'This message asks for gift cards. Be careful.',
-  bank_impersonation: 'This may not really be from your bank.',
-  government_impersonation: 'This may not really be from the government.',
-  delivery: 'This delivery notice may not be real.',
-  shopping_impersonation: 'This may not really be from the store it names.',
-  investment_crypto: 'This money offer has warning signs.',
-  prize_lottery: 'This prize offer has warning signs.',
-  romance: 'This request for money has warning signs.',
-  payment_request: 'This request for payment has warning signs.',
-  phishing_login: 'This page may be trying to collect your password.',
-  other: 'Something about this page does not look right.',
+  none: 'Take a careful look at this page',
+  tech_support: 'This looks like a fake computer warning',
+  gift_card: 'Be careful: this message asks for gift cards',
+  bank_impersonation: 'This may not really be from your bank',
+  government_impersonation: 'This may not really be from the government',
+  delivery: 'This delivery notice may not be real',
+  shopping_impersonation: 'This may not really be from the store it names',
+  investment_crypto: 'This money offer has warning signs',
+  prize_lottery: 'This prize offer has warning signs',
+  romance: 'This request for money has warning signs',
+  payment_request: 'This request for payment has warning signs',
+  phishing_login: 'This page may be trying to collect your password',
+  other: 'Something about this page does not look right',
 };
 
 export const BANNER = {
@@ -102,7 +102,7 @@ export const TRIP_LEAD: Record<Trigger, string> = {
 
 export const INTERSTITIAL = {
   dialogLabel: 'Tripwire paused this page',
-  title: 'Let’s pause for a moment.',
+  title: 'Let’s pause for a moment',
   question: 'Did someone call, text, or email you and ask you to do this?',
   reassurance:
     'Scammers rush people so there is no time to think. A real bank, store, or government office will always let you take your time.',
@@ -111,7 +111,7 @@ export const INTERSTITIAL = {
   holdLead: 'Real emergencies can wait 5 minutes. Scams can’t.',
   holdHangUp: 'If someone is on the phone with you, hang up first.',
   holdCall: 'Then call the number on the back of your card, or on a bill you already have. Never a number they gave you.',
-  holdWait: (time: string) => `You can continue in ${time}.`,
+  holdWait: (time: string) => `You can continue in ${time}`,
   holdLonger: 'I’m still not sure: wait 5 more minutes',
   why: 'Why did Tripwire stop me?',
   hideWhy: 'Hide the reasons',
@@ -171,20 +171,20 @@ export const EXPLANATION = {
 /* ------------------------------------------------------------------ */
 
 export const SAFE_PAGE = {
-  title: 'That was the right call.',
+  title: 'That was the right call',
   body: 'Nothing was sent and nothing was installed.',
   nextTitle: 'Here is what to do next.',
   steps: [
     {
-      title: 'Hang up or stop replying.',
+      title: 'Hang up or stop replying',
       body: 'If someone is on the phone or messaging you, you can simply end it. You do not owe them an explanation.',
     },
     {
-      title: 'Call the real number yourself.',
+      title: 'Call the real number yourself',
       body: 'If you are worried about your bank or an account, use the number printed on your card or on a statement. Never use a number from the message.',
     },
     {
-      title: 'Tell someone you trust.',
+      title: 'Tell someone you trust',
       body: 'A second pair of eyes helps. Scammers count on people keeping it to themselves.',
     },
   ],
@@ -203,7 +203,7 @@ export const ONBOARDING = {
   finish: 'Finish',
   skip: 'Skip for now',
   what: {
-    title: 'Tripwire steps in at the moment it matters.',
+    title: 'Tripwire steps in at the moment it matters',
     body: 'Scams do not take your money when you read them. They take it when you act. Tripwire stays quiet until then.',
     moments: [
       'Typing a card number on a page that looks unsafe',
@@ -214,7 +214,7 @@ export const ONBOARDING = {
     momentsLabel: 'It pauses you before:',
   },
   privacy: {
-    title: 'Your emails never leave your device unless personal info is removed first.',
+    title: 'Your emails never leave your device unless personal info is removed first',
     body: 'Tripwire reads pages on your own computer. If it wants a second opinion, it first removes names, phone numbers, emails, addresses, and card numbers, and only then asks.',
     modelTitle: 'Private checking on this computer',
     modelReady: 'Ready. Checks run on this computer.',
@@ -252,7 +252,7 @@ export const ONBOARDING = {
     refused: 'Removed. Nobody can see your alerts. You can show a new code at any time.',
   },
   done: {
-    title: 'You are protected.',
+    title: 'You are protected',
     body: 'You can close this tab. Tripwire will stay out of your way until something looks wrong.',
     demo: 'See a practice example',
     close: 'Close this tab',
@@ -282,14 +282,14 @@ export const DOWNLOAD_PAUSE = {
 /* ------------------------------------------------------------------ */
 
 export const POPUP = {
-  on: 'Tripwire is watching for scams.',
+  on: 'Tripwire is watching for scams',
   thisPage: 'This page',
-  pageSafe: 'No warning signs found.',
-  pageCaution: 'Some warning signs found.',
-  pageTripped: 'Tripwire paused this page.',
-  pageUnknown: 'Tripwire does not check this kind of page.',
-  pageNotYet: 'Nothing on this page has needed a check yet.',
-  pageTrusted: 'You marked this site as trusted.',
+  pageSafe: 'No warning signs found',
+  pageCaution: 'Some warning signs found',
+  pageTripped: 'Tripwire paused this page',
+  pageUnknown: 'Tripwire does not check this kind of page',
+  pageNotYet: 'Nothing on this page has needed a check yet',
+  pageTrusted: 'You marked this site as trusted',
   trustedDetail: 'Tripwire is not checking it',
   settings: 'Settings',
   privateNotSetUp: 'Built-in rules only',
@@ -350,7 +350,7 @@ export const CALL = {
   addingReasons: 'Tripwire is adding the reasons…',
   again: 'Check another call',
   close: 'Close this tab',
-  doneTitle: 'Well done.',
+  doneTitle: 'Well done',
   doneBody: 'Hanging up was the right thing to do. If you gave out any details, call your bank on the number on your card.',
 } as const;
 
@@ -360,7 +360,7 @@ export const CALL = {
 
 export const SETTINGS = {
   pageTitle: 'Settings',
-  side: 'These choices stay on this computer.',
+  side: 'These choices stay on this computer',
   saved: 'Saved.',
   careful: {
     title: 'How careful should Tripwire be?',
@@ -473,7 +473,7 @@ export type Outcome = keyof typeof OUTCOME_LABEL;
 export const DASHBOARD = {
   title: 'Tripwire family page',
   signIn: {
-    title: 'Look out for someone, without looking over their shoulder.',
+    title: 'Look out for someone, without looking over their shoulder',
     body: 'When Tripwire steps in on their computer, you will see that it happened and what kind of scam it looked like. You never see their emails, the pages they visit, or anything they type.',
     google: 'Continue with Google',
     guest: 'Continue without an account',
@@ -526,7 +526,7 @@ export const DASHBOARD = {
     noItems: ['Their emails or messages', 'The pages they visit', 'Anything they type'],
   },
   notSetUp: {
-    title: 'This family page is not connected yet.',
+    title: 'This family page is not connected yet',
     body: 'Whoever set up this copy of Tripwire needs to add its Firebase settings. The steps are in the project README.',
   },
 } as const;

@@ -30,19 +30,19 @@ export const FR: LocaleBundle = {
     },
   },
   CAUTION_HEADLINE: {
-    none: 'Regardez cette page avec attention.',
-    tech_support: 'Ceci ressemble à une fausse alerte informatique.',
-    gift_card: 'Ce message demande des cartes cadeaux. Soyez prudent.',
-    bank_impersonation: 'Ceci ne vient peut-être pas vraiment de votre banque.',
-    government_impersonation: 'Ceci ne vient peut-être pas vraiment de l’administration.',
-    delivery: 'Cet avis de livraison n’est peut-être pas réel.',
-    shopping_impersonation: 'Ceci ne vient peut-être pas vraiment du magasin indiqué.',
-    investment_crypto: 'Cette offre d’argent présente des signes d’alerte.',
-    prize_lottery: 'Cette offre de prix présente des signes d’alerte.',
-    romance: 'Cette demande d’argent présente des signes d’alerte.',
-    payment_request: 'Cette demande de paiement présente des signes d’alerte.',
-    phishing_login: 'Cette page cherche peut-être à obtenir votre mot de passe.',
-    other: 'Quelque chose ne va pas sur cette page.',
+    none: 'Regardez cette page avec attention',
+    tech_support: 'Ceci ressemble à une fausse alerte informatique',
+    gift_card: 'Soyez prudent : ce message demande des cartes cadeaux',
+    bank_impersonation: 'Ceci ne vient peut-être pas vraiment de votre banque',
+    government_impersonation: 'Ceci ne vient peut-être pas vraiment de l’administration',
+    delivery: 'Cet avis de livraison n’est peut-être pas réel',
+    shopping_impersonation: 'Ceci ne vient peut-être pas vraiment du magasin indiqué',
+    investment_crypto: 'Cette offre d’argent présente des signes d’alerte',
+    prize_lottery: 'Cette offre de prix présente des signes d’alerte',
+    romance: 'Cette demande d’argent présente des signes d’alerte',
+    payment_request: 'Cette demande de paiement présente des signes d’alerte',
+    phishing_login: 'Cette page cherche peut-être à obtenir votre mot de passe',
+    other: 'Quelque chose ne va pas sur cette page',
   },
   BANNER: {
     regionLabel: 'Avis de Tripwire',
@@ -68,7 +68,7 @@ export const FR: LocaleBundle = {
   },
   INTERSTITIAL: {
     dialogLabel: 'Tripwire a mis cette page en pause',
-    title: 'Prenons un instant.',
+    title: 'Prenons un instant',
     question: 'Quelqu’un vous a-t-il appelé, écrit ou envoyé un e-mail pour vous demander de faire cela ?',
     reassurance:
       'Les escrocs pressent les gens pour qu’ils n’aient pas le temps de réfléchir. Une vraie banque, un vrai magasin ou une vraie administration vous laissera toujours prendre votre temps.',
@@ -77,7 +77,7 @@ export const FR: LocaleBundle = {
     holdLead: 'Les vraies urgences peuvent attendre 5 minutes. Les arnaques, non.',
     holdHangUp: 'Si quelqu’un est au téléphone avec vous, raccrochez d’abord.',
     holdCall: 'Puis appelez le numéro au dos de votre carte, ou sur une facture que vous avez déjà. Jamais un numéro qu’on vous a donné.',
-    holdWait: (time: string) => `Vous pourrez continuer dans ${time}.`,
+    holdWait: (time: string) => `Vous pourrez continuer dans ${time}`,
     holdLonger: 'Je ne suis pas encore sûr : attendre 5 minutes de plus',
     why: 'Pourquoi Tripwire m’a-t-il arrêté ?',
     hideWhy: 'Masquer les raisons',
@@ -123,13 +123,13 @@ export const FR: LocaleBundle = {
     neverSafe: 'Une vraie banque, une administration ou une entreprise ne demande pas cela au téléphone. Raccrochez et rappelez un numéro que vous connaissez déjà.',
   },
   SAFE_PAGE: {
-    title: 'Vous avez bien fait.',
+    title: 'Vous avez bien fait',
     body: 'Rien n’a été envoyé et rien n’a été installé.',
     nextTitle: 'Voici quoi faire maintenant.',
     steps: [
       { title: 'Raccrochez ou cessez de répondre.', body: 'Si quelqu’un est au téléphone ou vous écrit, vous pouvez simplement y mettre fin. Vous ne lui devez aucune explication.' },
       {
-        title: 'Appelez vous-même le vrai numéro.',
+        title: 'Appelez vous-même le vrai numéro',
         body: 'Si vous êtes inquiet pour votre banque ou un compte, utilisez le numéro imprimé sur votre carte ou sur un relevé. N’utilisez jamais un numéro du message.',
       },
       { title: 'Parlez-en à quelqu’un de confiance.', body: 'Deux avis valent mieux qu’un. Les escrocs comptent sur le fait que les gens gardent cela pour eux.' },
@@ -150,7 +150,7 @@ export const FR: LocaleBundle = {
     finish: 'Terminer',
     skip: 'Passer pour l’instant',
     what: {
-      title: 'Tripwire intervient au moment qui compte.',
+      title: 'Tripwire intervient au moment qui compte',
       body: 'Les arnaques ne vous prennent pas votre argent quand vous les lisez. Elles le prennent quand vous agissez. Tripwire reste discret jusque-là.',
       moments: [
         'Saisir un numéro de carte sur une page qui ne semble pas sûre',
@@ -161,7 +161,7 @@ export const FR: LocaleBundle = {
       momentsLabel: 'Il vous arrête avant de :',
     },
     privacy: {
-      title: 'Vos e-mails ne quittent jamais votre ordinateur sans que les données personnelles soient retirées.',
+      title: 'Vos e-mails ne quittent jamais votre ordinateur sans que les données personnelles soient retirées',
       body: 'Tripwire lit les pages sur votre propre ordinateur. S’il veut un deuxième avis, il retire d’abord les noms, numéros de téléphone, e-mails, adresses et numéros de carte, et seulement ensuite il demande.',
       modelTitle: 'Vérification privée sur cet ordinateur',
       modelReady: 'Prêt. Les vérifications se font sur cet ordinateur.',
@@ -198,7 +198,7 @@ export const FR: LocaleBundle = {
       refused: 'Supprimé. Personne ne peut voir vos alertes. Vous pouvez afficher un nouveau code à tout moment.',
     },
     done: {
-      title: 'Vous êtes protégé.',
+      title: 'Vous êtes protégé',
       body: 'Vous pouvez fermer cet onglet. Tripwire ne vous dérangera pas tant que rien ne semble anormal.',
       demo: 'Voir un exemple d’entraînement',
       close: 'Fermer cet onglet',
@@ -206,14 +206,14 @@ export const FR: LocaleBundle = {
     },
   },
   POPUP: {
-    on: 'Tripwire surveille les arnaques.',
+    on: 'Tripwire surveille les arnaques',
     thisPage: 'Cette page',
-    pageSafe: 'Aucun signe d’alerte trouvé.',
-    pageCaution: 'Quelques signes d’alerte trouvés.',
-    pageTripped: 'Tripwire a mis cette page en pause.',
-    pageUnknown: 'Tripwire ne vérifie pas ce type de page.',
-    pageNotYet: 'Rien sur cette page n’a encore demandé de vérification.',
-    pageTrusted: 'Vous avez marqué ce site comme fiable.',
+    pageSafe: 'Aucun signe d’alerte trouvé',
+    pageCaution: 'Quelques signes d’alerte trouvés',
+    pageTripped: 'Tripwire a mis cette page en pause',
+    pageUnknown: 'Tripwire ne vérifie pas ce type de page',
+    pageNotYet: 'Rien sur cette page n’a encore demandé de vérification',
+    pageTrusted: 'Vous avez marqué ce site comme fiable',
     trustedDetail: 'Tripwire ne le vérifie pas',
     settings: 'Réglages',
     privateNotSetUp: 'Règles intégrées seulement',
@@ -231,7 +231,7 @@ export const FR: LocaleBundle = {
   },
   SETTINGS: {
     pageTitle: 'Réglages',
-    side: 'Ces choix restent sur cet ordinateur.',
+    side: 'Ces choix restent sur cet ordinateur',
     saved: 'Enregistré.',
     careful: {
       title: 'À quel point Tripwire doit-il être prudent ?',
@@ -320,7 +320,7 @@ export const FR: LocaleBundle = {
   DASHBOARD: {
     title: 'Page famille de Tripwire',
     signIn: {
-      title: 'Veillez sur quelqu’un sans regarder par-dessus son épaule.',
+      title: 'Veillez sur quelqu’un sans regarder par-dessus son épaule',
       body: 'Quand Tripwire intervient sur son ordinateur, vous verrez que c’est arrivé et quel type d’arnaque cela semblait être. Vous ne voyez jamais ses e-mails, les pages qu’il visite ni ce qu’il tape.',
       google: 'Continuer avec Google',
       guest: 'Continuer sans compte',
@@ -371,7 +371,7 @@ export const FR: LocaleBundle = {
       noItems: ['Ses e-mails ou messages', 'Les pages qu’il visite', 'Rien de ce qu’il tape'],
     },
     notSetUp: {
-      title: 'Cette page famille n’est pas encore connectée.',
+      title: 'Cette page famille n’est pas encore connectée',
       body: 'La personne qui a préparé cette copie de Tripwire doit ajouter ses réglages Firebase. Les étapes sont dans le README du projet.',
     },
   },
@@ -415,7 +415,7 @@ export const FR: LocaleBundle = {
     addingReasons: 'Tripwire ajoute les raisons…',
     again: 'Vérifier un autre appel',
     close: 'Fermer cet onglet',
-    doneTitle: 'Bien joué.',
+    doneTitle: 'Bien joué',
     doneBody: 'Raccrocher était la bonne chose à faire. Si vous avez donné des informations, appelez votre banque au numéro de votre carte.',
   },
 };
