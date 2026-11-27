@@ -14,8 +14,8 @@ export const FR: LocaleBundle = {
       long: 'Votre ordinateur a d’abord vérifié ceci, puis a retiré les noms, numéros et adresses qu’il a trouvés avant de demander un second avis.',
     },
     cloud_fallback: {
-      label: 'Votre ordinateur ne prend pas en charge l’IA locale',
-      detail: 'données personnelles retirées avant la vérification',
+      label: 'Vérifié en ligne',
+      detail: 'données personnelles retirées avant',
       long: 'Cet ordinateur ne peut pas faire la vérification privée en local. Tripwire a donc retiré les noms, numéros et adresses qu’il a pu reconnaître avant de vérifier en ligne.',
     },
     rules_only: {
@@ -65,6 +65,15 @@ export const FR: LocaleBundle = {
     gift_card: 'Ce message vous demande de payer avec des cartes cadeaux. Seuls les escrocs demandent cela.',
     crypto_wire: 'Ce message vous demande d’envoyer de l’argent d’une façon qui ne peut pas être annulée.',
     live_call: 'Un interlocuteur demande ce que demandent les escrocs.',
+    money_transfer: 'Vous êtes sur le point de sortir de l’argent de votre compte.',
+  },
+  TRANSFER: {
+    question: 'Quelqu’un au téléphone vous dit-il de déplacer de l’argent ?',
+    reassurance:
+      'Votre banque ne vous demandera jamais de déplacer de l’argent pour le protéger, pas plus que la police ou l’État. Quiconque dit cela est un escroc, même si l’appel semble venir de votre banque.',
+    newPayee: 'Vous envoyez de l’argent à quelqu’un que vous n’avez jamais payé.',
+    recentWarning: 'Tripwire vous a averti d’une arnaque possible sur cet ordinateur dans l’heure qui vient de passer.',
+    explanation: 'Envoyer de l’argent vers un nouveau compte, surtout peu après un appel ou un message inquiétant, c’est ainsi que finissent les arnaques les plus coûteuses. Cet argent ne peut presque jamais être récupéré.',
   },
   INTERSTITIAL: {
     dialogLabel: 'Tripwire a mis cette page en pause',
@@ -82,6 +91,7 @@ export const FR: LocaleBundle = {
     why: 'Pourquoi Tripwire m’a-t-il arrêté ?',
     hideWhy: 'Masquer les raisons',
     continueNote: 'Ne continuez que si vous avez commencé cela vous-même et que personne ne vous presse.',
+    noticed: 'Ce que Tripwire a remarqué',
   },
   WHY: {
     title: 'Pourquoi Tripwire est intervenu',
@@ -127,12 +137,12 @@ export const FR: LocaleBundle = {
     body: 'Rien n’a été envoyé et rien n’a été installé.',
     nextTitle: 'Voici quoi faire maintenant.',
     steps: [
-      { title: 'Raccrochez ou cessez de répondre.', body: 'Si quelqu’un est au téléphone ou vous écrit, vous pouvez simplement y mettre fin. Vous ne lui devez aucune explication.' },
+      { title: 'Raccrochez ou cessez de répondre', body: 'Si quelqu’un est au téléphone ou vous écrit, vous pouvez simplement y mettre fin. Vous ne lui devez aucune explication.' },
       {
         title: 'Appelez vous-même le vrai numéro',
         body: 'Si vous êtes inquiet pour votre banque ou un compte, utilisez le numéro imprimé sur votre carte ou sur un relevé. N’utilisez jamais un numéro du message.',
       },
-      { title: 'Parlez-en à quelqu’un de confiance.', body: 'Deux avis valent mieux qu’un. Les escrocs comptent sur le fait que les gens gardent cela pour eux.' },
+      { title: 'Parlez-en à quelqu’un de confiance', body: 'Deux avis valent mieux qu’un. Les escrocs comptent sur le fait que les gens gardent cela pour eux.' },
     ],
     close: 'Fermer cet onglet',
     guardianNote: 'Votre proche a été prévenu que vous vous êtes arrêté. Aucune de vos données personnelles ne lui a été envoyée.',
@@ -277,7 +287,7 @@ export const FR: LocaleBundle = {
     },
     back: 'Fermer cet onglet',
   },
-  OUTCOME_LABEL: { stopped: 'S’est arrêté', continued: 'A continué quand même' },
+  OUTCOME_LABEL: { stopped: 'S’est arrêté', continued: 'A continué quand même', changed: 'A modifié un réglage' },
   SCAM_TYPE_LABEL: {
     none: 'Page suspecte',
     tech_support: 'Faux support technique',
@@ -316,6 +326,7 @@ export const FR: LocaleBundle = {
     gift_card: 'On lui a demandé de payer en cartes cadeaux',
     crypto_wire: 'On lui a demandé d’envoyer de la crypto ou un virement',
     live_call: 'A vérifié un appel qui demandait de l’argent ou des données',
+    money_transfer: 'A commencé à envoyer de l’argent depuis sa banque',
   },
   DASHBOARD: {
     title: 'Page famille de Tripwire',
@@ -345,13 +356,18 @@ export const FR: LocaleBundle = {
     },
     feed: {
       title: 'Alertes récentes',
-      emptyTitle: 'Tout est calme.',
+      emptyTitle: 'Tout est calme',
       emptyBody: 'Quand Tripwire interviendra, cela apparaîtra ici en quelques secondes.',
       live: 'Mise à jour en direct',
       stopped: 'S’est arrêté',
       continued: 'A continué quand même',
       continuedAdvice: 'Un appel amical aujourd’hui pourrait être utile.',
       stoppedAdvice: 'Rien à faire, mais un petit mot de votre part lui ferait peut-être plaisir.',
+      changed: 'Sa protection a changé',
+      changedAdvice: 'Si ce n’était pas voulu, ou si quelqu’un au téléphone le lui a demandé, appelez-le.',
+      lastSeen: (when: string) => `Tripwire a donné signe de vie depuis son ordinateur ${when}`,
+      quiet: (when: string) =>
+        `Tripwire n’a pas donné signe de vie depuis son ordinateur depuis ${when}. L’ordinateur est peut-être éteint, ou Tripwire a été retiré. Un petit appel suffit pour savoir.`,
       addAnother: 'Connecter une autre personne',
       signOut: 'Se déconnecter',
       privacyTitle: 'Ce que vous pouvez voir, et ce que vous ne voyez pas',
@@ -405,9 +421,9 @@ export const FR: LocaleBundle = {
     failed: 'Tripwire n’a pas pu vérifier pour l’instant. Par prudence, raccrochez et rappelez un numéro que vous connaissez déjà.',
     hangUpAnytime: 'Vous pouvez toujours raccrocher. Une vraie banque, une administration ou une entreprise comprendra et sera toujours là quand vous rappellerez.',
     result: {
-      tripped: { title: 'Raccrochez maintenant.', body: 'Cela ressemble à une arnaque. Une vraie banque, une administration ou une entreprise ne demande pas cela au téléphone.' },
-      caution: { title: 'Soyez prudent.', body: 'Une partie de cela ressemble à ce que disent les escrocs. Vous pouvez raccrocher.' },
-      safe: { title: 'Rien ici ne ressemble à une arnaque.', body: 'Si vous avez encore un doute, vous pouvez toujours raccrocher.' },
+      tripped: { title: 'Raccrochez maintenant', body: 'Cela ressemble à une arnaque. Une vraie banque, une administration ou une entreprise ne demande pas cela au téléphone.' },
+      caution: { title: 'Soyez prudent', body: 'Une partie de cela ressemble à ce que disent les escrocs. Vous pouvez raccrocher.' },
+      safe: { title: 'Rien ici ne ressemble à une arnaque', body: 'Si vous avez encore un doute, vous pouvez toujours raccrocher.' },
     },
     nothingYet: 'Pour l’instant, il ne vous a rien demandé de risqué. S’il vous demande de l’argent, des cartes cadeaux, un code reçu sur votre téléphone ou vos données personnelles, raccrochez.',
     callBack: 'Rappelez un numéro que vous connaissez déjà : celui de votre carte, de votre facture ou du site officiel. Jamais celui que donne l’interlocuteur.',

@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { BENIGN_SAMPLES, SCAM_SAMPLES } from '../corpus/index';
 import { DEFAULT_CONFIG, mergeConfig } from '../src/config/defaults';
 import { PrivacyInvariantError, type AiEngine, type OnDeviceStatus } from '../src/inference/engine';
@@ -577,5 +578,36 @@ describe('router: a cloud over its quota', () => {
     const v = await assess({ text: BANK_EMAIL.text, hostname: 'mail.example.test', trigger: 'passive' }, { engine, config: DEFAULT_CONFIG, cloudBackoffMs: 0 });
     expect(v.route).toBe('cloud_fallback');
     expect(v.cloudFailure).toBeUndefined();
+  });
+});
+
+describe('router: no on-device model (most computers)', () => {
+  const holdout = (id: string) => {
+    const h = JSON.parse(readFileSync('corpus/holdout.json', 'utf8')) as Record<string, Array<{ id: string; text: string }>>;
+    return Object.values(h).flat().find((c) => c && typeof c === 'object' && c.id === id)!;
+  };
+
+  it('sends a scam with one ask and one other warning sign for a (redacted) cloud check', async () => {
+    const scam = holdout('round3-12-fraud-text-code');
+    const engine = fakeEngine({ status: 'unavailable', cloud: async () => cloudJson(90, 0.95) });
+    const v = await run(scam.text, engine);
+    expect(engine.analyzeInCloud).toHaveBeenCalledTimes(1);
+    expect(v.route).toBe('cloud_fallback');
+    expect(v.state).not.toBe('safe');
+  });
+
+  it('when the cloud is out of quota, the rules decide with the lower fail-safe caution bar', async () => {
+    // Its rule score sits between the fail-safe bar and the normal rules-only bar.
+    const scam = holdout('round3-08-microsoft-closing');
+    const engine = fakeEngine({
+      status: 'unavailable',
+      cloud: async () => {
+        throw new Error('[429] RESOURCE_EXHAUSTED: quota exceeded');
+      },
+    });
+    const v = await run(scam.text, engine);
+    expect(v.route).toBe('rules_only');
+    expect(v.cloudFailure).toBe('quota');
+    expect(v.state).toBe('caution');
   });
 });

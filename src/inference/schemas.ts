@@ -135,8 +135,16 @@ export const TRIGGERS = [
   'crypto_wire',
   // The person checked a phone call they are on (the call page).
   'live_call',
+  // Money leaving a bank account to someone new, or soon after a scam warning (src/tripwires/transfer.ts).
+  'money_transfer',
 ] as const;
 export type Trigger = (typeof TRIGGERS)[number];
+
+/** Changes that weaken protection. The family hears about them, because scammers coach people into them. */
+export const PROTECTION_ACTIONS = ['trusted_site', 'setting_lowered'] as const;
+export type ProtectionAction = (typeof PROTECTION_ACTIONS)[number];
+/** What a family alert can be about: a step Tripwire paused, or a change to its protection. */
+export type AlertAction = Trigger | ProtectionAction;
 
 /**
  * Which path through the hybrid pipeline produced a verdict. The UI shows this

@@ -31,3 +31,4 @@ ul.cases p { margin: 4px 0 0; }
 .tour a { font-size: 1.2rem; font-weight: 700; }
 .tour p { margin: 6px 0 0; }
 .note { color: #354a68; }
+.demo-note { position: fixed; left: 16px; bottom: 16px; max-width: 420px; margin: 0; padding: 12px 16px; background: #fff; border: 1px solid #cbd6e8; border-radius: 12px; color: #354a68; font-size: 15px; line-height: 1.45; box-shadow: 0 4px 12px rgba(13, 31, 58, 0.08); z-index: 2147483000; }

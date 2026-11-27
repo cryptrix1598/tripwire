@@ -11,8 +11,8 @@ import { GoogleAuthProvider, onAuthStateChanged, signInAnonymously, signInWithPo
 import { collection, doc, getDoc, limit, onSnapshot, orderBy, query, serverTimestamp, setDoc, writeBatch, type Timestamp } from 'firebase/firestore';
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { PAIRING_CODE_PATTERN } from '../../src/guardian/model';
-import type { ScamType, Trigger } from '../../src/inference/schemas';
-import { ALERT_SUMMARY_SHOWN, DASHBOARD, SCAM_TYPE_LABEL, TRIGGER_LABEL } from '../../src/ui/copy';
+import type { ProtectionAction, ScamType, Trigger } from '../../src/inference/schemas';
+import { ACTION_ALERT_SUMMARY, ACTION_TITLE, ALERT_SUMMARY_SHOWN, DASHBOARD, PROTECTION_LABEL, SCAM_TYPE_LABEL, TRIGGER_LABEL } from '../../src/ui/copy';
 import { Brand, NoticeIcon, Split, Tick } from '../../src/ui/kit';
 import { auth, configured, db } from './firebase';
 
@@ -166,7 +166,7 @@ export function Pair({ uid, onDone }: { uid: string; onDone: (deviceId: string) 
             inputMode="numeric"
             autoComplete="one-time-code"
             maxLength={9}
-            placeholder="000000"
+            placeholder="00000000"
             value={code}
             onChange={(e) => setCode(e.target.value)}
             aria-invalid={error ? true : undefined}
@@ -207,8 +207,10 @@ function when(ts: Timestamp | null): { day: string; time: string } {
 
 export function AlertRow({ alert }: { alert: Alert }) {
   const { day, time } = when(alert.createdAt);
-  const continued = alert.outcome === 'continued';
+  const changed = alert.outcome === 'changed';
+  const continued = alert.outcome === 'continued' || changed;
   const feed = DASHBOARD.feed;
+  const special = alert.action in ACTION_TITLE ? (alert.action as keyof typeof ACTION_TITLE) : null;
   return (
     <li className="tw-alert" data-outcome={continued ? 'continued' : 'stopped'}>
       <p className="tw-alert__when">
@@ -216,9 +218,11 @@ export function AlertRow({ alert }: { alert: Alert }) {
         {time}
       </p>
       <div className="tw-alert__what">
-        <h2 className="tw-h3">{SCAM_TYPE_LABEL[alert.scamType as ScamType] ?? SCAM_TYPE_LABEL.other}</h2>
-        <p>{ALERT_SUMMARY_SHOWN[alert.scamType as ScamType] ?? alert.summary}</p>
-        <p className="tw-small">{TRIGGER_LABEL[alert.action as Trigger] ?? TRIGGER_LABEL.passive}</p>
+        <h2 className="tw-h3">{special ? ACTION_TITLE[special] : (SCAM_TYPE_LABEL[alert.scamType as ScamType] ?? SCAM_TYPE_LABEL.other)}</h2>
+        <p>{special ? ACTION_ALERT_SUMMARY[special] : (ALERT_SUMMARY_SHOWN[alert.scamType as ScamType] ?? alert.summary)}</p>
+        <p className="tw-small">
+          {PROTECTION_LABEL[alert.action as ProtectionAction] ?? TRIGGER_LABEL[alert.action as Trigger] ?? TRIGGER_LABEL.passive}
+        </p>
       </div>
       <div className="tw-alert__outcome">
         <p className={`tw-outcome${continued ? ' tw-outcome--continued' : ''}`}>
@@ -230,14 +234,44 @@ export function AlertRow({ alert }: { alert: Alert }) {
               <polyline points="7,12.5 10.5,16 17,8.5" />
             </svg>
           )}
-          <span>{continued ? feed.continued : feed.stopped}</span>
+          <span>{changed ? feed.changed : continued ? feed.continued : feed.stopped}</span>
         </p>
         <p className="tw-small" style={continued ? { color: '#1C3765' } : undefined}>
-          {continued ? feed.continuedAdvice : feed.stoppedAdvice}
+          {changed ? feed.changedAdvice : continued ? feed.continuedAdvice : feed.stoppedAdvice}
         </p>
       </div>
     </li>
   );
+}
+
+/** How long the computer may go without checking in before the family is told. */
+const QUIET_AFTER_MS = 3 * 86_400_000;
+
+/** "Tripwire last checked in today", or, after a few silent days, a gentle nudge to call. */
+function LastSeen({ deviceId }: { deviceId: string }) {
+  const [seen, setSeen] = useState<Timestamp | null>(null);
+  useEffect(() => {
+    let live = true;
+    getDoc(doc(db!, 'devices', deviceId))
+      .then((snap) => live && setSeen((snap.data()?.lastSeenAt as Timestamp | undefined) ?? null))
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [deviceId]);
+  if (!seen) return null;
+  const { day } = when(seen);
+  const feed = DASHBOARD.feed;
+  const plain = day === feed.today || day === feed.yesterday ? day.toLowerCase() : `on ${day}`;
+  if (Date.now() - seen.toMillis() > QUIET_AFTER_MS) {
+    return (
+      <p className="tw-notice" role="status">
+        <NoticeIcon color="#1d43a6" />
+        <span>{feed.quiet(day)}</span>
+      </p>
+    );
+  }
+  return <p className="tw-small">{feed.lastSeen(plain)}</p>;
 }
 
 function Feed({ person }: { person: Person }) {
@@ -277,6 +311,7 @@ function Feed({ person }: { person: Person }) {
         <div className="tw-stack tw-stack--tight" style={{ gap: 8 }}>
           <h1 className="tw-h1">{person.nickname}</h1>
           <p className="tw-muted">{feed.subtitle}</p>
+          {!waiting && <LastSeen deviceId={person.deviceId} />}
         </div>
         {!failed && alerts && (
           <p className="tw-live">

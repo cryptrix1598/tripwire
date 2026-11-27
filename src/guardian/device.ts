@@ -20,7 +20,7 @@ import {
   updateDoc,
 } from 'firebase/firestore/lite';
 import { getFirebaseApp } from '../firebase/app';
-import type { ScamType, Trigger } from '../inference/schemas';
+import type { ScamType, AlertAction } from '../inference/schemas';
 import type { Outcome } from '../ui/copy';
 import { buildAlert, applyDecision, choosePending, generatePairingCode, GUARDIAN_NAME_PATTERN, PAIRING_TTL_MS } from './model';
 
@@ -151,7 +151,7 @@ export async function decidePending(allow: boolean): Promise<number> {
  * The device's alert clock is moved in the same write; the security rules allow
  * one alert every 15 seconds, so a looping client cannot flood the family feed.
  */
-export async function sendAlert(scamType: ScamType, trigger: Trigger, outcome: Outcome): Promise<void> {
+export async function sendAlert(scamType: ScamType, trigger: AlertAction, outcome: Outcome): Promise<void> {
   const user = await ensureSignedIn();
   const db = getFirestore(getFirebaseApp());
   const batch = writeBatch(db);
@@ -161,4 +161,15 @@ export async function sendAlert(scamType: ScamType, trigger: Trigger, outcome: O
     createdAt: serverTimestamp(),
   });
   await batch.commit();
+}
+
+/**
+ * "Tripwire is still here": a timestamp on this computer's device record, at most twice a day,
+ * so the family page can say when it last heard from this computer. If Tripwire is removed or
+ * switched off, the family sees it go quiet. Nothing else is written.
+ */
+export async function sendHeartbeat(): Promise<void> {
+  const user = await ensureSignedIn();
+  const db = getFirestore(getFirebaseApp());
+  await setDoc(doc(db, 'devices', user.uid), { lastSeenAt: serverTimestamp() }, { merge: true });
 }

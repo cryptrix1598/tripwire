@@ -12,6 +12,9 @@ import type { AiEngine } from '../inference/engine';
 import { assess, escalateForAction } from '../inference/router';
 import { DOWNLOAD_PAUSE, POPUP, RULE_FLAG } from '../ui/copy';
 import { HOLD_MS, nextHoldEnd } from '../ui/hold';
+import { riskIsRecent } from '../tripwires/transfer';
+import { dashboardUrl } from '../firebase/config';
+import { SENSITIVITY, SettingsSchema } from '../config/settings';
 import type { Verdict } from '../inference/schemas';
 import {
   send,
@@ -154,6 +157,10 @@ async function handleAssess(msg: Extract<ToBackground, { type: 'assess' }>, tabI
     verdict = await assess(input, { engine: noModelEngine, config });
   }
 
+  // Remembered for an hour: a bank transfer soon after a warning or a call check is paused (src/tripwires/transfer.ts).
+  if (verdict.state !== 'safe') await chrome.storage.session.set({ [RISK_KEY]: Date.now() });
+  void heartbeat();
+
   let acknowledged = false;
   if (tabId !== undefined) {
     await rememberVerdict(tabId, msg.input.hostname, verdict, config.thresholds.low);
@@ -210,6 +217,10 @@ async function handle(msg: ToBackground, sender: chrome.runtime.MessageSender): 
     case 'outcome':
       await handleOutcome(msg, tabId);
       return { ok: true };
+    case 'transfer-risk': {
+      const at = (await chrome.storage.session.get(RISK_KEY))[RISK_KEY];
+      return { recent: riskIsRecent(typeof at === 'number' ? at : undefined, Date.now()) };
+    }
     case 'hold': {
       // Kept per tab and page in session storage, so a reload neither restarts nor skips it.
       const key = `hold:${tabId ?? 'none'}:${msg.page}`;
@@ -327,6 +338,46 @@ async function forgetTab(tabId: number): Promise<void> {
   if (flagged.some((e) => e.tabId === tabId)) await chrome.storage.session.set({ [FLAGGED_KEY]: flagged.filter((e) => e.tabId !== tabId) });
 }
 
+/* ---------- recent risk, protection changes, still here ---------- */
+
+const RISK_KEY = 'risk:lastAt';
+const HEARTBEAT_KEY = 'heartbeat:at';
+const HEARTBEAT_EVERY_MS = 12 * 60 * 60_000;
+
+/** At most twice a day, and only does anything when someone is paired (the offscreen document checks). */
+async function heartbeat(): Promise<void> {
+  const at = (await chrome.storage.local.get(HEARTBEAT_KEY))[HEARTBEAT_KEY];
+  if (typeof at === 'number' && Date.now() - at < HEARTBEAT_EVERY_MS) return;
+  await chrome.storage.local.set({ [HEARTBEAT_KEY]: Date.now() });
+  await toOffscreen({ target: 'offscreen', type: 'heartbeat' });
+}
+
+/**
+ * Scammers coach people into switching protection off ("add our site to the safe list"). The family
+ * hears about any change that weakens it, from whichever page made the change.
+ */
+function watchProtection(): void {
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area !== 'local' || !changes['tripwire.settings']) return;
+    const before = SettingsSchema.safeParse(changes['tripwire.settings'].oldValue);
+    const after = SettingsSchema.safeParse(changes['tripwire.settings'].newValue);
+    if (!before.success || !after.success) return;
+    const added = after.data.trustedSites.some((site) => !before.data.trustedSites.includes(site));
+    const lowered = SENSITIVITY.indexOf(after.data.sensitivity) < SENSITIVITY.indexOf(before.data.sensitivity);
+    if (added) void toOffscreen({ target: 'offscreen', type: 'alert', scamType: 'none', trigger: 'trusted_site', outcome: 'changed' });
+    else if (lowered) void toOffscreen({ target: 'offscreen', type: 'alert', scamType: 'none', trigger: 'setting_lowered', outcome: 'changed' });
+  });
+}
+
+/** If Tripwire is removed, Chrome opens a page that says: if a caller told you to do this, hang up. */
+function setRemovalPage(): void {
+  try {
+    if (dashboardUrl) void chrome.runtime.setUninstallURL(new URL('/removed.html', dashboardUrl).href);
+  } catch {
+    // No hosted site configured.
+  }
+}
+
 /* ---------- wiring ---------- */
 
 export function startBackground(): void {
@@ -339,6 +390,8 @@ export function startBackground(): void {
       chrome.contextMenus.create({ id: 'check-a-call', title: POPUP.callCheck, contexts: ['page', 'action'] }, () => void chrome.runtime.lastError);
     });
     void toOffscreen({ target: 'offscreen', type: 'refresh-config' });
+    setRemovalPage();
+    void heartbeat();
   });
 
   chrome.contextMenus.onClicked.addListener((info) => {
@@ -350,7 +403,10 @@ export function startBackground(): void {
 
   chrome.runtime.onStartup.addListener(() => {
     void toOffscreen({ target: 'offscreen', type: 'refresh-config' });
+    setRemovalPage();
+    void heartbeat();
   });
+  watchProtection();
 
   chrome.runtime.onMessage.addListener((msg: ToBackground, sender, sendResponse) => {
     if (!msg || msg.target !== 'background') return false;

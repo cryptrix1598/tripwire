@@ -6,7 +6,7 @@
 import type { TripwireConfig } from './config/defaults';
 import type { OnDeviceStatus } from './inference/engine';
 import type { AssessInput } from './inference/router';
-import type { ScamType, Trigger, Verdict } from './inference/schemas';
+import type { ScamType, AlertAction, Trigger, Verdict } from './inference/schemas';
 import type { Outcome } from './ui/copy';
 
 /* ---------- content script / pages → service worker ---------- */
@@ -19,6 +19,8 @@ export type ToBackground =
   | { target: 'background'; type: 'leave' }
   // The five-minute hold on a never-safe pause: when it ends (and "wait longer").
   | { target: 'background'; type: 'hold'; page: string; extend?: boolean }
+  // Did a scam warning or a phone-call check happen on this computer within the last hour?
+  | { target: 'background'; type: 'transfer-risk' }
   // Open the phone-call check (from a pause, the menu, the shortcut).
   | { target: 'background'; type: 'open-call' }
   // The page keeps removing the warning: show the pause on an extension page instead.
@@ -41,7 +43,8 @@ export type ToOffscreen =
   | { target: 'offscreen'; type: 'pairing-finish' }
   | { target: 'offscreen'; type: 'pairing-decide'; allow: boolean }
   | { target: 'offscreen'; type: 'family-disconnect' }
-  | { target: 'offscreen'; type: 'alert'; scamType: ScamType; trigger: Trigger; outcome: Outcome }
+  | { target: 'offscreen'; type: 'alert'; scamType: ScamType; trigger: AlertAction; outcome: Outcome }
+  | { target: 'offscreen'; type: 'heartbeat' }
   | { target: 'offscreen'; type: 'refresh-config' };
 
 /* ---------- service worker → content script (top frame) ---------- */

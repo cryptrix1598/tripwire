@@ -6,7 +6,7 @@
  * no shouting. Say what is happening, then say what to do.
  */
 import type { SignalCategory } from '../config/defaults';
-import type { Route, ScamType, Trigger } from '../inference/schemas';
+import type { Route, ScamType, Trigger, ProtectionAction } from '../inference/schemas';
 
 export const BRAND = {
   name: 'Tripwire',
@@ -34,8 +34,8 @@ export const ROUTE_BADGE: Record<Route, { tone: RouteTone; label: string; detail
   },
   cloud_fallback: {
     tone: 'fallback',
-    label: "Your device doesn't support on-device AI",
-    detail: 'personal info removed before checking',
+    label: 'Checked online',
+    detail: 'personal info removed first',
     long: 'This computer cannot run the private on-device check, so Tripwire removed the names, numbers and addresses it could recognize before checking online.',
   },
   rules_only: {
@@ -98,6 +98,17 @@ export const TRIP_LEAD: Record<Trigger, string> = {
   gift_card: 'This message asks you to pay with gift cards. Only scammers ask for that.',
   crypto_wire: 'This message asks you to send money in a way that cannot be undone.',
   live_call: 'A caller is asking for something scammers ask for.',
+  money_transfer: 'You are about to move money out of your account.',
+};
+
+/** The money-transfer pause: a real bank page at a risky moment (src/tripwires/transfer.ts). */
+export const TRANSFER = {
+  question: 'Is someone on the phone telling you to move money?',
+  reassurance:
+    'Your bank will never ask you to move money to keep it safe, and neither will the police or the government. Anyone who says so is a scammer, even if the call seems to come from your bank.',
+  newPayee: 'You are sending money to someone you have not paid before.',
+  recentWarning: 'Tripwire warned you about a possible scam on this computer within the last hour.',
+  explanation: 'Moving money to a new account, especially soon after a frightening call or message, is how the costliest scams end. Money sent this way usually cannot be brought back.',
 };
 
 export const INTERSTITIAL = {
@@ -116,6 +127,7 @@ export const INTERSTITIAL = {
   why: 'Why did Tripwire stop me?',
   hideWhy: 'Hide the reasons',
   continueNote: 'Only continue if you started this yourself and no one is hurrying you.',
+  noticed: 'What Tripwire noticed',
 } as const;
 
 /* ------------------------------------------------------------------ */
@@ -340,9 +352,9 @@ export const CALL = {
   failed: 'Tripwire could not check this just now. To be safe, hang up and call back on a number you already know.',
   hangUpAnytime: 'You can always hang up. A real bank, government office or company will understand and will still be there when you call back.',
   result: {
-    tripped: { title: 'Hang up now.', body: 'This sounds like a scam. A real bank, government office or company does not ask for this on a call.' },
-    caution: { title: 'Be careful.', body: 'Some of this sounds like what scammers say. It is fine to hang up.' },
-    safe: { title: 'Nothing here sounds like a scam.', body: 'If you are still unsure, it is always fine to hang up.' },
+    tripped: { title: 'Hang up now', body: 'This sounds like a scam. A real bank, government office or company does not ask for this on a call.' },
+    caution: { title: 'Be careful', body: 'Some of this sounds like what scammers say. It is fine to hang up.' },
+    safe: { title: 'Nothing here sounds like a scam', body: 'If you are still unsure, it is always fine to hang up.' },
   },
   nothingYet: 'So far they have not asked for anything risky. If they ask for money, gift cards, a code from your phone or your personal details, hang up.',
   callBack: 'Call back on a number you already know: the one on your card, your bill, or the official website. Never the number the caller gives you.',
@@ -458,11 +470,32 @@ export const TRIGGER_LABEL: Record<Trigger, string> = {
   gift_card: 'Was asked to pay with gift cards',
   crypto_wire: 'Was asked to send crypto or a wire',
   live_call: 'Checked a phone call that asked for money or details',
+  money_transfer: 'Started sending money from their bank',
+};
+
+/**
+ * Alerts about a step that is not a scam type, stored with the fixed sentence for that step
+ * (firestore.rules pins each one). Never derived from page content.
+ */
+export const ACTION_ALERT_SUMMARY: Record<'money_transfer' | ProtectionAction, string> = {
+  money_transfer: 'A bank transfer was paused because it went to someone new or came soon after a scam warning.',
+  trusted_site: 'A website was added to the list that Tripwire never checks.',
+  setting_lowered: 'Tripwire was set to warn less often.',
+};
+export const ACTION_TITLE: Record<'money_transfer' | ProtectionAction, string> = {
+  money_transfer: 'Money transfer paused',
+  trusted_site: 'Protection turned down',
+  setting_lowered: 'Protection turned down',
+};
+export const PROTECTION_LABEL: Record<ProtectionAction, string> = {
+  trusted_site: 'Marked a website as trusted',
+  setting_lowered: 'Turned the warning level down',
 };
 
 export const OUTCOME_LABEL = {
   stopped: 'Stopped',
   continued: 'Continued anyway',
+  changed: 'Changed a setting',
 } as const;
 export type Outcome = keyof typeof OUTCOME_LABEL;
 
@@ -499,13 +532,18 @@ export const DASHBOARD = {
   },
   feed: {
     title: 'Recent alerts',
-    emptyTitle: 'All quiet.',
+    emptyTitle: 'All quiet',
     emptyBody: 'When Tripwire steps in, it will appear here within a few seconds.',
     live: 'Updating live',
     stopped: 'They stopped',
     continued: 'They continued anyway',
     continuedAdvice: 'It may be worth a friendly call today.',
     stoppedAdvice: 'No action needed, though they may appreciate hearing from you.',
+    changed: 'Their protection changed',
+    changedAdvice: 'If they did not mean to, or someone on the phone told them to, give them a call.',
+    lastSeen: (when: string) => `Tripwire last checked in from their computer ${when}`,
+    quiet: (when: string) =>
+      `Tripwire has not checked in from their computer since ${when}. The computer may just be off, or Tripwire may have been removed. A quick call can tell.`,
     addAnother: 'Connect another person',
     signOut: 'Sign out',
     privacyTitle: 'What you can and cannot see',
@@ -555,3 +593,16 @@ export const CHECKS = {
   sampleText:
     'URGENT: Your bank account has been locked. Call 1-855-555-0119 immediately and confirm your card number 4111 1111 1111 1111 or your account will be closed today. Do not tell anyone at the branch.',
 } as const;
+
+/* ------------------------------------------------------------------ */
+/* The page Chrome opens after Tripwire is removed                     */
+/* ------------------------------------------------------------------ */
+
+export const REMOVED = {
+  side: 'Tripwire is no longer on this computer',
+  title: 'Tripwire was removed',
+  body: 'It will no longer pause scams on this computer, and family alerts have stopped.',
+  callerLead: 'Did someone on the phone tell you to remove it?',
+  callerBody: 'Then that call is a scam. Hang up now. Call your bank using the number on the back of your card, and tell someone you trust.',
+  putBack: 'If you removed it by mistake, ask the person who set it up to put it back.',
+};

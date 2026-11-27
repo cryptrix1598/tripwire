@@ -1,0 +1,282 @@
+{
+  "ranAt": "2026-11-27T17:22:05.869Z",
+  "mode": "held-out, live-web-harness (Chrome 158.0.8127.88), on-device model available",
+  "scams": 10,
+  "detected": 10,
+  "roundThree": {
+    "scams": 0,
+    "detected": 0,
+    "ordinaryMessages": 0,
+    "falseAlarms": 0
+  },
+  "roundTwo": {
+    "scams": 0,
+    "detected": 0
+  },
+  "paused": 10,
+  "benignPages": 10,
+  "falseAlarms": 0,
+  "pagesSkipped": [],
+  "routes": {
+    "device_then_cloud": 9,
+    "on_device": 3,
+    "not_checked": 8
+  },
+  "cloudFailures": {},
+  "totalBytesSentToCloud": 3607,
+  "averageChars": 209,
+  "latencyMs": {
+    "whenAModelRan": {
+      "median": 5148,
+      "p90": 5793
+    },
+    "onDeviceOnly": {
+      "median": 2722
+    },
+    "deviceThenCloud": {
+      "median": 5244
+    }
+  },
+  "rows": [
+    {
+      "id": "round4-01-hearing-aid-refund",
+      "label": "scam",
+      "chars": 275,
+      "state": "tripped",
+      "riskScore": 95,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 431,
+      "elapsedMs": 11203,
+      "cloudFailure": null,
+      "correct": true
+    },
+    {
+      "id": "round4-02-grandson-lawyer",
+      "label": "scam",
+      "chars": 288,
+      "state": "tripped",
+      "riskScore": 98,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 434,
+      "elapsedMs": 5148,
+      "cloudFailure": null,
+      "correct": true
+    },
+    {
+      "id": "round4-03-pension-update",
+      "label": "scam",
+      "chars": 240,
+      "state": "tripped",
+      "riskScore": 95,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 386,
+      "elapsedMs": 5793,
+      "cloudFailure": null,
+      "correct": true
+    },
+    {
+      "id": "round4-04-church-gift-cards",
+      "label": "scam",
+      "chars": 278,
+      "state": "tripped",
+      "riskScore": 90,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 2963,
+      "cloudFailure": null,
+      "correct": true
+    },
+    {
+      "id": "round4-05-solar-grant",
+      "label": "scam",
+      "chars": 253,
+      "state": "tripped",
+      "riskScore": 93,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 411,
+      "elapsedMs": 5063,
+      "cloudFailure": null,
+      "correct": true
+    },
+    {
+      "id": "round4-06-printer-virus",
+      "label": "scam",
+      "chars": 248,
+      "state": "tripped",
+      "riskScore": 95,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 402,
+      "elapsedMs": 5092,
+      "cloudFailure": null,
+      "correct": true
+    },
+    {
+      "id": "round4-07-wrong-number-crypto",
+      "label": "scam",
+      "chars": 249,
+      "state": "tripped",
+      "riskScore": 95,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 425,
+      "elapsedMs": 5416,
+      "cloudFailure": null,
+      "correct": true
+    },
+    {
+      "id": "round4-08-utility-rebate-es",
+      "label": "scam",
+      "chars": 233,
+      "state": "tripped",
+      "riskScore": 95,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 397,
+      "elapsedMs": 5465,
+      "cloudFailure": null,
+      "correct": true
+    },
+    {
+      "id": "round4-09-medicare-card-fr",
+      "label": "scam",
+      "chars": 233,
+      "state": "tripped",
+      "riskScore": 93,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 400,
+      "elapsedMs": 5244,
+      "cloudFailure": null,
+      "correct": true
+    },
+    {
+      "id": "round4-10-ticket-resale",
+      "label": "scam",
+      "chars": 283,
+      "state": "tripped",
+      "riskScore": 85,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 2722,
+      "cloudFailure": null,
+      "correct": true
+    },
+    {
+      "id": "round4-ok-01-bank-fraud-alert",
+      "label": "benign",
+      "chars": 154,
+      "state": "safe",
+      "riskScore": 15,
+      "route": "device_then_cloud",
+      "bytesSentToCloud": 321,
+      "elapsedMs": 4873,
+      "cloudFailure": null,
+      "correct": true
+    },
+    {
+      "id": "round4-ok-02-real-2fa",
+      "label": "benign",
+      "chars": 163,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 0,
+      "cloudFailure": null,
+      "correct": true
+    },
+    {
+      "id": "round4-ok-03-grandson-visit",
+      "label": "benign",
+      "chars": 162,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 0,
+      "cloudFailure": null,
+      "correct": true
+    },
+    {
+      "id": "round4-ok-04-pharmacy-ready",
+      "label": "benign",
+      "chars": 162,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 0,
+      "cloudFailure": null,
+      "correct": true
+    },
+    {
+      "id": "round4-ok-05-church-bulletin",
+      "label": "benign",
+      "chars": 181,
+      "state": "safe",
+      "riskScore": 10,
+      "route": "on_device",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 2551,
+      "cloudFailure": null,
+      "correct": true
+    },
+    {
+      "id": "round4-ok-06-utility-bill",
+      "label": "benign",
+      "chars": 188,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 0,
+      "cloudFailure": null,
+      "correct": true
+    },
+    {
+      "id": "round4-ok-07-delivery-window",
+      "label": "benign",
+      "chars": 145,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 0,
+      "cloudFailure": null,
+      "correct": true
+    },
+    {
+      "id": "round4-ok-08-doctor-reminder-es",
+      "label": "benign",
+      "chars": 140,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 0,
+      "cloudFailure": null,
+      "correct": true
+    },
+    {
+      "id": "round4-ok-09-neighbour-fr",
+      "label": "benign",
+      "chars": 139,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 1,
+      "cloudFailure": null,
+      "correct": true
+    },
+    {
+      "id": "round4-ok-10-tax-season",
+      "label": "benign",
+      "chars": 170,
+      "state": "safe",
+      "riskScore": 0,
+      "route": "not_checked",
+      "bytesSentToCloud": 0,
+      "elapsedMs": 1,
+      "cloudFailure": null,
+      "correct": true
+    }
+  ]
+}

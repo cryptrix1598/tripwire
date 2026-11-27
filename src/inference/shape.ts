@@ -60,11 +60,15 @@ export function worthALocalLook(shape: Shape): boolean {
 /**
  * Worth sending (redacted) to the cloud when there is no on-device model.
  * Stricter, because something leaves the device: at least three of the five
- * features, and one of them must be the ask itself.
+ * features, and one of them must be the ask itself. Two are enough when the
+ * text also tells the reader what to do ("asks", see directedAsks) or asks for
+ * something no honest shop asks for: most computers have no on-device model, and
+ * that path missed scams that made an ask with only one other warning sign.
  */
-export function worthACloudLook(shape: Shape): boolean {
+export function worthACloudLook(shape: Shape, asks = 0): boolean {
   const count = [shape.moneyAsk, shape.pressure, shape.secrecy, shape.credentialAsk, shape.hasPhone].filter(Boolean).length;
-  return count >= 3 && (shape.moneyAsk || shape.credentialAsk);
+  const theAsk = shape.moneyAsk || shape.credentialAsk;
+  return theAsk && (count >= 3 || (count >= 2 && (asks >= 1 || shape.sensitiveAsk)));
 }
 
 const SCAM_TALK =

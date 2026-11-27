@@ -1031,3 +1031,7 @@
 .tw .tw-hold p { margin: 0; }
 .tw .tw-hold__lead { font-size: 22px; line-height: 1.3; font-weight: 700; color: var(--tw-signal-ink); }
 .tw .tw-hold__wait { margin: 0; font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--tw-ink); }
+
+/* The clearest reason, on the pause's main screen */
+.tw .tw-topflag { display: grid; gap: 4px; font-size: 20px; line-height: 1.4; color: var(--tw-ink); }
+.tw .tw-topflag__label { font-size: 16px; color: var(--tw-text-2); }

@@ -8,7 +8,7 @@
  */
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Trigger, Verdict } from '../inference/schemas';
-import { INTERSTITIAL, POPUP, TRIP_LEAD } from './copy';
+import { INTERSTITIAL, POPUP, TRANSFER, TRIP_LEAD } from './copy';
 import { HOLD_MS, HOLD_TRIGGERS, clock } from './hold';
 import { send } from '../messaging';
 import { Brand, RouteLine, SentReceipt, byPerson, flagsFor, routeExplanation } from './kit';
@@ -23,7 +23,7 @@ function tripFor(verdict: Verdict): Trigger {
 }
 
 /** Pauses where a scammer is usually on the phone, talking the person through it. */
-const PHONE_TRIGGERS = new Set<Trigger>(['phone_call', 'gift_card', 'crypto_wire', 'remote_download']);
+const PHONE_TRIGGERS = new Set<Trigger>(['phone_call', 'gift_card', 'crypto_wire', 'remote_download', 'money_transfer']);
 
 export function leadFor(verdict: Verdict): string {
   const trigger = tripFor(verdict);
@@ -41,6 +41,11 @@ function useHold(active: boolean) {
   const page = typeof location === 'undefined' ? '' : location.href.split('#')[0] + (location.pathname.endsWith('pause.html') ? location.hash : '');
   const ask = (extend: boolean) =>
     send<{ endsAt?: number }>({ target: 'background', type: 'hold', page, extend })
+      .then((r) => {
+        // Measure from the moment the answer arrives, so the clock never starts above 5:00.
+        setNow(Date.now());
+        return r;
+      })
       .then((r) => setEndsAt((prev) => r?.endsAt ?? (extend ? Math.max(prev ?? Date.now(), Date.now()) + HOLD_MS : prev ?? Date.now() + HOLD_MS)))
       .catch(() => setEndsAt((prev) => (extend ? Math.max(prev ?? Date.now(), Date.now()) + HOLD_MS : prev ?? Date.now() + HOLD_MS)));
   useEffect(() => {
@@ -76,6 +81,10 @@ export function Pause({
   const hold = useHold(held);
   const Title = heading;
   const Question = heading === 'h1' ? 'h2' : 'h3';
+  const transfer = tripFor(verdict) === 'money_transfer';
+  // The one reason most likely to persuade, on the main screen; the rest stay behind "Why".
+  const flags = verdict.redFlags.length > 0 ? flagsFor(verdict) : [];
+  const [topFlag, ...moreFlags] = flags;
 
   useEffect(() => {
     stopRef.current?.focus({ preventScroll: true });
@@ -86,11 +95,21 @@ export function Pause({
       <div className="tw-split__side">
         <Brand />
         <Title className="tw-h1 tw-h1--xl">{INTERSTITIAL.title}</Title>
-        <RouteLine route={verdict.route} sent={verdict.bytesSentToCloud > 0} wrongSide={verdict.wrongSide} downloading={verdict.modelDownloading} />
+        {verdict.route !== 'not_checked' ? (
+          <RouteLine route={verdict.route} sent={verdict.bytesSentToCloud > 0} wrongSide={verdict.wrongSide} downloading={verdict.modelDownloading} />
+        ) : (
+          <span aria-hidden="true" />
+        )}
       </div>
       <div className="tw-split__main">
         <div className="tw-stack">
           <p className="tw-lead">{leadFor(verdict)}</p>
+          {topFlag && (
+            <p className="tw-topflag" lang={verdict.explanationLanguage}>
+              <span className="tw-topflag__label">{INTERSTITIAL.noticed}</span>
+              <span>{topFlag}</span>
+            </p>
+          )}
           {held && (
             <div className="tw-hold" role="note">
               <p className="tw-hold__lead">{INTERSTITIAL.holdLead}</p>
@@ -98,8 +117,8 @@ export function Pause({
               <p>{INTERSTITIAL.holdCall}</p>
             </div>
           )}
-          <Question className="tw-h2">{INTERSTITIAL.question}</Question>
-          <p className="tw-body">{INTERSTITIAL.reassurance}</p>
+          <Question className="tw-h2">{transfer ? TRANSFER.question : INTERSTITIAL.question}</Question>
+          <p className="tw-body">{transfer ? TRANSFER.reassurance : INTERSTITIAL.reassurance}</p>
           {note}
           <div className="tw-col-start">
             <button ref={stopRef} type="button" className="tw-btn tw-btn--xl" onClick={byPerson(onStop)}>
@@ -131,7 +150,7 @@ export function Pause({
               <>
                 {verdict.explanation && <p lang={verdict.explanationLanguage}>{verdict.explanation}</p>}
                 <ul className="tw-flags" lang={verdict.explanationLanguage}>
-                  {flagsFor(verdict).map((flag) => (
+                  {(topFlag ? moreFlags : flagsFor(verdict)).map((flag) => (
                     <li key={flag}>
                       <span>{flag}</span>
                     </li>

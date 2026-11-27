@@ -1,11 +1,11 @@
 {
-  "ranAt": "2026-11-27T16:55:28.717Z",
+  "ranAt": "2026-11-27T17:22:22.365Z",
   "where": "hosted site, plain Chromium with no extension",
   "steps": [
     {
       "state": "pass",
       "name": "fake bank page is flagged with no extension installed",
-      "note": "route: Your device doesn't support on-device AI · personal info removed before checking\n        sent (start): Site: tripwire-buildhybridai.web.app Situation: The reader has just opened this. Warning signs found by simple rules: account or identity details, a d"
+      "note": "route: Checked online · personal info removed first\n        sent (start): Site: tripwire-buildhybridai.web.app Situation: The reader has just opened this. Warning signs found by simple rules: account or identity details, a d"
     },
     {
       "state": "pass",

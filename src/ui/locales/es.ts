@@ -14,8 +14,8 @@ export const ES: LocaleBundle = {
       long: 'Su computadora revisó esto primero y luego quitó los nombres, números y direcciones que encontró antes de pedir una segunda opinión.',
     },
     cloud_fallback: {
-      label: 'Su computadora no admite la IA local',
-      detail: 'datos personales eliminados antes de revisar',
+      label: 'Revisado en línea',
+      detail: 'datos personales eliminados antes',
       long: 'Esta computadora no puede hacer la revisión privada local, así que Tripwire quitó los nombres, números y direcciones que pudo reconocer antes de revisar en línea.',
     },
     rules_only: {
@@ -65,6 +65,15 @@ export const ES: LocaleBundle = {
     gift_card: 'Este mensaje le pide que pague con tarjetas de regalo. Solo los estafadores piden eso.',
     crypto_wire: 'Este mensaje le pide que envíe dinero de una forma que no se puede deshacer.',
     live_call: 'Quien llama le pide algo que piden los estafadores.',
+    money_transfer: 'Está a punto de sacar dinero de su cuenta.',
+  },
+  TRANSFER: {
+    question: '¿Alguien al teléfono le está diciendo que mueva dinero?',
+    reassurance:
+      'Su banco nunca le pedirá que mueva dinero para protegerlo, ni tampoco la policía ni el gobierno. Quien diga eso es un estafador, aunque la llamada parezca venir de su banco.',
+    newPayee: 'Está enviando dinero a alguien a quien no le ha pagado antes.',
+    recentWarning: 'Tripwire le advirtió de una posible estafa en esta computadora en la última hora.',
+    explanation: 'Mover dinero a una cuenta nueva, sobre todo poco después de una llamada o un mensaje que asusta, es como terminan las estafas más costosas. Ese dinero casi nunca se puede recuperar.',
   },
   INTERSTITIAL: {
     dialogLabel: 'Tripwire detuvo esta página',
@@ -82,6 +91,7 @@ export const ES: LocaleBundle = {
     why: '¿Por qué me detuvo Tripwire?',
     hideWhy: 'Ocultar los motivos',
     continueNote: 'Continúe solo si usted mismo empezó esto y nadie le está metiendo prisa.',
+    noticed: 'Lo que notó Tripwire',
   },
   WHY: {
     title: 'Por qué intervino Tripwire',
@@ -127,12 +137,12 @@ export const ES: LocaleBundle = {
     body: 'No se envió nada y no se instaló nada.',
     nextTitle: 'Esto es lo que puede hacer ahora.',
     steps: [
-      { title: 'Cuelgue o deje de responder.', body: 'Si alguien está al teléfono o le escribe, simplemente puede terminar. No le debe ninguna explicación.' },
+      { title: 'Cuelgue o deje de responder', body: 'Si alguien está al teléfono o le escribe, simplemente puede terminar. No le debe ninguna explicación.' },
       {
         title: 'Llame usted mismo al número de verdad',
         body: 'Si le preocupa su banco o una cuenta, use el número impreso en su tarjeta o en un extracto. Nunca use un número del mensaje.',
       },
-      { title: 'Cuénteselo a alguien de confianza.', body: 'Dos pares de ojos ven más. Los estafadores cuentan con que la gente se lo calle.' },
+      { title: 'Cuénteselo a alguien de confianza', body: 'Dos pares de ojos ven más. Los estafadores cuentan con que la gente se lo calle.' },
     ],
     close: 'Cerrar esta pestaña',
     guardianNote: 'Se ha avisado a su familiar de que usted se detuvo. No se le envió ningún dato personal suyo.',
@@ -277,7 +287,7 @@ export const ES: LocaleBundle = {
     },
     back: 'Cerrar esta pestaña',
   },
-  OUTCOME_LABEL: { stopped: 'Se detuvo', continued: 'Siguió de todos modos' },
+  OUTCOME_LABEL: { stopped: 'Se detuvo', continued: 'Siguió de todos modos', changed: 'Cambió un ajuste' },
   SCAM_TYPE_LABEL: {
     none: 'Página sospechosa',
     tech_support: 'Falso soporte técnico',
@@ -316,6 +326,7 @@ export const ES: LocaleBundle = {
     gift_card: 'Le pidieron pagar con tarjetas de regalo',
     crypto_wire: 'Le pidieron enviar cripto o una transferencia',
     live_call: 'Revisó una llamada que pedía dinero o datos',
+    money_transfer: 'Empezó a enviar dinero desde su banco',
   },
   DASHBOARD: {
     title: 'Página familiar de Tripwire',
@@ -345,13 +356,18 @@ export const ES: LocaleBundle = {
     },
     feed: {
       title: 'Avisos recientes',
-      emptyTitle: 'Todo tranquilo.',
+      emptyTitle: 'Todo tranquilo',
       emptyBody: 'Cuando Tripwire intervenga, aparecerá aquí en unos segundos.',
       live: 'Se actualiza en directo',
       stopped: 'Se detuvo',
       continued: 'Siguió de todos modos',
       continuedAdvice: 'Puede valer la pena una llamada amable hoy.',
       stoppedAdvice: 'No hace falta hacer nada, aunque quizá le guste saber de usted.',
+      changed: 'Su protección cambió',
+      changedAdvice: 'Si no era su intención, o alguien al teléfono le dijo que lo hiciera, llámele.',
+      lastSeen: (when: string) => `Tripwire se comunicó por última vez desde su computadora ${when}`,
+      quiet: (when: string) =>
+        `Tripwire no se ha comunicado desde su computadora desde ${when}. Puede que la computadora esté apagada o que hayan quitado Tripwire. Una llamada rápida lo aclara.`,
       addAnother: 'Conectar a otra persona',
       signOut: 'Cerrar sesión',
       privacyTitle: 'Lo que puede y no puede ver',
@@ -405,9 +421,9 @@ export const ES: LocaleBundle = {
     failed: 'Tripwire no pudo revisarlo ahora. Para estar seguro, cuelgue y llame a un número que ya conozca.',
     hangUpAnytime: 'Siempre puede colgar. Un banco, una oficina del gobierno o una empresa de verdad lo entenderá y seguirá ahí cuando usted llame.',
     result: {
-      tripped: { title: 'Cuelgue ahora.', body: 'Esto parece una estafa. Un banco, una oficina del gobierno o una empresa de verdad no pide esto por teléfono.' },
-      caution: { title: 'Tenga cuidado.', body: 'Parte de esto se parece a lo que dicen los estafadores. Está bien colgar.' },
-      safe: { title: 'Nada de esto parece una estafa.', body: 'Si todavía tiene dudas, siempre está bien colgar.' },
+      tripped: { title: 'Cuelgue ahora', body: 'Esto parece una estafa. Un banco, una oficina del gobierno o una empresa de verdad no pide esto por teléfono.' },
+      caution: { title: 'Tenga cuidado', body: 'Parte de esto se parece a lo que dicen los estafadores. Está bien colgar.' },
+      safe: { title: 'Nada de esto parece una estafa', body: 'Si todavía tiene dudas, siempre está bien colgar.' },
     },
     nothingYet: 'Hasta ahora no le ha pedido nada arriesgado. Si le pide dinero, tarjetas de regalo, un código de su teléfono o sus datos personales, cuelgue.',
     callBack: 'Llame a un número que ya conozca: el de su tarjeta, su factura o la página oficial. Nunca al número que le da quien llama.',

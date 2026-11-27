@@ -75,6 +75,20 @@ service cloud.firestore {
     // ── Pairing codes ────────────────────────────────────────────────────
     // Readable one at a time by anyone signed in who already knows the code.
     // Never listable, so codes cannot be enumerated with a query.
+    // Alerts about a step that is not a kind of scam carry the fixed sentence for that step.
+    function actionSummary(action) {
+      return {
+        'money_transfer': 'A bank transfer was paused because it went to someone new or came soon after a scam warning.',
+        'trusted_site': 'A website was added to the list that Tripwire never checks.',
+        'setting_lowered': 'Tripwire was set to warn less often.'
+      }[action];
+    }
+    // "Tripwire is still here": only ever the time of this write.
+    function lastSeenOk(before, after) {
+      return !('lastSeenAt' in after)
+        || ('lastSeenAt' in before && after.lastSeenAt == before.lastSeenAt)
+        || after.lastSeenAt == request.time;
+    }
     match /pairingCodes/{code} {
       allow get: if signedIn();
       allow list: if false;
@@ -105,11 +119,13 @@ service cloud.firestore {
       // lastAlertAt is the device's alert clock: each alert must move it to now, and it can move
       // at most once every 15 seconds, so a broken or looping client cannot flood the family feed.
       allow create: if isDevice(deviceId)
-        && request.resource.data.keys().hasOnly(['createdAt', 'lastAlertAt'])
-        && (!('lastAlertAt' in request.resource.data) || request.resource.data.lastAlertAt == request.time);
+        && request.resource.data.keys().hasOnly(['createdAt', 'lastAlertAt', 'lastSeenAt'])
+        && (!('lastAlertAt' in request.resource.data) || request.resource.data.lastAlertAt == request.time)
+        && (!('lastSeenAt' in request.resource.data) || request.resource.data.lastSeenAt == request.time);
       allow update: if isDevice(deviceId)
-        && request.resource.data.keys().hasOnly(['createdAt', 'lastAlertAt'])
-        && alertClockOk(resource.data, request.resource.data);
+        && request.resource.data.keys().hasOnly(['createdAt', 'lastAlertAt', 'lastSeenAt'])
+        && alertClockOk(resource.data, request.resource.data)
+        && lastSeenOk(resource.data, request.resource.data);
       allow delete: if false;
 
       // A guardian link is created by the guardian, proving knowledge of a
@@ -154,11 +170,16 @@ service cloud.firestore {
                'delivery', 'shopping_impersonation', 'investment_crypto', 'prize_lottery', 'romance',
                'payment_request', 'phishing_login', 'other'
              ]
-          && request.resource.data.summary == summaryFor(request.resource.data.scamType)
           && request.resource.data.action in [
-               'passive', 'card_entry', 'remote_download', 'phone_call', 'gift_card', 'crypto_wire', 'live_call'
+               'passive', 'card_entry', 'remote_download', 'phone_call', 'gift_card', 'crypto_wire', 'live_call',
+               'money_transfer', 'trusted_site', 'setting_lowered'
              ]
-          && request.resource.data.outcome in ['stopped', 'continued']
+          && (request.resource.data.action in ['money_transfer', 'trusted_site', 'setting_lowered']
+               ? request.resource.data.scamType == 'none' && request.resource.data.summary == actionSummary(request.resource.data.action)
+               : request.resource.data.summary == summaryFor(request.resource.data.scamType))
+          && (request.resource.data.action in ['trusted_site', 'setting_lowered']
+               ? request.resource.data.outcome == 'changed'
+               : request.resource.data.outcome in ['stopped', 'continued'])
           // Written together with the device's alert clock (see above).
           && getAfter(/databases/$(database)/documents/devices/$(deviceId)).data.get('lastAlertAt', null) == request.time;
         // Alerts are an immutable record.

@@ -10,7 +10,7 @@ import { applySensitivity, loadSettings } from '../../config/settings';
 import { loadConfig } from '../../config/store';
 import { refreshRemoteConfig } from '../../config/remoteConfig';
 import { isFirebaseConfigured } from '../../firebase/config';
-import { createPairingCode, decidePending, disconnectGuardians, guardianCount, guardianLinks, retirePairingCode, sendAlert } from '../../guardian/device';
+import { createPairingCode, decidePending, disconnectGuardians, guardianCount, guardianLinks, retirePairingCode, sendAlert, sendHeartbeat } from '../../guardian/device';
 import type { AiEngine } from '../../inference/engine';
 import { firebaseEngine, onDeviceStatus } from '../../inference/firebaseEngine';
 import { assess } from '../../inference/router';
@@ -125,6 +125,15 @@ async function handle(msg: ToOffscreen): Promise<unknown> {
       try {
         // Only send when someone is actually paired.
         if ((await guardianCount()) > 0) await sendAlert(msg.scamType, msg.trigger, msg.outcome);
+        return { ok: true };
+      } catch {
+        return { ok: false };
+      }
+    case 'heartbeat':
+      if (!isFirebaseConfigured()) return { ok: false };
+      try {
+        // Only for a computer someone looks out for.
+        if ((await guardianCount()) > 0) await sendHeartbeat();
         return { ok: true };
       } catch {
         return { ok: false };

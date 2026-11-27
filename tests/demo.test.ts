@@ -33,10 +33,10 @@ const pages = readdirSync('demo')
   });
 
 describe('practice pages, rules only', () => {
-  it('covers four loud scams, one quiet one and one ordinary page', () => {
+  it('covers four loud scams, one quiet one and two ordinary pages', () => {
     expect(pages.filter((p) => p.scenario === 'scam')).toHaveLength(4);
     expect(pages.filter((p) => p.scenario === 'subtle')).toHaveLength(1);
-    expect(pages.filter((p) => p.scenario === 'benign')).toHaveLength(1);
+    expect(pages.filter((p) => p.scenario === 'benign')).toHaveLength(2);
   });
 
   for (const page of pages) {

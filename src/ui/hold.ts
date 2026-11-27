@@ -9,7 +9,7 @@ import type { Trigger } from '../inference/schemas';
 export const HOLD_MS = 5 * 60_000;
 
 /** The pauses that get the hold. */
-export const HOLD_TRIGGERS: ReadonlySet<Trigger> = new Set<Trigger>(['gift_card', 'crypto_wire', 'remote_download']);
+export const HOLD_TRIGGERS: ReadonlySet<Trigger> = new Set<Trigger>(['gift_card', 'crypto_wire', 'remote_download', 'money_transfer']);
 
 /** "4:59" */
 export function clock(ms: number): string {

@@ -23,8 +23,9 @@ import { MAX_CHECK_MS } from '../../inference/timeouts';
 import { HOLD_TRIGGERS } from '../../ui/hold';
 import { send, type AssessReply, type ToContent } from '../../messaging';
 import { describeField, isCardField, mayInspectValue, valueIsCardNumber } from '../../tripwires/cardField';
+import { addsNewPayee, isTransferField, transferContext } from '../../tripwires/transfer';
 import { Banner } from '../../ui/Banner';
-import { BANNER } from '../../ui/copy';
+import { BANNER, TRANSFER } from '../../ui/copy';
 import { applyLocale } from '../../ui/locale';
 import { Pause } from '../../ui/Pause';
 
@@ -353,6 +354,30 @@ function startTopFrame(ctx: ContentScriptContext): void {
     }
   }
 
+  /**
+   * Money leaving the account. On a real bank page nothing looks wrong, so the moment decides:
+   * a new payee, or a warning or a call check on this computer within the last hour.
+   */
+  async function onTransfer(newPayee: boolean): Promise<void> {
+    if (heldDone.has('money_transfer') || view.kind === 'pause') return;
+    const now = Date.now();
+    if (now - (lastAction.get('money_transfer') ?? 0) < ACTION_COOLDOWN_MS) return;
+    lastAction.set('money_transfer', now);
+    const risk = await send<{ recent?: boolean }>({ target: 'background', type: 'transfer-risk' }).catch(() => null);
+    if (!ctx.isValid || (view as View).kind === 'pause') return;
+    const recent = risk?.recent === true || (last !== null && last.state !== 'safe');
+    if (!newPayee && !recent) return;
+    const redFlags = [newPayee ? TRANSFER.newPayee : '', recent ? TRANSFER.recentWarning : ''].filter(Boolean);
+    show({
+      kind: 'pause',
+      verdict: {
+        state: 'tripped', riskScore: 0, scamType: last && last.state !== 'safe' ? last.scamType : 'none', redFlags,
+        explanation: TRANSFER.explanation, confidence: 1, route: 'not_checked', trigger: 'money_transfer',
+        bytesSentToCloud: 0, redactionCount: 0, failSafe: false, cloudUnreachable: false, promptVersion: '', elapsedMs: 0,
+      },
+    });
+  }
+
   const scheduler = createScanScheduler(() => void onPageText().catch(() => undefined), { maxScans: isWebmail(hostname) ? 60 : 8 });
 
   ctx.addEventListener(
@@ -387,6 +412,8 @@ function startTopFrame(ctx: ContentScriptContext): void {
         const hay = [info.name, info.id, info.placeholder, info.ariaLabel, info.labelText].join(' ');
         if (GIFT_FIELD.test(hay)) return held('gift_card', 'code');
         if (WALLET_FIELD.test(hay)) return held('crypto_wire', 'code');
+        const context = transferContext(el);
+        if (isTransferField(info, context)) return void onTransfer(addsNewPayee(context));
       } catch {
         /* ignore */
       }

@@ -30,6 +30,22 @@ const rulesOnly: AiEngine = {
   analyzeInCloud: () => Promise.reject(new Error('not configured')),
 };
 
+/**
+ * When the AI check could not run here (no Firebase config, the browser could not be confirmed
+ * by App Check, or the cloud was busy), say so on the page, so a quiet page is never mistaken
+ * for "Tripwire checked this and it was fine".
+ */
+function noteRulesOnly(): void {
+  if (document.getElementById('tripwire-demo-note')) return;
+  const note = document.createElement('p');
+  note.id = 'tripwire-demo-note';
+  note.className = 'demo-note';
+  note.setAttribute('role', 'status');
+  note.textContent =
+    'The AI check could not run in this browser just now, so Tripwire used only its built-in rules, which catch fewer scams. With the extension, or in a moment, the full check runs.';
+  document.body.append(note);
+}
+
 async function extensionIsHere(): Promise<boolean> {
   return new Promise((resolve) => {
     const done = (value: boolean) => {
@@ -61,11 +77,16 @@ async function start(): Promise<void> {
       onMessage: { addListener: () => undefined },
       sendMessage: async (message: { type: string; input?: AssessInput; page?: string; outcome?: string }) => {
         switch (message.type) {
-          case 'assess':
-            return { verdict: await assess(message.input!, { engine, config: DEFAULT_CONFIG }), acknowledged: continued.has(message.page ?? '') };
+          case 'assess': {
+            const verdict = await assess(message.input!, { engine, config: DEFAULT_CONFIG });
+            if (verdict.route === 'rules_only') noteRulesOnly();
+            return { verdict, acknowledged: continued.has(message.page ?? '') };
+          }
           case 'outcome':
             if (message.outcome === 'continued') continued.add(message.page ?? '');
             return { ok: true };
+          case 'transfer-risk':
+            return { recent: false };
           case 'leave':
             location.href = '/stopped.html';
             return { ok: true };

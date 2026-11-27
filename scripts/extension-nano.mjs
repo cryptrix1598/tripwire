@@ -103,7 +103,7 @@ try {
       await call.getByRole('button', { name: choice }).click();
     }
     await call.getByRole('button', { name: 'Check this call' }).click();
-    await call.getByRole('heading', { name: /Hang up now\.|Be careful\./ }).waitFor({ timeout: 90_000 });
+    await call.getByRole('heading', { name: /Hang up now|Be careful/ }).waitFor({ timeout: 90_000 });
     await call.screenshot({ path: 'docs/screenshots/call-check-on-device.png' });
     const route = (await call.locator('.tw-route').innerText()).replace(/\s+/g, ' ');
     const heading = await call.locator('h2').first().innerText();

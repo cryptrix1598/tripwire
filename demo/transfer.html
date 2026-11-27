@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lakeside Savings Bank: Transfers</title>
+    <link rel="stylesheet" href="./demo.css" />
+  </head>
+  <body>
+    <!-- The "practice page" notice is drawn by CSS (demo.css), so people see it but it is not part of the page text Tripwire reads. -->
+    <p class="practice"><a href="./" aria-label="Practice page. Everything on it is invented. Back to the list">Back to the list</a></p>
+    <div class="site" style="background: #1d3f6e">Lakeside Savings Bank</div>
+    <!-- An ordinary, honest bank page: nothing on it is a warning sign. The risk is the moment (a new payee). -->
+    <main data-scenario="benign" data-trigger="money_transfer">
+      <h1>Transfers</h1>
+      <p class="meta">Signed in as M. Ellison · Checking ••4417 · Available $18,240.55</p>
+      <form onsubmit="return false">
+        <h2>Add a new payee</h2>
+        <label for="payee">Payee name</label>
+        <input id="payee" name="payeeName" autocomplete="off" />
+        <label for="routing">Routing number</label>
+        <input id="routing" name="routingNumber" inputmode="numeric" autocomplete="off" />
+        <label for="account">Account number</label>
+        <input id="account" name="accountNumber" inputmode="numeric" autocomplete="off" />
+        <label for="amount">Amount</label>
+        <input id="amount" name="amount" inputmode="decimal" placeholder="$0.00" />
+        <button class="cta calm" type="submit">Review transfer</button>
+      </form>
+    </main>
+    <!-- Lets this page be tried without the extension when it is served from the hosted demo. -->
+    <script type="module" src="/try.js"></script>
+  </body>
+</html>

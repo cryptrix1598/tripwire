@@ -162,6 +162,24 @@ try {
     if ((await ui(page, '.tw-overlay').count()) !== 0) throw new Error('paused again after the person chose to continue');
   });
 
+  await step('your own bank: adding a new payee pauses with the money question and the hold', async () => {
+    // The real five-minute hold again (the gift card step shortened it).
+    await worker.evaluate(async () => {
+      const all = await chrome.storage.session.get(null);
+      await chrome.storage.session.remove(['test:holdMs', ...Object.keys(all).filter((k) => k.startsWith('hold:'))]);
+    });
+    await page.goto(`${DEMO}/transfer.html`);
+    await page.waitForTimeout(2500);
+    // An honest bank page: nothing is shown on reading. The moment (a new payee) is the risk.
+    if ((await ui(page, '.tw-banner, .tw-overlay').count()) !== 0) throw new Error('flagged an ordinary bank page on reading');
+    await page.locator('#amount').focus();
+    await expectVisible(ui(page).getByText('Is someone on the phone telling you to move money?'));
+    await expectVisible(ui(page).getByText('You are sending money to someone you have not paid before'));
+    await expectVisible(ui(page).getByText('Real emergencies can wait 5 minutes'));
+    await expectVisible(ui(page).getByText(/You can continue in [0-9]:[0-9]{2}/));
+    await page.screenshot({ path: 'docs/screenshots/pause-transfer.png' });
+  });
+
   await step('investment offer: wallet field pauses the page', async () => {
     await page.goto(`${DEMO}/crypto.html`);
     await expectVisible(ui(page, '.tw-banner, .tw-overlay'));
@@ -271,7 +289,7 @@ try {
     // Wait for any answer, then insist it is the right one, so a failure says what was shown.
     await expectVisible(call.locator('section[aria-live] .tw-route, p[role=alert]'), 60_000);
     const shown = await text(call.locator('body'));
-    if (!/Hang up now\.|Be careful\./.test(shown)) throw new Error(`expected hang-up advice, page said: ${shown.slice(0, 400)}`);
+    if (!/Hang up now|Be careful/.test(shown)) throw new Error(`expected hang-up advice, page said: ${shown.slice(0, 400)}`);
     await shot(call, 'call-check-result');
     const result = await text(call.locator('section'));
     await call.close();

@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-11-27T16:54:35.846Z",
+  "ranAt": "2026-11-27T17:20:10.072Z",
   "browser": "Chromium (Playwright), extension loaded",
   "steps": [
     {
@@ -25,6 +25,10 @@
     {
       "state": "pass",
       "name": "gift card demand: code field pauses; \"I'm sure, continue\" lets the person through once"
+    },
+    {
+      "state": "pass",
+      "name": "your own bank: adding a new payee pauses with the money question and the hold"
     },
     {
       "state": "pass",

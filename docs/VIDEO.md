@@ -25,6 +25,9 @@ Read slowly. Pause for about a second where the script says *[pause]*. Every on-
 > Watch. I'm turning the Wi-Fi off. *[pause]* Now I'm about to type my card number on this fake bank page… *[pause, the pause screen appears]* Tripwire stops me. One question, one big safe button. And down here: "Checked on your device · nothing left your computer." That check was Gemini Nano, running on this laptop, through Firebase AI Logic. Nothing was sent anywhere.
 *Click "Why did Tripwire stop me?" to show the reasons, then **Stop and stay safe**.*
 
+**Your own bank (optional, about 10 seconds; it can replace the urgency-breaker beat, since it shows the same hold).** *Screen: open `transfer.html` and click into the Amount box. The pause asks "Is someone on the phone telling you to move money?"*
+> The worst scams end on your real bank's website: "move your money to a safe account." The page looks fine, so Tripwire watches the moment. New payee? It asks one question, and makes you wait five minutes.
+
 **The urgency breaker (add about 15 seconds here, and trim the phone-call section to match).** *Screen: open `giftcard.html` and click into the code box. The pause shows the pale-blue box and "You can continue in 4:59".*
 > Scams run on one thing: act now. So when someone is about to buy gift cards, send crypto or let a stranger into their computer, Tripwire holds "continue" for five minutes. Real emergencies can wait five minutes. Scams can't. *[pause]* And the first thing it says is: hang up.
 

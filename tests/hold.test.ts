@@ -3,7 +3,7 @@ import { HOLD_MS, HOLD_TRIGGERS, clock, nextHoldEnd } from '../src/ui/hold';
 
 describe('the five-minute hold', () => {
   it('holds only the asks that are never safe', () => {
-    expect([...HOLD_TRIGGERS].sort()).toEqual(['crypto_wire', 'gift_card', 'remote_download']);
+    expect([...HOLD_TRIGGERS].sort()).toEqual(['crypto_wire', 'gift_card', 'money_transfer', 'remote_download']);
   });
   it('starts at five minutes, and reopening the page neither restarts nor skips it', () => {
     const first = nextHoldEnd(undefined, 1_000, false);

@@ -241,6 +241,7 @@ function readPage(input: AssessInput, config: TripwireConfig) {
   const asks = directedAsks(page);
   return {
     shape: detectShape(page),
+    asks,
     // What the models read: a focused excerpt, never the whole of a long page.
     // Triple quotes are the prompt's own delimiter: the page must not be able to close it.
     text: salientExcerpt(page, config.maxModelChars).replace(/"{3,}/g, "'''"),
@@ -256,7 +257,7 @@ function readPage(input: AssessInput, config: TripwireConfig) {
 
 /** Stage 2: which models may look at all. A look on the device is cheap; one that sends something is not. */
 function gate(input: AssessInput, read: ReturnType<typeof readPage>) {
-  const { signals, shape } = read;
+  const { signals, shape, asks } = read;
   const asked = input.source === 'call';
   return {
     asked,
@@ -267,7 +268,7 @@ function gate(input: AssessInput, read: ReturnType<typeof readPage>) {
     cloudLook:
       asked ||
       worthChecking(signals) ||
-      (input.trigger === 'passive' ? worthACloudLook(shape) : shape.secrecy && (shape.pressure || shape.hasPhone)),
+      (input.trigger === 'passive' ? worthACloudLook(shape, asks) : shape.secrecy && (shape.pressure || shape.hasPhone)),
   };
 }
 
@@ -500,7 +501,9 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
     if (!cloudLook) {
       return finish({ score: 0, scamType: 'none', redFlags: [], explanation: '', confidence: 1, route: 'not_checked' });
     }
-    return cloudOnly(false);
+    // This page passed the stricter gate. If the cloud cannot answer (quota, network, timeout),
+    // the rules decide with the fail-safe (lower) caution bar, not the normal one.
+    return cloudOnly(true);
   }
 
   // ── Stage 4: on-device triage, and the verdicts the device may give alone. ──

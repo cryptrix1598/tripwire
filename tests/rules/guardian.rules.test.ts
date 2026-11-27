@@ -152,6 +152,24 @@ describe('alerts', () => {
     }
   });
 
+  it('accepts a paused transfer and a protection change, each with its own fixed sentence', async () => {
+    await assertSucceeds(post(alertRef(DEVICE, 'transfer'), { ...buildAlert('none', 'money_transfer', 'continued'), createdAt: serverTimestamp() }));
+    await resetClock();
+    await assertSucceeds(post(alertRef(DEVICE, 'trusted'), { ...buildAlert('none', 'trusted_site', 'changed'), createdAt: serverTimestamp() }));
+    await resetClock();
+    // The sentence must match the step, and a protection change is never "stopped".
+    await assertFails(post(alertRef(DEVICE, 'mixed'), { ...buildAlert('none', 'trusted_site', 'changed'), summary: buildAlert('none', 'setting_lowered', 'changed').summary }));
+    await assertFails(post(alertRef(DEVICE, 'odd'), { ...buildAlert('none', 'setting_lowered', 'changed'), outcome: 'stopped' }));
+    await assertFails(post(alertRef(DEVICE, 'typed'), { ...buildAlert('none', 'money_transfer', 'stopped'), scamType: 'gift_card' }));
+  });
+  it('the device may say "still here" with the time of the write, and nothing else', async () => {
+    const device = doc(as(DEVICE), 'devices', DEVICE);
+    await assertSucceeds(setDoc(device, { lastSeenAt: serverTimestamp() }, { merge: true }));
+    await assertFails(setDoc(device, { lastSeenAt: Timestamp.fromMillis(Date.now() + 86_400_000) }, { merge: true }));
+    await assertFails(setDoc(device, { lastSeenAt: serverTimestamp(), note: 'hello' }, { merge: true }));
+    await assertFails(setDoc(doc(as(GUARDIAN), 'devices', DEVICE), { lastSeenAt: serverTimestamp() }, { merge: true }));
+  });
+
   it('rejects long summaries, unknown enums, a backdated time and missing fields', async () => {
     await assertFails(post(alertRef(DEVICE), { ...validAlert(), summary: 'x'.repeat(201) }));
     await assertFails(post(alertRef(DEVICE), { ...validAlert(), scamType: 'whatever' }));

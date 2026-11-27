@@ -13,8 +13,8 @@
  * also enforce the exact shape of an alert, so raw page or email content
  * cannot be stored even by a modified client.
  */
-import { SCAM_TYPES, TRIGGERS, type ScamType, type Trigger } from '../inference/schemas';
-import { ALERT_SUMMARY, type Outcome } from '../ui/copy';
+import { PROTECTION_ACTIONS, SCAM_TYPES, TRIGGERS, type AlertAction, type ScamType } from '../inference/schemas';
+import { ACTION_ALERT_SUMMARY, ALERT_SUMMARY, type Outcome } from '../ui/copy';
 
 export const PAIRING_TTL_MS = 5 * 60 * 1000;
 /** What a family member's first name may contain. The security rules check the same thing. */
@@ -30,8 +30,8 @@ export interface GuardianAlertData {
   scamType: ScamType;
   /** One fixed sentence chosen by scam type. Never derived from page content. */
   summary: string;
-  /** The action that tripped. */
-  action: Trigger;
+  /** The action that tripped, or the protection that was turned down. */
+  action: AlertAction;
   outcome: Outcome;
 }
 
@@ -40,13 +40,24 @@ export interface GuardianAlertData {
  * (always the English sentence, which the security rules pin exactly);
  * there is deliberately no parameter through which page text could arrive.
  */
-export function buildAlert(scamType: ScamType, trigger: Trigger, outcome: Outcome): GuardianAlertData {
+export function buildAlert(scamType: ScamType, action: AlertAction, outcome: Outcome): GuardianAlertData {
+  const protection = (PROTECTION_ACTIONS as readonly string[]).includes(action);
+  const safeAction: AlertAction = protection || (TRIGGERS as readonly string[]).includes(action) ? action : 'passive';
+  // A transfer or a protection change is not a kind of scam: its sentence is fixed by the step itself.
+  if (safeAction === 'money_transfer' || protection) {
+    const key = safeAction as keyof typeof ACTION_ALERT_SUMMARY;
+    return {
+      scamType: 'none',
+      summary: ACTION_ALERT_SUMMARY[key],
+      action: safeAction,
+      outcome: protection ? 'changed' : outcome === 'continued' ? 'continued' : 'stopped',
+    };
+  }
   const safeType: ScamType = (SCAM_TYPES as readonly string[]).includes(scamType) ? scamType : 'other';
-  const safeTrigger: Trigger = (TRIGGERS as readonly string[]).includes(trigger) ? trigger : 'passive';
   return {
     scamType: safeType,
     summary: ALERT_SUMMARY[safeType].slice(0, ALERT_SUMMARY_MAX),
-    action: safeTrigger,
+    action: safeAction,
     outcome: outcome === 'continued' ? 'continued' : 'stopped',
   };
 }
