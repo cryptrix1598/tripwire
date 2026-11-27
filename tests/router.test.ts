@@ -548,3 +548,34 @@ describe('router: listed details are whole words', () => {
     expect(sent).not.toMatch(/\bTed\b/);
   });
 });
+
+describe('router: a cloud over its quota', () => {
+  it('waits once and retries, and the verdict says why when it still fails', async () => {
+    let calls = 0;
+    const engine = fakeEngine({
+      status: 'unavailable',
+      cloud: async () => {
+        calls += 1;
+        throw new Error('[GoogleGenerativeAI Error]: 429 RESOURCE_EXHAUSTED');
+      },
+    });
+    const v = await assess({ text: BANK_EMAIL.text, hostname: 'mail.example.test', trigger: 'passive' }, { engine, config: DEFAULT_CONFIG, cloudBackoffMs: 0 });
+    expect(calls).toBe(2);
+    expect(v.cloudFailure).toBe('quota');
+  });
+
+  it('a retry after the quota clears gets the answer', async () => {
+    let calls = 0;
+    const engine = fakeEngine({
+      status: 'unavailable',
+      cloud: async () => {
+        calls += 1;
+        if (calls === 1) throw new Error('429 Too Many Requests');
+        return cloudJson(90);
+      },
+    });
+    const v = await assess({ text: BANK_EMAIL.text, hostname: 'mail.example.test', trigger: 'passive' }, { engine, config: DEFAULT_CONFIG, cloudBackoffMs: 0 });
+    expect(v.route).toBe('cloud_fallback');
+    expect(v.cloudFailure).toBeUndefined();
+  });
+});

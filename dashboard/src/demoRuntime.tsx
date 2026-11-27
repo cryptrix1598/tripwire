@@ -45,8 +45,11 @@ async function extensionIsHere(): Promise<boolean> {
 
 async function start(): Promise<void> {
   if (document.readyState !== 'complete') await new Promise((resolve) => window.addEventListener('load', resolve, { once: true }));
-  await wait(700); // give an installed extension time to load its content script
-  if (await extensionIsHere()) return;
+  const callPage = document.body.dataset.tripwirePage === 'call';
+  if (!callPage) {
+    await wait(700); // give an installed extension time to load its content script
+    if (await extensionIsHere()) return;
+  }
 
   const continued = new Set<string>();
   const engine = configured ? firebaseEngine : rulesOnly;
@@ -73,6 +76,13 @@ async function start(): Promise<void> {
     },
     i18n: { getUILanguage: () => navigator.language },
   };
+
+  if (callPage) {
+    // The extension's own call-check page, answered by the same in-page router.
+    await import('../../src/entrypoints/call/main');
+    document.documentElement.dataset.tripwireDemo = 'web';
+    return;
+  }
 
   const context: ContentScriptContext = {
     isValid: true,

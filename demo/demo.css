@@ -20,3 +20,14 @@ ul.cases { list-style: none; padding: 0; }
 ul.cases li { padding: 16px 0; border-top: 1px solid #d9dde3; }
 ul.cases a { font-size: 18px; font-weight: bold; color: #1a56c4; }
 ul.cases p { margin: 4px 0 0; }
+
+/* The 60-second tour */
+.lead { font-size: 1.15rem; }
+.path { padding: 14px 18px; border-radius: 12px; background: #eef3f6; border-left: 4px solid #14344d; }
+.path[data-ready='true'] { border-left-color: #17553b; }
+.tour { list-style: none; padding: 0; display: grid; gap: 14px; margin: 24px 0 32px; }
+.tour li { display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: start; padding: 18px; border: 1px solid #c9d6de; border-radius: 14px; background: #fff; }
+.tour .step { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: #14344d; color: #fff; font-weight: 700; font-size: 1.2rem; }
+.tour a { font-size: 1.2rem; font-weight: 700; }
+.tour p { margin: 6px 0 0; }
+.note { color: #34495a; }

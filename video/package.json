@@ -1,0 +1,16 @@
+{
+  "name": "tripwire-video",
+  "private": true,
+  "description": "The README clip, made with Remotion. Not part of the extension build.",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render Tripwire out/tripwire.mp4",
+    "gif": "remotion render Tripwire out/tripwire.gif --codec=gif --every-nth-frame=2 --scale=0.5"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.539",
+    "remotion": "4.0.539",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  }
+}

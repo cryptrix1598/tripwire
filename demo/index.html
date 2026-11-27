@@ -8,35 +8,61 @@
   </head>
   <body>
     <main>
-      <h1>Tripwire practice pages</h1>
-      <p>These pages copy the shape of common scams so you can see Tripwire step in. Every company, name, phone number and amount on them is invented.</p>
-      <p><strong>No install needed.</strong> On the hosted copy of these pages, Tripwire runs right in your browser: the same checks and the same screens as the extension, through Firebase AI Logic. If your Chrome has its on-device model, the check runs on your device; otherwise personal details are removed first and the cloud model is asked. With the extension installed, the extension takes over (and adds download protection and family alerts).</p>
+      <h1>Try Tripwire in 60 seconds</h1>
+      <p class="lead">No install. These pages run Tripwire's real checks and screens in your browser, through Firebase AI Logic. Every company, name, number and amount on them is invented.</p>
+      <p class="path" id="path" role="status">Checking which path your Chrome takes…</p>
+      <ol class="tour">
+        <li>
+          <span class="step">1</span>
+          <div>
+            <a href="./bank.html">The moment of action</a>
+            <p>A fake bank message. Click into the card number box: Tripwire pauses before you type, and says how it checked.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step">2</span>
+          <div>
+            <a href="./refund.html">See exactly what was sent</a>
+            <p>A quiet refund scam. Choose "Why?", then "See exactly what was sent": names, numbers and addresses were removed first.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step">3</span>
+          <div>
+            <a href="./call.html">Someone is on the phone with me</a>
+            <p>Tap who they say they are and what they want. A caller who wants a code or gift cards gets "Hang up now" at once.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step">4</span>
+          <div>
+            <a href="/preview.html?page=alerts">What the family sees</a>
+            <p>The family page with sample alerts: when Tripwire stepped in and what kind of scam it was, never the page or the message.</p>
+          </div>
+        </li>
+      </ol>
+      <h2>More practice pages</h2>
       <ul class="cases">
-        <li>
-          <a href="./bank.html">A message from “your bank”</a>
-          <p>Open it, then click into the card number box.</p>
-        </li>
-        <li>
-          <a href="./support.html">A “your computer is infected” warning</a>
-          <p>Open it, then try the phone link or the download button.</p>
-        </li>
-        <li>
-          <a href="./giftcard.html">A demand to pay with gift cards</a>
-          <p>Open it and read it. Then click into the code box.</p>
-        </li>
-        <li>
-          <a href="./crypto.html">An investment that cannot lose</a>
-          <p>Open it, then click into the wallet address box.</p>
-        </li>
-        <li>
-          <a href="./refund.html">A polite email about a refund "mistake"</a>
-          <p>A quieter scam with no threats. Open it, choose "Why?", then "See exactly what was sent" to read the redacted text for yourself.</p>
-        </li>
-        <li>
-          <a href="./shop.html">An ordinary shop checkout</a>
-          <p>Tripwire should stay silent here, even when you type a card number.</p>
-        </li>
+        <li><a href="./support.html">A "your computer is infected" warning</a><p>Try the phone link or the download button.</p></li>
+        <li><a href="./giftcard.html">A demand to pay with gift cards</a><p>Click into the code box.</p></li>
+        <li><a href="./crypto.html">An investment that cannot lose</a><p>Click into the wallet address box.</p></li>
+        <li><a href="./shop.html">An ordinary shop checkout</a><p>Tripwire stays silent here, even when you type a card number.</p></li>
       </ul>
+      <p class="note">With the extension installed, the extension takes over and adds download protection and family alerts.</p>
+      <script>
+        (async () => {
+          const el = document.getElementById('path');
+          let ready = false;
+          try {
+            ready = typeof LanguageModel !== 'undefined' &&
+              (await LanguageModel.availability({ expectedInputs: [{ type: 'text', languages: ['en'] }], expectedOutputs: [{ type: 'text', languages: ['en'] }] })) === 'available';
+          } catch {}
+          el.textContent = ready
+            ? 'Your Chrome has Gemini Nano: checks run on your computer first, and only an unsure case goes online, with personal details removed.'
+            : 'Your Chrome has no on-device model, so you will see the cloud path: personal details are removed first, then a cloud model checks the rest. (With Gemini Nano, most checks never leave the computer.)';
+          el.dataset.ready = String(ready);
+        })();
+      </script>
     </main>
   </body>
 </html>

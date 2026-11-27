@@ -116,7 +116,7 @@ function CallCheck() {
               ))}
             </ul>
           )}
-          {verdict.explanation && verdict.state !== 'safe' && <p>{verdict.explanation}</p>}
+          {verdict.explanation && verdict.state !== 'safe' && !flagsFor(verdict).includes(verdict.explanation) && <p>{verdict.explanation}</p>}
           <p className="tw-muted">{CALL.callBack}</p>
           <div className="tw-row">
             {verdict.state !== 'safe' ? (

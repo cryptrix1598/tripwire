@@ -56,7 +56,7 @@ try {
     return JSON.parse(await section.locator('pre').innerText());
   };
   const record = (id, label, chars, v) => {
-    rows.push({ id, label, chars, state: v.state, riskScore: v.riskScore, route: v.route, bytesSentToCloud: v.bytesSentToCloud, elapsedMs: v.elapsedMs, correct: label === 'scam' ? v.state !== 'safe' : v.state === 'safe' });
+    rows.push({ id, label, chars, state: v.state, riskScore: v.riskScore, route: v.route, bytesSentToCloud: v.bytesSentToCloud, elapsedMs: v.elapsedMs, cloudFailure: v.cloudFailure ?? null, correct: label === 'scam' ? v.state !== 'safe' : v.state === 'safe' });
     console.log(`  ${label.padEnd(6)} ${v.state.padEnd(8)} ${String(v.riskScore).padStart(3)}  ${v.route.padEnd(18)} ${String(v.elapsedMs).padStart(6)}ms  ${id}`);
   };
 
@@ -108,6 +108,7 @@ try {
     falseAlarms: benign.filter((r) => !r.correct).length,
     pagesSkipped: skipped,
     routes: rows.reduce((acc, r) => ({ ...acc, [r.route]: (acc[r.route] ?? 0) + 1 }), {}),
+    cloudFailures: rows.filter((r) => r.cloudFailure).reduce((acc, r) => ({ ...acc, [r.cloudFailure]: (acc[r.cloudFailure] ?? 0) + 1 }), {}),
     totalBytesSentToCloud: rows.reduce((n, r) => n + r.bytesSentToCloud, 0),
     averageChars: Math.round(rows.reduce((n, r) => n + r.chars, 0) / Math.max(1, rows.length)),
     latencyMs: {
@@ -121,6 +122,7 @@ try {
   const out = `eval-results/holdout/${rulesOnly ? 'rules-only-' : cloudOnly ? 'cloud-only-' : ''}${onlyRound4 ? 'round4-' : ''}${summary.ranAt.replace(/[:.]/g, '-')}.json`;
   writeFileSync(out, JSON.stringify(summary, null, 2));
   console.log(`\nscams flagged ${summary.detected}/${summary.scams} (${summary.paused} paused) | false alarms on real pages ${summary.falseAlarms}/${summary.benignPages}`);
+  console.log(`cloud failures ${JSON.stringify(summary.cloudFailures)}`);
   console.log(`routes ${JSON.stringify(summary.routes)} | bytes to cloud ${summary.totalBytesSentToCloud} | average text ${summary.averageChars} chars`);
   console.log(`latency when a model ran: median ${summary.latencyMs.whenAModelRan.median}ms, p90 ${summary.latencyMs.whenAModelRan.p90}ms`);
   console.log(skipped.length ? `skipped: ${skipped.join('; ')}` : 'no pages skipped');

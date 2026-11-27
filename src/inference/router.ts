@@ -87,6 +87,8 @@ export interface AssessInput {
 }
 
 export interface RouterDeps {
+  /** How long to wait before retrying a cloud call that hit its quota. */
+  cloudBackoffMs?: number;
   engine: AiEngine;
   config: TripwireConfig;
   now?: () => number;
@@ -111,9 +113,17 @@ export function extractJson(raw: string): unknown {
   }
 }
 
+/** Why a cloud check gave no usable answer. Recorded on the verdict, so evaluations can say why. */
+export type CloudFailure = 'quota' | 'timeout' | 'network' | 'invalid' | 'gate_closed';
+
+function isQuotaError(err: unknown): boolean {
+  const text = err instanceof Error ? `${err.name} ${err.message}` : String(err);
+  return /\b429\b|RESOURCE_EXHAUSTED|quota|rate.?limit/i.test(text);
+}
+
 type CallResult<T> =
   | { ok: true; value: T }
-  | { ok: false; reason: 'invalid' | 'unreachable'; timedOut?: boolean }
+  | { ok: false; reason: 'invalid' | 'unreachable'; timedOut?: boolean; quota?: boolean }
   // An on-device call that Chrome says was answered in the cloud. Final: never retried.
   | { ok: false; reason: 'wrong_side' };
 
@@ -125,9 +135,11 @@ type CallResult<T> =
 async function callValidated<S extends z.ZodType>(
   call: () => Promise<string>,
   schema: S,
+  backoffMs = 2_500,
 ): Promise<CallResult<z.output<S>>> {
   let sawAnswer = false;
   let timedOut = false;
+  let quota = false;
   for (let attempt = 0; attempt < 2; attempt++) {
     let raw: string;
     try {
@@ -140,6 +152,11 @@ async function callValidated<S extends z.ZodType>(
         timedOut = true;
         break;
       }
+      // Over quota (HTTP 429 / RESOURCE_EXHAUSTED): an immediate retry would fail the same way, so wait once first.
+      if (isQuotaError(err)) {
+        quota = true;
+        if (attempt === 0) await new Promise((r) => setTimeout(r, backoffMs));
+      }
       continue;
     }
     sawAnswer = true;
@@ -150,7 +167,7 @@ async function callValidated<S extends z.ZodType>(
       // fall through to retry
     }
   }
-  return { ok: false, reason: sawAnswer ? 'invalid' : 'unreachable', timedOut };
+  return { ok: false, reason: sawAnswer ? 'invalid' : 'unreachable', timedOut, quota };
 }
 
 function stateFor(score: number, trigger: Trigger, config: TripwireConfig, allowTrip: boolean, call = false): VerdictState {
@@ -193,6 +210,7 @@ interface Draft {
   redactionCount?: number;
   failSafe?: boolean;
   cloudUnreachable?: boolean;
+  cloudFailure?: CloudFailure;
   wrongSide?: boolean;
   modelDownloading?: boolean;
   /** Passive trips need corroboration; this says whether it was present. */
@@ -285,6 +303,8 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
   const timeouts = deps.timeouts ?? DEFAULT_TIMEOUTS;
   const prompts = promptSet(config.promptVersion);
   const read = readPage(input, config);
+  /** Why the cloud check, if one was tried, gave no usable answer. */
+  let cloudFailure: CloudFailure | undefined;
   const { shape, text, signals, mentions, aboutScams, scamWordsPlusAsks, steering } = read;
   const language = explainLanguage(input.language);
   const ctx: PromptContext = {
@@ -343,6 +363,7 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
       failSafe: d.failSafe ?? false,
       cloudUnreachable: d.cloudUnreachable ?? false,
       ...(d.wrongSide ? { wrongSide: true } : {}),
+      ...(cloudFailure ? { cloudFailure } : {}),
       ...(d.modelDownloading ? { modelDownloading: true } : {}),
       promptVersion: config.promptVersion,
       elapsedMs: now() - started,
@@ -412,12 +433,20 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
       if (err instanceof PrivacyInvariantError) return { kind: 'gate_closed', wrongSide: true };
       throw err;
     }
-    if (!redaction.safeToSend) return { kind: 'gate_closed' };
+    if (!redaction.safeToSend) {
+      cloudFailure = 'gate_closed';
+      return { kind: 'gate_closed' };
+    }
     const prompt = buildCloudPrompt(redaction.text, ctx);
     const result = await callValidated(
       () => withTimeout(engine.analyzeInCloud(prompts.cloudSystem, prompt, config.cloudModel), timeouts.cloudMs, 'cloud analysis'),
       CloudAnalysisSchema,
+      deps.cloudBackoffMs,
     );
+    if (!result.ok) {
+      cloudFailure =
+        result.reason === 'wrong_side' || result.reason === 'invalid' ? 'invalid' : result.timedOut ? 'timeout' : result.quota ? 'quota' : 'network';
+    }
     // An answer that was invalid, or a request that timed out, means the redacted text left
     // (or may have), so the verdict must not claim that nothing left the computer. A request
     // that failed outright (offline) never got out.

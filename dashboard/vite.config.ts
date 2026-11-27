@@ -30,7 +30,7 @@ export default defineConfig(({ command, mode }) => {
       outDir: at('./dist'),
       emptyOutDir: true,
       rolldownOptions: {
-        input: { main: at('./index.html'), stopped: at('./stopped.html'), attest: at('./attest.html'), privacy: at('./privacy.html'), try: at('./src/demoRuntime.tsx') },
+        input: { main: at('./index.html'), stopped: at('./stopped.html'), attest: at('./attest.html'), privacy: at('./privacy.html'), try: at('./src/demoRuntime.tsx'), preview: at('./preview.html') },
         output: {
           // A fixed name, because the static practice pages link to it.
           entryFileNames: (chunk) => (chunk.name === 'try' ? 'try.js' : 'assets/[name]-[hash].js'),
