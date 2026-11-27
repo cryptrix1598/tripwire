@@ -3,8 +3,8 @@
  *
  * Design: the guardian's question is "is the person I care about OK?", so the
  * feed answers it in rows they can scan: when, what kind, what happened. The
- * one alert that needs a phone call ("continued anyway") differs by colour,
- * icon and wording, never colour alone. What the guardian can NOT see is
+ * one alert that needs a phone call ("continued anyway") differs by color,
+ * icon and wording, never color alone. What the guardian can NOT see is
  * stated on the page, because that promise is the product.
  */
 import { GoogleAuthProvider, onAuthStateChanged, signInAnonymously, signInWithPopup, signOut, type User } from 'firebase/auth';

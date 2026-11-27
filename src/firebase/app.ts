@@ -52,7 +52,7 @@ export function getFirebaseApp(): FirebaseApp {
       isTokenAutoRefreshEnabled: true,
     });
   } catch (err) {
-    // App Check may already be initialised for this app in this document.
+    // App Check may already be initialized for this app in this document.
     console.warn('[Tripwire] App Check init:', err);
   }
 
@@ -70,7 +70,7 @@ export function appCheckReady(): boolean {
 export async function appCheckProbe(): Promise<'valid' | string> {
   try {
     getFirebaseApp();
-    if (!appCheck) return 'App Check is not initialised';
+    if (!appCheck) return 'App Check is not initialized';
     const { token } = await getToken(appCheck, false);
     return token ? 'valid' : 'empty token';
   } catch (err) {

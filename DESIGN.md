@@ -4,9 +4,9 @@ One look across the in-page UI, the extension pages and the family page. Tokens 
 
 ## Direction
 
-"Harbour light." A deep harbour-blue field owns one region of each screen and carries the single headline. Amber is the only signal colour and is never decoration. Everything else is pale, large and still. The tripped state is deep blue, not red: the aim is to slow someone down, not frighten them further.
+"Harbour light." A deep harbour-blue field owns one region of each screen and carries the single headline. Amber is the only signal color and is never decoration. Everything else is pale, large and still. The tripped state is deep blue, not red: the aim is to slow someone down, not frighten them further.
 
-## Colour
+## Color
 
 | Token | Value | Use |
 | --- | --- | --- |
@@ -19,7 +19,7 @@ One look across the in-page UI, the extension pages and the family page. Tokens 
 | `--tw-signal-soft` | `#FFF3D1` | Banner background, "continued anyway" row |
 | `--tw-ok` | `#17553b` | "They stopped", "On" |
 
-Route dots: green (on device), orange (redacted, then cloud), blue (no on-device AI), grey (rules only). A dot never stands alone; the words beside it say the same thing.
+Route dots: green (on device), orange (redacted, then cloud), blue (no on-device AI), gray (rules only). A dot never stands alone; the words beside it say the same thing.
 
 ## Type
 
@@ -29,7 +29,7 @@ Atkinson Hyperlegible, 400 and 700, bundled (no network font). Body 18 to 20px, 
 
 - **Split**: deep field left (mark, headline, one status line), content right. Stacks under about 980px. Used by the pause, "you stopped", onboarding and sign-in.
 - **Top bar + content**: family page and developer checks.
-- **Banner**: fixed, centred, 900px max, over the page; the page stays usable.
+- **Banner**: fixed, centered, 900px max, over the page; the page stays usable.
 - No label above headings. No cards inside cards. Lists and rows before boxes.
 
 ## Components
@@ -38,7 +38,7 @@ Atkinson Hyperlegible, 400 and 700, bundled (no network font). Body 18 to 20px, 
 - **Quiet link**: underlined text, 48px tall hit area. Used for "I'm sure, continue", Back, Skip, Dismiss.
 - **Route line**: dot, bold label, detail. The same sentence wherever a verdict is shown.
 - **Flag list**: short dash, one plain sentence each, five at most.
-- **Alert row**: when / what / outcome. "Continued anyway" differs by colour, icon and wording.
+- **Alert row**: when / what / outcome. "Continued anyway" differs by color, icon and wording.
 
 ## Principles per screen
 

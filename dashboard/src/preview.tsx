@@ -109,7 +109,7 @@ if (page === 'popup' || page === 'onboarding' || page === 'safe' || page === 'ch
   createRoot(root).render(
     shell(
       <>
-        <h1 className="tw-h1">Mum</h1>
+        <h1 className="tw-h1">Mom</h1>
         <ul className="tw-feed">
           {alerts.map((a) => (
             <AlertRow key={a.id} alert={a} />

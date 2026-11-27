@@ -31,7 +31,7 @@ class ModelTest {
 
     @Test
     fun `nickname is trimmed and capped at the length the security rules allow`() {
-        assertEquals("Mum", Pairing.cleanNickname("  Mum  "))
+        assertEquals("Mom", Pairing.cleanNickname("  Mom  "))
         assertEquals(40, Pairing.cleanNickname("x".repeat(90)).length)
     }
 

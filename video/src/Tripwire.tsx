@@ -301,7 +301,7 @@ export const Tripwire: React.FC = () => {
           <div style={{position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontSize: 36, fontWeight: 700, color: INK, opacity: 1 - r(f, 300, 306)}}>Hang up now.</div>
           <div style={{position: 'absolute', left: 48, top: 40, right: 30, opacity: alertText * (1 - fold)}}>
             <div style={{fontSize: 22, color: TEXT2, letterSpacing: 1}}>TRIPWIRE GUARDIAN · JUST NOW</div>
-            <div style={{fontSize: 38, fontWeight: 700, marginTop: 12}}>Mum hung up on a likely scam</div>
+            <div style={{fontSize: 38, fontWeight: 700, marginTop: 12}}>Mom hung up on a likely scam</div>
             <div style={{fontSize: 26, color: TEXT2, marginTop: 10}}>A fake bank call asked for a code.</div>
           </div>
         </div>

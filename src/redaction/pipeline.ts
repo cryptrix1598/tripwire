@@ -18,7 +18,7 @@
  * only the regex pass under a badge that says the device removed the names.
  * Only when there is no on-device model at all is the regex-only text sent,
  * and that path has its own badge ("personal info removed before checking",
- * "the names, numbers and addresses it could recognise").
+ * "the names, numbers and addresses it could recognize").
  */
 import { PrivacyInvariantError } from '../inference/engine';
 import { countTags, findLeaks, regexRedact } from './regex';

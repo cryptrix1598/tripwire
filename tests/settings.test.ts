@@ -67,7 +67,7 @@ describe('explanations in the browser language', () => {
     }) satisfies AiEngine;
   const run = (e: AiEngine, language?: string) => assess({ text: SCAM, hostname: 'site.example', trigger: 'passive', language }, { engine: e, config: DEFAULT_CONFIG });
 
-  it('recognises a non-English browser language and ignores English or nonsense', () => {
+  it('recognizes a non-English browser language and ignores English or nonsense', () => {
     expect(explainLanguage('es-ES')).toEqual({ code: 'es', name: 'Spanish' });
     expect(explainLanguage('en-GB')).toBeNull();
     expect(explainLanguage(undefined)).toBeNull();

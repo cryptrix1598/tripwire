@@ -1,7 +1,7 @@
 /**
  * The "caution" state: a calm banner over the page. It states one thing in
  * plain words, never blocks the page, and keeps the detail behind "Why?".
- * Amber is the only signal colour; the page underneath stays usable.
+ * Amber is the only signal color; the page underneath stays usable.
  */
 import { useState } from 'react';
 import type { Verdict } from '../inference/schemas';

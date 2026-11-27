@@ -8,7 +8,7 @@ import org.junit.Test
 
 class ScamCheckTest {
     private val scamText = "URGENT: your account has been suspended. Buy 3 Google Play cards today and read me the codes. Don't tell anyone."
-    private val ordinary = "Hi Mum, the delivery came. I'll be round on Sunday for lunch."
+    private val ordinary = "Hi Mom, the delivery came. I'll be round on Sunday for lunch."
 
     @Test
     fun `rules find the ask and the pressure in a scam`() {

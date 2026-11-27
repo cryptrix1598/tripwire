@@ -33,7 +33,7 @@ const segment = (x, y, x1, y1, x2, y2) => {
   return Math.hypot(x - (x1 + t * dx), y - (y1 + t * dy));
 };
 
-/** Colour at a point in a 32x32 box: [r, g, b, alpha]. */
+/** Color at a point in a 32x32 box: [r, g, b, alpha]. */
 function sample(x, y) {
   const r = 7;
   const cx = Math.max(r, Math.min(32 - r, x));

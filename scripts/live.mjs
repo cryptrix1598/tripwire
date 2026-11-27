@@ -52,7 +52,7 @@ try {
   await checks.goto(ext('checks.html'));
   const card = (title) => checks.locator('section.tw-card', { has: checks.getByRole('heading', { name: title }) });
 
-  await step('status: Firebase configured, App Check initialised', async () => {
+  await step('status: Firebase configured, App Check initialized', async () => {
     await checks.getByRole('button', { name: 'Refresh status' }).click();
     await card('Status').locator('pre').waitFor({ timeout: 20_000 });
     const status = JSON.parse(await lastPre(card('Status')));
@@ -124,7 +124,7 @@ try {
       await family.goto(DASHBOARD);
       await family.getByRole('button', { name: 'Continue without an account' }).click();
       await family.getByLabel('Eight-digit pairing code').fill(code);
-      await family.getByLabel('What should we call them?').fill('Mum');
+      await family.getByLabel('What should we call them?').fill('Mom');
       await family.getByLabel('Your first name').fill('Sam');
       await family.getByRole('button', { name: 'Connect' }).click();
       // Until the person allows it, the family page waits and sees nothing.

@@ -78,7 +78,7 @@ import java.util.Locale
 /*
  * Design: the guardian's question is "is the person I care about OK?". The feed
  * answers it in rows they can scan: when, what kind, what happened. The alert
- * that needs a phone call differs by colour, icon and wording, never colour
+ * that needs a phone call differs by color, icon and wording, never color
  * alone. Every AI suggestion says where it was written.
  */
 

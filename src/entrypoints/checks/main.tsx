@@ -71,7 +71,7 @@ function Checks() {
         firebaseConfigured: configured,
         onDevice: configured ? await onDeviceStatus() : 'not configured',
         offscreenDocument: host ? { promptApiPresent: host.promptApiInOffscreen, onDevice: host.onDevice } : 'not reachable',
-        // A live request to the App Check backend, not just "was it initialised".
+        // A live request to the App Check backend, not just "was it initialized".
         appCheckToken: configured ? await appCheckProbe() : 'not configured',
         online: navigator.onLine,
       }),

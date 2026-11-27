@@ -7,7 +7,7 @@ Target length 2:30 (the limit is 3:00). Public YouTube link on Devpost.
 1. **Install the extension.** Unzip `release/tripwire-chrome.zip`. In Chrome open `chrome://extensions`, turn on **Developer mode** (top right), click **Load unpacked** and pick the unzipped folder. Pin Tripwire: click the puzzle-piece icon in the toolbar, then the pin next to Tripwire.
 2. **Finish setup.** The setup tab opens by itself. Click through it. On the family step, choose **Show a pairing code** and leave that tab open.
 3. **Make sure Gemini Nano is ready.** Click the Tripwire icon. The private check line should say "On this computer". If it says "Needs a one-time download", leave Chrome open until it finishes. This is needed for the "nothing left your computer" shot.
-4. **Family page.** In a second window, open `https://tripwire-buildhybridai.web.app/`. Type the code from step 2, a name for them ("Mum") and your first name ("Sam"). Go back to the setup tab and click **Yes, allow**. The family page now shows the alert feed.
+4. **Family page.** In a second window, open `https://tripwire-buildhybridai.web.app/`. Type the code from step 2, a name for them ("Mom") and your first name ("Sam"). Go back to the setup tab and click **Yes, allow**. The family page now shows the alert feed.
 5. **Browser zoom 125%** (Ctrl and +) on every tab you will show, so text is readable on a phone screen. Close other tabs and turn on Do Not Disturb.
 6. **Practice pages** (safe, made for this): `https://tripwire-buildhybridai.web.app/demo/`. Open each once before recording so they load fast: `bank.html`, `support.html`, `giftcard.html`.
 

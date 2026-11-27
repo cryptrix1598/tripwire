@@ -226,7 +226,7 @@ describe('redactForCloud: the privacy gate', () => {
   });
 
   it('accepts a well-behaved model rewrite', async () => {
-    const out = await redactForCloud('My neighbour Tobias Greenleaf said to pay. Call 1-855-555-0119.', async (pre) =>
+    const out = await redactForCloud('My neighbor Tobias Greenleaf said to pay. Call 1-855-555-0119.', async (pre) =>
       pre.replace('Tobias Greenleaf', '[NAME]'),
     );
     expect(out.safeToSend).toBe(true);
@@ -241,7 +241,7 @@ describe('redactForCloud: the privacy gate', () => {
     expect(out.text).not.toContain('hacker@example.org');
   });
 
-  it('closes the gate when the model summarises instead of redacting', async () => {
+  it('closes the gate when the model summarizes instead of redacting', async () => {
     const out = await redactForCloud(text, async () => 'A scam.');
     expect(out.safeToSend).toBe(false);
     expect(out.text).toBe('');

@@ -1,5 +1,5 @@
 /**
- * The practice pages in demo/ are the judged demo. This pins their behaviour
+ * The practice pages in demo/ are the judged demo. This pins their behavior
  * with NO model at all (built-in rules only, the worst case): every scam page
  * is flagged, the matching action trips, and the ordinary checkout stays silent.
  */

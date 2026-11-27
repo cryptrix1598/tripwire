@@ -1,5 +1,5 @@
 /**
- * Recognising payment-card fields. Pure functions over field attributes so
+ * Recognizing payment-card fields. Pure functions over field attributes so
  * they can be unit-tested without a browser.
  *
  * Tripwire never reads what is typed into a field it has not identified as a

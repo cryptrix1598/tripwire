@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.sp
 
 /**
  * The same "harbour light" tokens as the extension and the web family page
- * (src/ui/tripwire.css): one deep blue field, amber as the only signal colour,
+ * (src/ui/tripwire.css): one deep blue field, amber as the only signal color,
  * everything else calm and large.
  */
 object Tw {

@@ -12,7 +12,7 @@ import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest';
 import { buildAlert } from '../../src/guardian/model';
 import { SCAM_TYPES } from '../../src/inference/schemas';
 
-const DEVICE = 'device-mum';
+const DEVICE = 'device-mom';
 const GUARDIAN = 'guardian-sam';
 const STRANGER = 'stranger';
 const CODE = '48291375';
@@ -243,7 +243,7 @@ describe('the name on a link', () => {
 describe("a guardian's list of people", () => {
   it('is private to that guardian', async () => {
     const mine = doc(as(GUARDIAN), 'guardians', GUARDIAN, 'people', DEVICE);
-    await assertSucceeds(setDoc(mine, { nickname: 'Mum', addedAt: serverTimestamp() }));
+    await assertSucceeds(setDoc(mine, { nickname: 'Mom', addedAt: serverTimestamp() }));
     await assertSucceeds(getDoc(mine));
     await assertFails(getDoc(doc(as(STRANGER), 'guardians', GUARDIAN, 'people', DEVICE)));
     await assertFails(setDoc(doc(as(STRANGER), 'guardians', GUARDIAN, 'people', DEVICE), { nickname: 'x', addedAt: serverTimestamp() }));
