@@ -20,6 +20,7 @@ import { createScanScheduler, isGmail, isWebmail, readVisibleText } from '../../
 import { demoUrl } from '../../firebase/config';
 import type { Trigger, Verdict } from '../../inference/schemas';
 import { MAX_CHECK_MS } from '../../inference/timeouts';
+import { HOLD_TRIGGERS } from '../../ui/hold';
 import { send, type AssessReply, type ToContent } from '../../messaging';
 import { describeField, isCardField, mayInspectValue, valueIsCardNumber } from '../../tripwires/cardField';
 import { Banner } from '../../ui/Banner';
@@ -102,6 +103,8 @@ function startTopFrame(ctx: ContentScriptContext): void {
   /** Page scans sent and not yet answered. */
   let scansInFlight = 0;
   let acknowledged = false;
+  /** Held steps (gift cards, crypto, remote access) the person already waited out on this page. */
+  const heldDone = new Set<Trigger>();
   let dismissed = false;
   let href = location.href;
   let unlock: (() => void) | null = null;
@@ -298,6 +301,8 @@ function startTopFrame(ctx: ContentScriptContext): void {
   function proceed(): void {
     if (view.kind !== 'pause') return;
     acknowledged = true;
+    // A held step the person waited out stays allowed on this page.
+    if (HOLD_TRIGGERS.has(view.verdict.trigger)) heldDone.add(view.verdict.trigger);
     void report(view.verdict, 'continued');
     hide();
   }
@@ -325,7 +330,9 @@ function startTopFrame(ctx: ContentScriptContext): void {
 
   /** The person is about to act. If the page already looked wrong, pause now; otherwise ask. */
   async function onAction(trigger: Trigger, event?: Event): Promise<void> {
-    if (acknowledged || view.kind === 'pause') return;
+    // "Continue" on a reading pause never waves through a step that is never safe: that still gets the hold.
+    const needsHold = HOLD_TRIGGERS.has(trigger) && !heldDone.has(trigger);
+    if ((acknowledged && !needsHold) || view.kind === 'pause') return;
     const now = Date.now();
     if (now - (lastAction.get(trigger) ?? 0) < ACTION_COOLDOWN_MS) return;
     lastAction.set(trigger, now);
@@ -335,13 +342,15 @@ function startTopFrame(ctx: ContentScriptContext): void {
       show({ kind: 'pause', verdict: { ...last, state: 'tripped', trigger } });
     }
     const reply = await assess(trigger);
-    if (!reply || acknowledged) return;
-    if (reply.acknowledged) {
+    if (!reply || (acknowledged && !needsHold)) return;
+    if (reply.acknowledged && !needsHold) {
       acknowledged = true;
       hide();
       return;
     }
-    if (reply.verdict.state === 'tripped') show({ kind: 'pause', verdict: reply.verdict });
+    if (reply.verdict.state === 'tripped' || (needsHold && reply.verdict.state !== 'safe')) {
+      show({ kind: 'pause', verdict: { ...reply.verdict, state: 'tripped', trigger } });
+    }
   }
 
   const scheduler = createScanScheduler(() => void onPageText().catch(() => undefined), { maxScans: isWebmail(hostname) ? 60 : 8 });

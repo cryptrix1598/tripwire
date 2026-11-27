@@ -25,6 +25,9 @@ Read slowly. Pause for about a second where the script says *[pause]*. Every on-
 > Watch. I'm turning the Wi-Fi off. *[pause]* Now I'm about to type my card number on this fake bank page… *[pause, the pause screen appears]* Tripwire stops me. One question, one big safe button. And down here: "Checked on your device · nothing left your computer." That check was Gemini Nano, running on this laptop, through Firebase AI Logic. Nothing was sent anywhere.
 *Click "Why did Tripwire stop me?" to show the reasons, then **Stop and stay safe**.*
 
+**The urgency breaker (add about 15 seconds here, and trim the phone-call section to match).** *Screen: open `giftcard.html` and click into the code box. The pause shows the yellow box and "You can continue in 4:59".*
+> Scams run on one thing: act now. So when someone is about to buy gift cards, send crypto or let a stranger into their computer, Tripwire holds "continue" for five minutes. Real emergencies can wait five minutes. Scams can't. *[pause]* And the first thing it says is: hang up.
+
 **1:05–1:35. The hybrid part: the privacy gate.** *Screen: Wi-Fi back on, open `support.html` (fake tech support), let it pause or banner, click "See exactly what was sent".*
 > When the computer isn't sure, Tripwire asks a stronger model in the cloud. But first, Gemini Nano on the device finds the names, numbers and addresses, and Tripwire removes them. *[pause]* This is exactly what was sent: no name, no card, no phone number. If anything personal were left, nothing would be sent at all. That's the idea: the small model is the privacy gate in front of the big one.
 

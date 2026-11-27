@@ -9,6 +9,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Trigger, Verdict } from '../inference/schemas';
 import { INTERSTITIAL, POPUP, TRIP_LEAD } from './copy';
+import { HOLD_MS, HOLD_TRIGGERS, clock } from './hold';
+import { send } from '../messaging';
 import { Brand, RouteLine, SentReceipt, byPerson, flagsFor, routeExplanation } from './kit';
 
 /** What the pause is really about. A passive trip still gets the most specific reading we can honestly give. */
@@ -29,6 +31,29 @@ export function leadFor(verdict: Verdict): string {
   return TRIP_LEAD[trigger === 'phone_call' && verdict.trigger === 'passive' ? 'passive' : trigger];
 }
 
+/**
+ * The hold: when it ends, from the background (so it survives a reload), ticking once a second.
+ * Without an extension (the hosted demo) it is kept in the page.
+ */
+function useHold(active: boolean) {
+  const [endsAt, setEndsAt] = useState<number | null>(null);
+  const [now, setNow] = useState(() => Date.now());
+  const page = typeof location === 'undefined' ? '' : location.href.split('#')[0] + (location.pathname.endsWith('pause.html') ? location.hash : '');
+  const ask = (extend: boolean) =>
+    send<{ endsAt?: number }>({ target: 'background', type: 'hold', page, extend })
+      .then((r) => setEndsAt((prev) => r?.endsAt ?? (extend ? Math.max(prev ?? Date.now(), Date.now()) + HOLD_MS : prev ?? Date.now() + HOLD_MS)))
+      .catch(() => setEndsAt((prev) => (extend ? Math.max(prev ?? Date.now(), Date.now()) + HOLD_MS : prev ?? Date.now() + HOLD_MS)));
+  useEffect(() => {
+    if (!active) return;
+    void ask(false);
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active]);
+  const left = active ? (endsAt === null ? HOLD_MS : Math.max(0, endsAt - now)) : 0;
+  return { left, extend: () => void ask(true) };
+}
+
 export function Pause({
   verdict,
   onStop,
@@ -47,6 +72,8 @@ export function Pause({
 }) {
   const [open, setOpen] = useState(false);
   const stopRef = useRef<HTMLButtonElement>(null);
+  const held = HOLD_TRIGGERS.has(tripFor(verdict));
+  const hold = useHold(held);
   const Title = heading;
   const Question = heading === 'h1' ? 'h2' : 'h3';
 
@@ -64,6 +91,13 @@ export function Pause({
       <div className="tw-split__main">
         <div className="tw-stack">
           <p className="tw-lead">{leadFor(verdict)}</p>
+          {held && (
+            <div className="tw-hold" role="note">
+              <p className="tw-hold__lead">{INTERSTITIAL.holdLead}</p>
+              <p>{INTERSTITIAL.holdHangUp}</p>
+              <p>{INTERSTITIAL.holdCall}</p>
+            </div>
+          )}
           <Question className="tw-h2">{INTERSTITIAL.question}</Question>
           <p className="tw-body">{INTERSTITIAL.reassurance}</p>
           {note}
@@ -71,9 +105,18 @@ export function Pause({
             <button ref={stopRef} type="button" className="tw-btn tw-btn--xl" onClick={byPerson(onStop)}>
               {INTERSTITIAL.primary}
             </button>
-            <button type="button" className="tw-link" onClick={byPerson(onContinue)}>
-              {INTERSTITIAL.secondary}
-            </button>
+            {held && hold.left > 0 ? (
+              <>
+                <p className="tw-hold__wait" aria-live="off">{INTERSTITIAL.holdWait(clock(hold.left))}</p>
+                <button type="button" className="tw-link" onClick={byPerson(hold.extend)}>
+                  {INTERSTITIAL.holdLonger}
+                </button>
+              </>
+            ) : (
+              <button type="button" className="tw-link" onClick={byPerson(onContinue)}>
+                {INTERSTITIAL.secondary}
+              </button>
+            )}
           </div>
           {onPhone && PHONE_TRIGGERS.has(tripFor(verdict)) && (
             <button type="button" className="tw-btn tw-btn--outline" onClick={byPerson(onPhone)} style={{ alignSelf: 'flex-start' }}>

@@ -17,6 +17,8 @@ export type ToBackground =
   | { target: 'background'; type: 'assess'; input: AssessInput; page?: string }
   | { target: 'background'; type: 'outcome'; scamType: ScamType; trigger: Trigger; outcome: Outcome; hostname: string; page?: string; downloadId?: number }
   | { target: 'background'; type: 'leave' }
+  // The five-minute hold on a never-safe pause: when it ends (and "wait longer").
+  | { target: 'background'; type: 'hold'; page: string; extend?: boolean }
   // Open the phone-call check (from a pause, the menu, the shortcut).
   | { target: 'background'; type: 'open-call' }
   // The page keeps removing the warning: show the pause on an extension page instead.

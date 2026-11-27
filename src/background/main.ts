@@ -11,6 +11,7 @@ import { loadConfig } from '../config/store';
 import type { AiEngine } from '../inference/engine';
 import { assess, escalateForAction } from '../inference/router';
 import { DOWNLOAD_PAUSE, POPUP, RULE_FLAG } from '../ui/copy';
+import { HOLD_MS, nextHoldEnd } from '../ui/hold';
 import type { Verdict } from '../inference/schemas';
 import {
   send,
@@ -209,6 +210,15 @@ async function handle(msg: ToBackground, sender: chrome.runtime.MessageSender): 
     case 'outcome':
       await handleOutcome(msg, tabId);
       return { ok: true };
+    case 'hold': {
+      // Kept per tab and page in session storage, so a reload neither restarts nor skips it.
+      const key = `hold:${tabId ?? 'none'}:${msg.page}`;
+      const stored = await chrome.storage.session.get([key, 'test:holdMs']);
+      const holdMs = typeof stored['test:holdMs'] === 'number' ? (stored['test:holdMs'] as number) : HOLD_MS;
+      const endsAt = nextHoldEnd(stored[key] as number | undefined, Date.now(), msg.extend === true, holdMs);
+      await chrome.storage.session.set({ [key]: endsAt });
+      return { endsAt };
+    }
     case 'open-call':
       await openCallCheck();
       return { ok: true };
@@ -311,7 +321,7 @@ async function openCallCheck(): Promise<void> {
 /** A closed tab's verdict, its entry in the recent-flags list (which holds what was sent) and its "continue" answers all go. */
 async function forgetTab(tabId: number): Promise<void> {
   const all = await chrome.storage.session.get(null);
-  const keys = Object.keys(all).filter((k) => k === TAB_KEY(tabId) || k.startsWith(`ack:${tabId}:`));
+  const keys = Object.keys(all).filter((k) => k === TAB_KEY(tabId) || k.startsWith(`ack:${tabId}:`) || k.startsWith(`hold:${tabId}:`));
   if (keys.length) await chrome.storage.session.remove(keys);
   const flagged = (all[FLAGGED_KEY] as FlaggedEntry[] | undefined) ?? [];
   if (flagged.some((e) => e.tabId === tabId)) await chrome.storage.session.set({ [FLAGGED_KEY]: flagged.filter((e) => e.tabId !== tabId) });

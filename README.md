@@ -32,7 +32,7 @@ page, email or phone call
 | The same held-out set, no Gemini Nano (cloud-only path) | 23 / 28 | 0 / 39 | |
 | The same held-out set, built-in rules only (no AI) | 3 / 28 | 0 / 39 | 0 |
 
-217 unit tests (plus 35 on Android), 32 security-rules tests, a 14-step end-to-end run with 0 accessibility problems, a live run against the real Firebase project. Details are in [Test results](#test-results).
+224 unit tests (plus 35 on Android), 32 security-rules tests, a 14-step end-to-end run with 0 accessibility problems, a live run against the real Firebase project. Details are in [Test results](#test-results).
 
 ## Why this matters
 
@@ -61,6 +61,8 @@ Browsers block known bad sites and warn about dangerous pages, and Chrome's Enha
 | Safe | Nothing at all. No badge, no banner. |
 | Caution | A calm amber banner with one plain sentence, a "Why?" button and "Dismiss". |
 | Tripped | A full-page pause. "Stop and stay safe" is the big button; "I'm sure, continue" is a quiet link. |
+
+**The urgency breaker.** Scams run on one weapon: "act now." For the asks that are never legitimate when someone contacts you (buying gift cards, sending crypto or a wire, installing a remote-access program), the pause holds "continue" for five minutes: *"Real emergencies can wait 5 minutes. Scams can't."* It tells the person to hang up first, then call the number on their card. Nothing can make the hold shorter, a reload does not restart or skip it (it is kept per tab and page in the extension, out of the page's reach), and "I'm still not sure" adds five more minutes. Ordinary shopping never sees it ([src/ui/hold.ts](src/ui/hold.ts)).
 
 Action tripwires: typing or focusing a card number field (Luhn checked, locally), gift-card code fields, crypto wallet fields, phone links (held until the page has been checked), and downloads of remote-access tools (always asked about once, because the caller often names the site).
 
@@ -353,7 +355,7 @@ The latest run told people to hang up on one ordinary call: a delivery driver sa
 
 ### Everything else
 
-- Unit tests: 217 passing (extension), 35 (Android). Both redactors run the same cases ([corpus/redaction-fixtures.json](corpus/redaction-fixtures.json)); the Android routing (wrong side, listing failed, timeout, retry) is tested with fake model calls. Security-rules tests: 30 against the emulator plus 2 that keep the rules and the app copy in step, 32 passing ([eval-results/rules-tests.json](eval-results/rules-tests.json)). Typecheck, unit tests, the rules-only corpus, the build and the rules tests also run in CI on every push ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
+- Unit tests: 224 passing (extension), 35 (Android). Both redactors run the same cases ([corpus/redaction-fixtures.json](corpus/redaction-fixtures.json)); the Android routing (wrong side, listing failed, timeout, retry) is tested with fake model calls. Security-rules tests: 30 against the emulator plus 2 that keep the rules and the app copy in step, 32 passing ([eval-results/rules-tests.json](eval-results/rules-tests.json)). Typecheck, unit tests, the rules-only corpus, the build and the rules tests also run in CI on every push ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
 - End-to-end in Chromium (`npm run e2e`): 14 of 14 steps, including the phone-call check, settings, the paused download, and a page that keeps deleting the warning. Result file: [eval-results/e2e.json](eval-results/e2e.json).
 - Live against the real project (`npm run live`): App Check token, hybrid call, Spanish explanations, pairing, single-use code, family alert. Result file: [eval-results/live-checks.json](eval-results/live-checks.json).
 - **App Check refuses robots, including ours.** On 16 Nov the hosted site began rejecting the automated test browser ("App attestation failed" from reCAPTCHA Enterprise), so pairing failed and the hosted demo fell back to built-in rules, with the badge saying so. The hosted demo was checked in an ordinary browser the same day and got its cloud answer. The automated runs of the hosted site now present the project's App Check debug token (read from `.env`, set only inside the test browser, never deployed); `--recaptcha` runs them as a robot. `node scripts/hosted-appcheck.mjs` shows the refusal, and the family page now says the browser could not be confirmed instead of blaming the internet.

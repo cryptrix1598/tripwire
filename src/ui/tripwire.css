@@ -1024,3 +1024,9 @@
     width: 100%;
   }
 }
+
+/* The five-minute hold on never-safe pauses */
+.tw .tw-hold { border-left: 6px solid var(--tw-signal, #F0B429); background: var(--tw-signal-soft, #FFF3D1); color: var(--tw-ink, #0E2233); padding: 14px 18px; border-radius: 12px; display: grid; gap: 6px; }
+.tw .tw-hold p { margin: 0; }
+.tw .tw-hold__lead { font-weight: 700; font-size: 1.15em; }
+.tw .tw-hold__wait { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--tw-text2, #34495A); }

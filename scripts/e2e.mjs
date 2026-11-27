@@ -134,9 +134,28 @@ try {
   await step('gift card demand: code field pauses; "I\'m sure, continue" lets the person through once', async () => {
     await page.goto(`${DEMO}/giftcard.html`);
     await expectVisible(ui(page, '.tw-banner, .tw-overlay'));
+    // A pause for reading the page may come first: getting past it must not skip the hold on the code box.
+    if ((await ui(page, '.tw-overlay').count()) > 0 && (await ui(page).getByText('Real emergencies can wait 5 minutes').count()) === 0) {
+      await ui(page).getByRole('button', { name: 'I’m sure, continue' }).click();
+      await ui(page, '.tw-overlay').waitFor({ state: 'detached', timeout: 5000 });
+    }
     if ((await ui(page, '.tw-overlay').count()) === 0) await page.locator('#gc').focus();
     await expectVisible(ui(page, '.tw-overlay'));
-    await ui(page).getByRole('button', { name: 'I’m sure, continue' }).click();
+    // Never safe: "continue" is held for five minutes, and "wait longer" is offered instead.
+    await expectVisible(ui(page).getByText('Real emergencies can wait 5 minutes'));
+    await expectVisible(ui(page).getByText(/You can continue in [0-9]:[0-9]{2}/));
+    await expectVisible(ui(page).getByRole('button', { name: /wait 5 more minutes/ }));
+    // The test shortens the hold through the extension's own storage (a page cannot reach it), then reloads.
+    await worker.evaluate(async () => {
+      const all = await chrome.storage.session.get(null);
+      await chrome.storage.session.remove(Object.keys(all).filter((k) => k.startsWith('hold:')));
+      await chrome.storage.session.set({ 'test:holdMs': 2000 });
+    });
+    await page.reload();
+    await expectVisible(ui(page, '.tw-banner, .tw-overlay'));
+    if ((await ui(page, '.tw-overlay').count()) === 0) await page.locator('#gc').focus();
+    await expectVisible(ui(page, '.tw-overlay'));
+    await ui(page).getByRole('button', { name: 'I’m sure, continue' }).click({ timeout: 15_000 });
     await ui(page, '.tw-overlay').waitFor({ state: 'detached', timeout: 5000 });
     await page.locator('#gc').focus();
     await page.waitForTimeout(1500);

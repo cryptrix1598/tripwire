@@ -28,6 +28,8 @@ Tripwire is a Chrome extension with three states.
 - **Caution:** a calm amber banner with one plain sentence and a "Why?" button.
 - **Tripped:** a full-page pause that asks one question: *did someone call, text, or email you and ask you to do this?* "Stop and stay safe" is the large button; "I'm sure, continue" is a quiet link.
 
+**The urgency breaker.** Scams run on one weapon: "act now." For the asks that are never legitimate when someone contacts you (buying gift cards, sending crypto or a wire, installing a remote-access program), the pause holds "continue" for five minutes: *"Real emergencies can wait 5 minutes. Scams can't."* It tells the person to hang up first, then call the number on their card. Nothing can make the hold shorter, a reload does not restart or skip it (it is kept per tab and page in the extension, out of the page's reach), and "I'm still not sure" adds five more minutes. Ordinary shopping never sees it ([src/ui/hold.ts](src/ui/hold.ts)).
+
 It trips on actions: a card number field (checked locally), a gift-card code field, a crypto wallet field, a phone link, and the download of a remote-access tool. On a page that has not been checked yet, or has changed since, the field or the phone link is held until the check answers. A remote-access download always asks, once per tool, even with no suspicious page open.
 
 **Settings** give a three-step warning level and a list of trusted sites, with a warning aimed at the exact way a scammer would try to abuse that list. **Explanations follow the browser's language**: a verdict that stayed on the device is translated on the device, so "nothing left your computer" stays true.
@@ -74,7 +76,7 @@ TypeScript (strict), Manifest V3 with WXT, React, Shadow DOM for the in-page UI,
 - **The built extension itself is what was measured above**, loaded over the DevTools protocol with Gemini Nano running in its offscreen document.
 - Every screen in English, Spanish and French; explanations run live in Spanish and French with nothing sent.
 - Fourteen hostile-page tests: a page that tells the model what to answer, repeats "scam" (or "this is not a scam") to look like advice, hides the ask under filler, or deletes the warning. None gets through quietly.
-- 217 unit tests (plus 35 for the Android app), 32 security-rules tests (including a limit of one family alert every 15 seconds, a pairing code that cannot be used up without creating a family link, and a family name that cannot carry a phone number), a 14-step end-to-end run, a live run against the real project, a test of the hosted demo with no extension, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems).
+- 224 unit tests (plus 35 for the Android app), 32 security-rules tests (including a limit of one family alert every 15 seconds, a pairing code that cannot be used up without creating a family link, and a family name that cannot carry a phone number), a 14-step end-to-end run, a live run against the real project, a test of the hosted demo with no extension, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems).
 
 ## Challenges
 
