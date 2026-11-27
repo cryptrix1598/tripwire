@@ -54,6 +54,7 @@ import {
   type Verdict,
   type VerdictState,
 } from './schemas';
+import { CLOUD_POLICY, decide, GATE_POLICY, MODEL_POLICY, TRIAGE_POLICY } from './policy';
 import {
   detectShape,
   directedAsks,
@@ -415,19 +416,16 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
 
   // ── Stage 2: the gate. A passive scan with no warning signs never reaches a model. ──
   const { asked, localLook, wideLook, cloudLook } = gate(input, read);
-  if (input.trigger === 'passive' && !localLook && !wideLook) {
-    return finish({ step: 'gate', score: 0, scamType: 'none', redFlags: [], explanation: '', confidence: 1, route: 'not_checked' });
-  }
-  if (asked && input.nothingAskedYet && !input.neverSafe) {
-    return finish({ step: 'nothing_asked',
-      score: 0,
-      scamType: 'none',
-      redFlags: [],
-      explanation: '',
-      confidence: 1,
-      route: 'not_checked',
-    });
-  }
+  const atGate = decide(GATE_POLICY, {
+    passive: input.trigger === 'passive',
+    localLook,
+    wideLook,
+    asked,
+    nothingAskedYet: input.nothingAskedYet === true,
+    neverSafe: input.neverSafe === true,
+  });
+  if (atGate === 'gate') return finish({ step: 'gate', score: 0, scamType: 'none', redFlags: [], explanation: '', confidence: 1, route: 'not_checked' });
+  if (atGate === 'nothing_asked') return finish({ step: 'nothing_asked', score: 0, scamType: 'none', redFlags: [], explanation: '', confidence: 1, route: 'not_checked' });
 
   let status: OnDeviceStatus;
   try {
@@ -527,21 +525,11 @@ ${prompt}`;
 
   const notChecked = (wrongSide = false) =>
     finish({ step: 'not_checked', score: 0, scamType: 'none', redFlags: [], explanation: '', confidence: 1, route: 'not_checked', ...(wrongSide ? { wrongSide } : {}) });
-  // The wider look is for the on-device model only: without it, such a page is not checked at all.
-  if (wideLook && status !== 'available') return notChecked();
-
-  // ── Stage 3: no on-device model. The cloud alone, and only past the stricter gate. ──
-  if (status !== 'available') {
-    // Without a private on-device check, a card field alone is not enough
-    // reason to send a (redacted) checkout page anywhere.
-    // With no on-device model something would have to leave the device, so the bar is higher.
-    if (!cloudLook) {
-      return finish({ step: 'not_checked', score: 0, scamType: 'none', redFlags: [], explanation: '', confidence: 1, route: 'not_checked' });
-    }
-    // This page passed the stricter gate. If the cloud cannot answer (quota, network, timeout),
-    // the rules decide with the fail-safe (lower) caution bar, not the normal one.
-    return cloudOnly(true);
-  }
+  // ── Stage 3: which model may look (MODEL_POLICY). With no on-device model, the cloud alone and only
+  // past the stricter gate; if the cloud cannot answer, the rules decide with the fail-safe bar. ──
+  const which = decide(MODEL_POLICY, { wideLook, deviceReady: status === 'available', cloudLook });
+  if (which === 'not_checked') return notChecked();
+  if (which === 'cloud_only') return cloudOnly(true);
 
   // ── Stage 4: on-device triage, and the verdicts the device may give alone. ──
   const triage = await callValidated(
@@ -554,71 +542,49 @@ ${prompt}`;
     TriageSchema,
   );
 
-  if (wideLook) {
-    // Let in only by the wider look: nothing goes to the cloud, the rules (which found nothing) have
-    // no say, and the model alone may raise at most a caution, and only when it is sure.
-    if (!triage.ok) return notChecked(triage.reason === 'wrong_side');
-    const t = triage.value;
-    const sure = t.riskScore >= config.thresholds.high && t.confidence >= config.thresholds.minTripConfidence && !aboutScams;
-    if (!sure) return finish({ step: 'wide_unsure', score: Math.min(t.riskScore, config.thresholds.low - 1), scamType: 'none', redFlags: [], explanation: '', confidence: t.confidence, route: 'on_device' });
+  const { low, high, minTripConfidence, minCorroboration } = config.thresholds;
+  const t = triage.ok ? triage.value : undefined;
+  // A local pause needs a second, independent signal besides the small model's own score: the keyword
+  // rules, or the full shape of a scam (an ask for money, plus secrecy or an ask no shop makes, plus
+  // pressure or a number to call). A price and a card box alone are what every honest checkout has.
+  const fullShape = shape.moneyAsk && (shape.secrecy || shape.sensitiveAsk) && (shape.pressure || shape.hasPhone);
+  const corroborated = t !== undefined && t.confidence >= minTripConfidence && (signals.ruleScore >= minCorroboration || fullShape);
+  // What the on-device look settles (TRIAGE_POLICY in policy.ts, read top to bottom).
+  const next = decide(TRIAGE_POLICY, {
+    wideLook,
+    answered: t !== undefined,
+    wrongSide: !triage.ok && triage.reason === 'wrong_side',
+    cloudLook,
+    wideSure: t !== undefined && t.riskScore >= high && t.confidence >= minTripConfidence && !aboutScams,
+    deviceSaysSafe: t !== undefined && t.riskScore < low,
+    // The small model's "safe" is not final when the rules found strong evidence, or the page talks to checkers.
+    overruled: steering || signals.ruleScore >= config.thresholds.rulesOnlyCaution,
+    // A page about scams, or full of scam words plus asks, never trips on the device model alone.
+    confirmed: t !== undefined && t.riskScore >= high && corroborated && !aboutScams && !scamWordsPlusAsks,
+  });
+  if (next === 'not_checked') return notChecked(!triage.ok && triage.reason === 'wrong_side');
+  if (next === 'rules_wrong_side') return rulesVerdict(true, undefined, true);
+  // A timeout on a slow machine is not a warning sign, so the normal caution bar applies; only a model
+  // that answered with nonsense lowers it.
+  if (next === 'rules') return rulesVerdict(!triage.ok && triage.reason === 'invalid');
+  if (next === 'cloud_after_failure') return cloudOnly(true, onDeviceRedactor(engine, prompts.redactSystem, timeouts.onDeviceMs), 'device_then_cloud');
+  if (!t) return rulesVerdict(true); // Not reached: every way the device can fail is a row above.
+  if (next === 'wide_unsure') {
+    return finish({ step: 'wide_unsure', score: Math.min(t.riskScore, low - 1), scamType: 'none', redFlags: [], explanation: '', confidence: t.confidence, route: 'on_device' });
+  }
+  if (next === 'wide_sure') {
     return finish(
-      await localise({ step: 'wide_sure',
-        score: Math.min(t.riskScore, config.thresholds.high - 1),
-        scamType: t.scamType,
-        redFlags: t.redFlags,
-        explanation: EXPLANATION.localCaution,
-        confidence: t.confidence,
-        route: 'on_device',
-        allowTrip: false,
-      }),
+      await localise({ step: 'wide_sure', score: Math.min(t.riskScore, high - 1), scamType: t.scamType, redFlags: t.redFlags, explanation: EXPLANATION.localCaution, confidence: t.confidence, route: 'on_device', allowTrip: false }),
     );
   }
-
-  if (!triage.ok && triage.reason === 'wrong_side') {
-    // Chrome says the private check ran in the cloud. Stop here: no second model, nothing more
-    // sent, built-in rules with the fail-safe floor, and the verdict says what happened.
-    return rulesVerdict(true, undefined, true);
+  if (next === 'device_safe') {
+    return finish({ step: 'device_safe', score: t.riskScore, scamType: 'none', redFlags: [], explanation: '', confidence: t.confidence, route: 'on_device' });
   }
-  if (!triage.ok) {
-    // The on-device model is here but did not answer (busy, timed out, invalid). Only past the
-    // stricter gate, and only with the on-device redaction (which closes the gate if the device
-    // fails again), may a copy go to the cloud. Otherwise the built-in rules, with the fail-safe floor.
-    // A timeout on a slow machine is not a warning sign, so the normal caution bar applies; only a model
-    // that answered with nonsense lowers it.
-    if (!cloudLook) return rulesVerdict(triage.reason === 'invalid');
-    return cloudOnly(true, onDeviceRedactor(engine, prompts.redactSystem, timeouts.onDeviceMs), 'device_then_cloud');
-  }
-
-  const t = triage.value;
-  const { low, high, minTripConfidence, minCorroboration } = config.thresholds;
-
-  // The small model's "safe" is not final when the built-in rules found strong evidence,
-  // or when the page is trying to talk its way past a checker.
-  const overruled = steering || signals.ruleScore >= config.thresholds.rulesOnlyCaution;
-  if (t.riskScore < low && !overruled) {
-    return finish({ step: 'device_safe',
-      score: t.riskScore,
-      scamType: 'none',
-      redFlags: [],
-      explanation: '',
-      confidence: t.confidence,
-      route: 'on_device',
-    });
-  }
-
-  // A local pause needs a second, independent signal besides the small model's own score:
-  // either the keyword rules, or the full shape of a scam (an ask for money, plus secrecy or
-  // an ask no shop makes, plus pressure or a number to call). The second lets quiet scams that use
-  // none of the listed phrases be decided on the device instead of going to the cloud.
-  // A price and a card number box are what every honest checkout has, so they do not count here:
-  // it takes secrecy, or an ask no real shop makes.
-  const fullShape = shape.moneyAsk && (shape.secrecy || shape.sensitiveAsk) && (shape.pressure || shape.hasPhone);
-  const corroborated = t.confidence >= minTripConfidence && (signals.ruleScore >= minCorroboration || fullShape);
-  // A page about scams never trips on the device model alone: the stronger model has to agree.
-  if (t.riskScore >= high && corroborated && !aboutScams && !scamWordsPlusAsks) {
+  if (next === 'device_confirmed') {
     // Local verdict. Nothing leaves the device.
     return finish(
-      await localise({ step: 'device_confirmed',
+      await localise({
+        step: 'device_confirmed',
         score: t.riskScore,
         scamType: t.scamType,
         redFlags: t.redFlags.length ? t.redFlags : ruleFlags(signals),
@@ -632,7 +598,9 @@ ${prompt}`;
 
   // ── Stage 5: the device is unsure. Redact on the device, then ask the cloud. ──
   const cloud = await runCloud(onDeviceRedactor(engine, prompts.redactSystem, timeouts.onDeviceMs));
-  if (cloud.kind === 'ok') {
+  // What the cloud's answer (or its absence) settles (CLOUD_POLICY).
+  const after = decide(CLOUD_POLICY, { answered: cloud.kind === 'ok', aboutScamsPassive: aboutScams && input.trigger === 'passive', deviceSaidSafe: t.riskScore < low });
+  if (after === 'device_then_cloud' && cloud.kind === 'ok') {
     const a = cloud.analysis;
     // The device was unsure, which is the only reason the cloud was asked. If the
     // stronger model is confident the page is fine, that settles it: a leftover
@@ -658,11 +626,11 @@ ${prompt}`;
 
   // ── Stage 6: no second opinion (offline, invalid, or the privacy gate closed). ──
   // For a page about scams the small model's word alone is not enough to interrupt someone reading.
-  if (aboutScams && input.trigger === 'passive') {
+  if (after === 'about_scams') {
     return finish({ step: 'about_scams', score: Math.min(t.riskScore, low - 1), scamType: 'none', redFlags: [], explanation: '', confidence: t.confidence, route: 'on_device' });
   }
   // The device said "safe" but was overruled, and there is no second opinion: the rules decide, as a caution.
-  if (t.riskScore < low) {
+  if (after === 'rules_overruled') {
     return finish({ step: 'rules_overruled',
       score: Math.max(low, Math.min(signals.ruleScore, high - 1)),
       scamType: signals.suggestedType,

@@ -100,7 +100,7 @@ if (page === 'popup' || page === 'onboarding' || page === 'safe' || page === 'ch
 } else if (page === 'banner') {
   createRoot(root).render(
     <>
-      <div style={{ maxWidth: 720, margin: '0 auto', padding: '280px 24px', font: '16px/1.6 Arial', color: '#5B6570' }}>
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: '280px 24px', font: '16px/1.6 Arial', color: '#3F4954' }}>
         <p>Sample page content underneath the banner. Everything here is invented.</p>
       </div>
       <Banner verdict={verdict} onDismiss={() => undefined} />

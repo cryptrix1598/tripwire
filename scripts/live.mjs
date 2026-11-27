@@ -168,6 +168,28 @@ try {
     await family.screenshot({ path: join(SHOTS, 'family-live.png') });
     return (await family.locator('.tw-alert').first().innerText()).replace(/\s+/g, ' ').slice(0, 200);
   });
+
+  // The family hold, against the live security rules: a family member connected minutes ago can keep a
+  // bank transfer on hold, but cannot let it go through (that needs a link approved over a day ago).
+  await step('bank transfer hold: new family can keep it on hold but not let it go through', async () => {
+    const bank = await context.newPage();
+    await bank.goto('http://localhost:4174/transfer.html');
+    await bank.waitForTimeout(2500);
+    await bank.locator('#amount').focus();
+    await bank.locator('tripwire-ui').getByText('Is someone on the phone telling you to move money?').waitFor({ timeout: 30_000 });
+    await bank.locator('tripwire-ui').getByText('Your family has been told').waitFor({ timeout: 30_000 });
+    await family.bringToFront();
+    await family.getByRole('heading', { name: 'Tripwire is holding something right now' }).waitFor({ timeout: 30_000 });
+    await family.getByRole('button', { name: 'I talked to them: let it go through' }).click();
+    await family.getByText('That did not go through. Family connected in the last day').waitFor({ timeout: 30_000 });
+    await family.getByRole('button', { name: 'Keep it on hold for 30 minutes' }).click();
+    await family.getByText('You asked them to wait 30 more minutes').waitFor({ timeout: 30_000 });
+    await bank.bringToFront();
+    await bank.locator('tripwire-ui').getByText('Your family asked you to wait').waitFor({ timeout: 30_000 });
+    await bank.screenshot({ path: join(SHOTS, 'hold-family-live.png') });
+    await bank.close();
+    return 'release refused by the live rules (link approved minutes ago); 30-minute extension accepted and shown on the pause';
+  });
 } finally {
   await context.close();
   await server.close();

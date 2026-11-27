@@ -5,6 +5,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { send, type StatusReply } from '../messaging';
 import { applyLocale } from './locale';
+import { followTextSize } from './textSize';
 
 export function mount(node: ReactNode): void {
   try {
@@ -13,6 +14,8 @@ export function mount(node: ReactNode): void {
     // Not in an extension context (the development gallery): stay in English.
   }
   const el = document.getElementById('root');
+  // Bigger text if the person set their browser to it.
+  followTextSize(document.documentElement);
   if (el) createRoot(el).render(node);
 }
 

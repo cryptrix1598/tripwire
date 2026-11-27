@@ -15,6 +15,7 @@
 import '../../ui/tripwire.css';
 import { useSyncExternalStore } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
+import { followTextSize } from '../../ui/textSize';
 import { createShadowRootUi, defineContentScript, type ContentScriptContext } from '#imports';
 import { createScanScheduler, isGmail, isWebmail, readVisibleText } from '../../content/scan';
 import { demoUrl } from '../../firebase/config';
@@ -160,6 +161,8 @@ function startTopFrame(ctx: ContentScriptContext): void {
         // browser tests and the accessibility audit need to reach inside it.
         mode: import.meta.env.MODE === 'store' ? 'closed' : 'open',
         onMount(container) {
+          // Bigger text if the person set their browser to it (the page's CSS cannot change this).
+          followTextSize(container);
           const root = createRoot(container);
           root.render(<App />);
           return root;
