@@ -117,3 +117,8 @@ export async function send<T>(message: ToBackground | ToOffscreen): Promise<T | 
     return null;
   }
 }
+
+/** Sent by this extension, and by one of its own pages rather than a script inside a web page. */
+export function fromOwnPage(sender: chrome.runtime.MessageSender, id = chrome.runtime.id, origin = chrome.runtime.getURL('/')): boolean {
+  return sender.id === id && typeof sender.url === 'string' && sender.url.startsWith(origin);
+}

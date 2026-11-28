@@ -23,6 +23,10 @@ const PAUSES: Array<[string, string, FieldInfo, boolean]> = [
 ];
 
 const SILENT: Array<[string, string, FieldInfo]> = [
+  ['a flower delivery: "Add a new recipient"', 'Send flowers Delivery details Add a new recipient Recipient name Recipient address Card message', field('Recipient name')],
+  ['a shipping step: "Ship to" recipient', 'Checkout Ship to Recipient name Street address City ZIP Phone', field('Recipient name')],
+  ['a Spanish delivery form', 'Datos de entrega Nombre del destinatario Dirección de envío Código postal', field('Nombre del destinatario')],
+  ['a French delivery form', 'Adresse de livraison Nom du destinataire Code postal Ville', field('Nom du destinataire')],
   ['a checkout card box', 'Checkout Shipping address Payment Card number Expiration CVV Place order', field('Card number', { autocomplete: 'cc-number' })],
   ['a gift card amount on a store page', 'Gift cards Choose an amount $25 $50 $100 Add to cart', field('Gift card amount')],
   ['a donation', 'Donate to the food bank Donation amount Monthly gift', field('Donation amount')],
@@ -38,5 +42,6 @@ describe('the transfer tripwire on real-world wording', () => {
   });
   it.each(SILENT)('stays silent: %s', (_what, form, f) => {
     expect(isTransferField(f, form)).toBe(false);
+    if (/recipient|destinatario|destinataire/i.test(f.labelText)) expect(addsNewPayee(form)).toBe(false);
   });
 });

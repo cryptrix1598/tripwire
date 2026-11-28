@@ -185,8 +185,12 @@ async function handle(msg: ToOffscreen): Promise<unknown> {
   }
 }
 
-chrome.runtime.onMessage.addListener((msg: ToOffscreen, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((msg: ToOffscreen, sender, sendResponse) => {
   if (!msg || msg.target !== 'offscreen') return false;
+  // Only the extension's own background worker talks to this document. A content script's message
+  // reaches every extension page too, so anything sent from a tab is ignored here.
+  const origin = chrome.runtime.getURL('/');
+  if (sender.id !== chrome.runtime.id || sender.tab || (sender.url !== undefined && !sender.url.startsWith(origin))) return false;
   handle(msg)
     .then((reply) => sendResponse(reply ?? { ok: true }))
     .catch((err) => sendResponse({ __error: String(err) }));

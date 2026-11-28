@@ -17,6 +17,7 @@ import { dashboardUrl } from '../firebase/config';
 import { SENSITIVITY, SettingsSchema } from '../config/settings';
 import type { Verdict } from '../inference/schemas';
 import {
+  fromOwnPage,
   send,
   type AssessReply,
   type PairingReply,
@@ -217,6 +218,20 @@ async function handleStatus(): Promise<StatusReply> {
   };
 }
 
+/**
+ * Messages only the extension's own pages may send (the popup, settings, onboarding, the pause page),
+ * never a content script running inside a web page: pairing, disconnecting the family, and reading a
+ * tab's verdict (which holds the "what was sent" receipt).
+ */
+const OWN_PAGES_ONLY: ReadonlySet<ToBackground['type']> = new Set([
+  'get-tab-state',
+  'get-pending-download',
+  'pairing-code',
+  'pairing-decide',
+  'pairing-finish',
+  'family-disconnect',
+]);
+
 async function handle(msg: ToBackground, sender: chrome.runtime.MessageSender): Promise<unknown> {
   const tabId = sender.tab?.id;
   switch (msg.type) {
@@ -269,7 +284,8 @@ async function handle(msg: ToBackground, sender: chrome.runtime.MessageSender): 
       if (tabId !== undefined) await chrome.tabs.update(tabId, { url: chrome.runtime.getURL('/safe.html') });
       return { ok: true };
     case 'takeover':
-      if (tabId !== undefined) {
+      // Only the page itself (its top frame) may hand its pause to an extension page.
+      if (tabId !== undefined && sender.frameId === 0) {
         // Stored like a paused download, under an id no real download can have.
         const pending: PendingDownloadReply = { verdict: msg.verdict, filename: '', page: msg.page, hostname: msg.hostname };
         await chrome.storage.session.set({ [DOWNLOAD_KEY(-tabId)]: pending });
@@ -445,7 +461,11 @@ export function startBackground(): void {
   watchProtection();
 
   chrome.runtime.onMessage.addListener((msg: ToBackground, sender, sendResponse) => {
-    if (!msg || msg.target !== 'background') return false;
+    if (!msg || msg.target !== 'background' || sender.id !== chrome.runtime.id) return false;
+    if (OWN_PAGES_ONLY.has(msg.type) && !fromOwnPage(sender)) {
+      sendResponse({ ok: false });
+      return false;
+    }
     handle(msg, sender)
       .then((reply) => sendResponse(reply ?? { ok: true }))
       .catch((err) => sendResponse({ __error: String(err) }));

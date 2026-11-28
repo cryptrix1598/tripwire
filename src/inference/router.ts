@@ -226,6 +226,8 @@ interface Draft {
   modelDownloading?: boolean;
   /** Passive trips need corroboration; this says whether it was present. */
   allowTrip?: boolean;
+  /** Never more than a caution, even at an action (the stronger model disagreed, or only Nano looked). */
+  cautionAtMost?: boolean;
   /** Set when redFlags and explanation are written in a language other than English. */
   language?: string;
   /** The request text that went to the cloud, if any. */
@@ -360,7 +362,8 @@ export async function assess(input: AssessInput, deps: RouterDeps): Promise<Verd
   };
 
   const finish = (d: Draft): Verdict => {
-    const state = stateFor(d.score, input.trigger, config, d.allowTrip ?? true, input.source === 'call');
+    const raw = stateFor(d.score, input.trigger, config, d.allowTrip ?? true, input.source === 'call');
+    const state: VerdictState = d.cautionAtMost && raw === 'tripped' ? 'caution' : raw;
     // Fail-safe verdicts are never allowed to read as "safe".
     const floored = steering && d.route !== 'not_checked' && state === 'safe';
     // An ask that is never safe always gets "Hang up now", whatever the score.
@@ -605,7 +608,10 @@ ${prompt}`;
     // The device was unsure, which is the only reason the cloud was asked. If the
     // stronger model is confident the page is fine, that settles it: a leftover
     // device vote must never turn an ordinary page into a warning.
-    const cleared = a.riskScore < low && a.confidence >= minTripConfidence && !steering;
+    // Nano was only unsure (not sure of a scam) and the rules found little: the cloud's "fine" settles it
+    // even when the cloud is not fully confident. A plain checkout must not be paused on Nano's doubt.
+    const cloudSaysFine = a.riskScore < low;
+    const cleared = cloudSaysFine && !steering && (a.confidence >= minTripConfidence || (t.riskScore < high && signals.ruleScore < config.thresholds.rulesOnlyCaution));
     // Otherwise the cloud model leads and the device model keeps a vote.
     const merged = cleared ? a.riskScore : Math.round(config.thresholds.cloudWeight * a.riskScore + (1 - config.thresholds.cloudWeight) * t.riskScore);
     return finish({ step: 'device_then_cloud',
@@ -621,6 +627,8 @@ ${prompt}`;
       redactionCount: cloud.redactionCount,
       sent: cloud.sent,
       allowTrip: a.riskScore >= high && a.confidence >= minTripConfidence,
+      // The cloud scored it under the low bar but Nano or the rules disagree: a caution, never a pause.
+      cautionAtMost: cloudSaysFine,
     });
   }
 

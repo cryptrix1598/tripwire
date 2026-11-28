@@ -18,6 +18,15 @@ const TRANSFER_FIELD =
 const AMOUNT_FIELD = /\b(?:amount|monto|cantidad|montant)\b/i;
 const TRANSFER_CONTEXT =
   /\b(?:transfer|zelle|wire|send money|move money|payee|recipient|beneficiary|routing number|transferencia|enviar dinero|virement|envoyer de l.argent)\b/i;
+/** A form about delivering something (flowers, a parcel): its "recipient" is who gets the package. */
+const DELIVERY_CONTEXT =
+  /\b(?:ship(?:ping)?\s*(?:to|address)|deliver(?:y|ed)?|send\s+flowers|street\s*address|zip|postcode|postal\s*code|envío|entrega|dirección\s+de\s+envío|livraison|adresse\s+de\s+livraison)\b/i;
+/** Words only a form about moving money uses ("recipient" alone is not one of them). */
+const MONEY_CONTEXT =
+  /\b(?:transfer|zelle|wire|send money|move money|payee|beneficiary|routing|account\s*number|iban|sort\s*code|swift|transferencia|enviar dinero|beneficiario|virement|bénéficiaire|envoyer de l.argent)\b/i;
+/** A delivery form with nothing about moving money is never a transfer. */
+const onlyDelivery = (context: string) => DELIVERY_CONTEXT.test(context) && !MONEY_CONTEXT.test(context);
+
 /** Boxes near a transfer that are not about the money: a note, an email for the receipt, a search. */
 const NOT_TRANSFER = /e-?mail|message|memo|note|gift|search|coupon|promo|password|correo|courriel/i;
 /** "Add a new payee", "New recipient", "first time sending". */
@@ -44,13 +53,14 @@ export function isTransferField(info: FieldInfo, context: string): boolean {
   if (type === 'password' || type === 'hidden' || type === 'email') return false;
   const hay = [info.name, info.id, info.placeholder, info.ariaLabel, info.labelText].join(' ');
   if (NOT_TRANSFER.test(hay)) return false;
+  if (onlyDelivery(context)) return false;
   if (TRANSFER_FIELD.test(hay)) return true;
   return AMOUNT_FIELD.test(hay) && TRANSFER_CONTEXT.test(context);
 }
 
 /** The form is adding someone new to send money to. */
 export function addsNewPayee(context: string): boolean {
-  return NEW_PAYEE.test(context);
+  return NEW_PAYEE.test(context) && !onlyDelivery(context);
 }
 
 /** A warning or a call check happened recently enough that a transfer now fits the pattern of a scam. */

@@ -71,7 +71,7 @@ TypeScript (strict), Manifest V3 with WXT, React, Shadow DOM for the in-page UI,
 ## Results
 
 - **Main corpus (25 scams, 25 ordinary messages), Gemini Nano inside the built extension (26 Nov):** 25 of 25 flagged, 0 false alarms. 34 of the 50 were decided on the device, 8 needed no model and 8 reached the cloud.
-- **The privacy gate, measured:** 4,207 redacted bytes left the device, against 22,018 when the same corpus runs with no on-device model. About 81 percent less, with the same detection.
+- **The privacy gate, measured:** 3,664 redacted bytes left the device, against 22,018 when the same corpus runs with no on-device model. About 83 percent less, with the same detection.
 - **Held-out test:** scam messages never used for tuning plus 36 real public pages fetched live (IRS, SSA and Apple pages about scams, Wikipedia, bank and payment sign-in pages, a remote-access vendor, news). Final result: 16 of 16 scams flagged (14 of them on the device, nothing sent), 0 false alarms on the 28 pages that loaded, median check 3.7 seconds.
 - **What the AI adds:** on the held-out set, the built-in rules alone catch 3 of 28 scams; with Gemini Nano first, 28 of 28; on a computer without Gemini Nano (the stricter gate, then the redacted cloud check), 26 of 28, and the run records why each miss happened. No false alarms on the real pages in any of the three.
 - **A fresh round, run once:** ten new scams and ten ordinary messages written after every other change. Gemini Nano first: 8 of 10 caught, 0 false alarms; rules alone: 0 of 10. The two misses are published, then fixed with regression tests. Run again after the fixes (no longer held out): 10 of 10, 0 false alarms.
@@ -80,7 +80,7 @@ TypeScript (strict), Manifest V3 with WXT, React, Shadow DOM for the in-page UI,
 - **The built extension itself is what was measured above**, loaded over the DevTools protocol with Gemini Nano running in its offscreen document.
 - Every screen in English, Spanish and French; explanations run live in Spanish and French with nothing sent.
 - Fourteen hostile-page tests: a page that tells the model what to answer, repeats "scam" (or "this is not a scam") to look like advice, hides the ask under filler, or deletes the warning. None gets through quietly.
-- 278 unit tests (plus 38 for the Android app), 42 security-rules tests (including a limit of one family alert every 15 seconds, a pairing code that cannot be used up without creating a family link, and a family name that cannot carry a phone number), a 15-step end-to-end run, a live run against the real project, a test of the hosted demo with no extension, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems).
+- 285 unit tests (plus 38 for the Android app), 42 security-rules tests (including a limit of one family alert every 15 seconds, a pairing code that cannot be used up without creating a family link, and a family name that cannot carry a phone number), a 15-step end-to-end run, a live run against the real project, a test of the hosted demo with no extension, and an axe-core audit on every screen (WCAG 2.2 AA: 0 problems).
 
 ## Challenges
 

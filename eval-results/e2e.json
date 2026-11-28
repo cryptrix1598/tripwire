@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-11-27T23:53:05.609Z",
+  "ranAt": "2026-11-28T01:25:46.268Z",
   "browser": "Chromium (Playwright), extension loaded",
   "steps": [
     {
@@ -66,9 +66,6 @@
   "accessibility": {
     "tool": "axe-core",
     "wcagAAProblems": [],
-    "aaaContrastNotes": [
-      "caution-banner: color-contrast-enhanced [serious] x1: <p>Sample page content underneath the banner. Everything here is invented.</p>",
-      "caution-banner-why: color-contrast-enhanced [serious] x1: <p>Sample page content underneath the banner. Everything here is invented.</p>"
-    ]
+    "aaaContrastNotes": []
   }
 }

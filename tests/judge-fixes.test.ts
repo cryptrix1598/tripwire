@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { BENIGN_SAMPLES, SCAM_SAMPLES } from '../corpus/index';
 import { DEFAULT_CONFIG, mergeConfig } from '../src/config/defaults';
 import { flagsFor } from '../src/ui/kit';
+import { fromOwnPage } from '../src/messaging';
 import { createCloudCache, QUOTA_REST_MS } from '../src/inference/cloudCache';
 import { PrivacyInvariantError, type AiEngine, type OnDeviceStatus } from '../src/inference/engine';
 import { assess, assessTransfer, type TransferInput } from '../src/inference/router';
@@ -189,5 +190,35 @@ describe('decision numbers come from config', () => {
   it('Remote Config can change them, and a bad value falls back to the defaults', () => {
     expect(mergeConfig({ thresholds: { cloudWeight: 0.7, recentRiskMinutes: 30 } }).thresholds).toMatchObject({ cloudWeight: 0.7, recentRiskMinutes: 30, aboutScamsAt: 5 });
     expect(mergeConfig({ thresholds: { cloudWeight: 3 } }).thresholds.cloudWeight).toBe(DEFAULT_CONFIG.thresholds.cloudWeight);
+  });
+});
+
+describe('only the extension\'s own pages may pair, disconnect or read a verdict', () => {
+  const ID = 'abcdefghijklmnop';
+  const ORIGIN = `chrome-extension://${ID}/`;
+  it('a script inside a web page is refused', () => {
+    expect(fromOwnPage({ id: ID, url: 'https://evil.example/page', tab: { id: 3 } as chrome.tabs.Tab }, ID, ORIGIN)).toBe(false);
+    expect(fromOwnPage({ id: 'another-extension', url: `${ORIGIN}popup.html` }, ID, ORIGIN)).toBe(false);
+    expect(fromOwnPage({ id: ID }, ID, ORIGIN)).toBe(false);
+  });
+  it('the popup and settings page are allowed', () => {
+    expect(fromOwnPage({ id: ID, url: `${ORIGIN}popup.html` }, ID, ORIGIN)).toBe(true);
+    expect(fromOwnPage({ id: ID, url: `${ORIGIN}settings.html`, tab: { id: 4 } as chrome.tabs.Tab }, ID, ORIGIN)).toBe(true);
+  });
+});
+
+describe('a plain checkout is never paused on Nano doubt', () => {
+  const CHECKOUT = 'Checkout. Your cart: Wool scarf $24.00. Shipping address. Payment. Card number. Expiration. Security code. Place order. Free returns within 30 days.';
+  const unsureCloud = (riskScore: number) => async () =>
+    JSON.stringify({ riskScore, scamType: 'none', redFlags: [], plainEnglishExplanation: 'A normal shop.', confidence: 0.5 });
+  it('Nano unsure at the card box, the cloud says fine but is not sure: no pause, no warning', async () => {
+    const e = engine('available', async () => triage(45, 0.7, 'payment_request'), unsureCloud(25));
+    const v = await assess({ text: CHECKOUT, hostname: 'shop.example', trigger: 'card_entry' }, deps(e));
+    expect(v.state).toBe('safe');
+  });
+  it('Nano sure but uncorroborated, the cloud says fine: a caution at most', async () => {
+    const e = engine('available', async () => triage(90, 0.5, 'payment_request'), unsureCloud(20));
+    const v = await assess({ text: CHECKOUT, hostname: 'shop.example', trigger: 'card_entry' }, deps(e));
+    expect(v.state).not.toBe('tripped');
   });
 });
