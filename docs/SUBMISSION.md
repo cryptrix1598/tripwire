@@ -8,6 +8,18 @@ Copy for the #BuildHybridAI 2026 submission form, plus a script for the demo vid
 - **Install the extension without building:** https://github.com/cryptrix1598/tripwire/blob/main/release/tripwire-chrome.zip (unzip, then Load unpacked in chrome://extensions)
 - **Try it with nothing to install:** https://tripwire-buildhybridai.web.app/demo/ (the practice pages run Tripwire in the page, through Firebase AI Logic)
 
+## In three lines
+
+1. **Gemini Nano is the privacy gate, not just the fast path.** It decides most pages on the computer; when it is unsure, it points out the personal details, code removes them, a leak check runs, and only then does a copy go to the cloud model. A receipt shows the person exactly what was sent. On our corpus: the same 25 of 25 scams caught, with 3,664 bytes sent instead of 22,018 (83 percent less).
+2. **It steps in at the moment money would leave,** not when a page loads: a card box, a gift-card code, a crypto wallet, a remote-access download, a phone link, a transfer to a new payee on the person's own bank, or gift cards worth $200+ in a real store's cart. The pause asks one question and holds "continue" for five minutes, and the family can answer the hold from their own page.
+3. **It is built against the scammer's script:** no pairing code within an hour of a warning, a newly paired family member cannot release a hold, and lowering protection alerts the family.
+
+Why the modes are pinned instead of `PREFER_ON_DEVICE`: each step has one place it is allowed to run (triage, redaction and translation on the device, analysis in the cloud), and Tripwire checks `inferenceSource` after every on-device call, so a private step can never quietly run in the cloud.
+
+On public data we did not write (300 texts from the UCI SMS Spam Collection): 0 false alarms in 150 ordinary texts, 37 of 150 spam flagged; most missed spam is marketing, and 21 "you have won, call this number" texts are a gap we name.
+
+- **Built during the submission period:** first commit 14 Nov 2026; everything here was written between 14 and 30 Nov 2026.
+
 ## Tagline
 
 Tripwire steps in at the exact moment you're about to fall for a scam (on a page, in an email, or on the phone) and protects your privacy while doing it.
@@ -70,9 +82,9 @@ TypeScript (strict), Manifest V3 with WXT, React, Shadow DOM for the in-page UI,
 
 ## Results
 
-- **Main corpus (25 scams, 25 ordinary messages), Gemini Nano inside the built extension (26 Nov):** 25 of 25 flagged, 0 false alarms. 34 of the 50 were decided on the device, 8 needed no model and 8 reached the cloud.
+- **Main corpus (25 scams, 25 ordinary messages), Gemini Nano inside the built extension (latest run, 28 Nov):** 25 of 25 flagged, 0 false alarms. 35 of the 50 were decided on the device, 8 needed no model and 7 went to the cloud: 3,664 redacted bytes sent, against 22,018 for the same corpus with no on-device model (83 percent less), with the same detection ([eval-results/extension-on-device.json](../eval-results/extension-on-device.json)).
 - **The privacy gate, measured:** 3,664 redacted bytes left the device, against 22,018 when the same corpus runs with no on-device model. About 83 percent less, with the same detection.
-- **Held-out test:** scam messages never used for tuning plus 36 real public pages fetched live (IRS, SSA and Apple pages about scams, Wikipedia, bank and payment sign-in pages, a remote-access vendor, news). Final result: 16 of 16 scams flagged (14 of them on the device, nothing sent), 0 false alarms on the 28 pages that loaded, median check 3.7 seconds.
+- **Held-out test:** scam messages never used for tuning plus 36 real public pages fetched live (IRS, SSA and Apple pages about scams, Wikipedia, bank and payment sign-in pages, a remote-access vendor, news). First round: 16 of 16 scams flagged (14 of them on the device, nothing sent), 0 false alarms on the 28 pages that loaded, median check 3.7 seconds.
 - **What the AI adds:** on the held-out set, the built-in rules alone catch 3 of 28 scams; with Gemini Nano first, 28 of 28; on a computer without Gemini Nano (the stricter gate, then the redacted cloud check), 26 of 28, and the run records why each miss happened. No false alarms on the real pages in any of the three.
 - **A fresh round, run once:** ten new scams and ten ordinary messages written after every other change. Gemini Nano first: 8 of 10 caught, 0 false alarms; rules alone: 0 of 10. The two misses are published, then fixed with regression tests. Run again after the fixes (no longer held out): 10 of 10, 0 false alarms.
 - **We publish the bad first run too.** Before the fixes it caught 6 of 10 and took 51 seconds on long pages. See "Challenges".
@@ -97,7 +109,7 @@ Test on data you did not write for. And hybrid inference is most interesting whe
 
 ## What's next
 
-Running the Android app on real phones (its "Is this a scam?" check for texts and calls, and the family viewer), push alerts, the Android family viewer in Spanish and French, more languages than English, Spanish and French, and testing with older users and their families.
+Running the Android app on real phones (its "Is this a scam?" check for texts and calls, and the family viewer), push alerts, more languages than English, Spanish and French, and testing with older users and their families.
 
 ---
 

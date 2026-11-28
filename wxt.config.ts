@@ -16,7 +16,7 @@ export default defineConfig({
     short_name: 'Tripwire',
     description:
       'Steps in at the exact moment you are about to fall for a scam. Checks pages privately on your own computer first.',
-    minimum_chrome_version: '116',
+    minimum_chrome_version: '139',
     key,
     permissions: ['storage', 'offscreen', 'downloads', 'activeTab', 'contextMenus'],
     action: {

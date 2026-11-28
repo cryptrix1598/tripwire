@@ -21,7 +21,7 @@ Short, plain, kind. Say what is happening, then what to do. No jargon ("phishing
 
 ## What it must never feel like
 
-- Antivirus software: red shields, skulls, sirens, flashing, countdowns.
+- Antivirus software: red shields, skulls, sirens, flashing, alarm timers. (The one countdown Tripwire shows is the calm five-minute hold, which says what it is for.)
 - Surveillance: nothing that suggests a relative can watch the screen.
 - A nag: no scores, streaks, tips or upsell.
 
@@ -29,4 +29,4 @@ Short, plain, kind. Say what is happening, then what to do. No jargon ("phishing
 
 - Body text 18px or larger on anything the protected person sees; targets 44px or larger; WCAG AA at minimum, AAA for the key sentences.
 - Respects `prefers-reduced-motion`. Nothing moves except a short fade when the banner arrives.
-- English only. All copy lives in `src/ui/copy.ts`.
+- English, Spanish and French. All English copy lives in `src/ui/copy.ts`; the translations are in `src/ui/locales/`.

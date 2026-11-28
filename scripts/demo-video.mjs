@@ -22,6 +22,7 @@ const playwrightDisabled = (/disabledFeatures = \[([\s\S]*?)\];/.exec(bundle)?.[
 const server = await createServer({ root: 'demo', configFile: false, logLevel: 'error', server: { port: 4174, strictPort: true, hmr: false, watch: null } });
 await server.listen();
 const FAMILY = process.argv.includes('--family');
+const OFFLINE = process.argv.includes('--offline');
 const context = FAMILY
   ? await chromium.launchPersistentContext(mkdtempSync(join(tmpdir(), 'tripwire-film-')), {
       channel: 'chromium', headless: true, viewport: { width: 1280, height: 720 }, deviceScaleFactor: 3,
@@ -37,6 +38,7 @@ const context = FAMILY
     `--disable-features=${playwrightDisabled.filter((f) => f !== 'OptimizationHints').join(',')}`,
     '--enable-features=AIPromptAPI,OptimizationGuideOnDeviceModel',
     '--enable-unsafe-extension-debugging',
+    ...(OFFLINE ? ['--host-resolver-rules=MAP * ~NOTFOUND , EXCLUDE localhost'] : []),
   ],
 });
 
@@ -79,12 +81,12 @@ async function clickOn(page, target, { click = true } = {}) {
 }
 
 /** Record one scene: every frame Chrome paints, with its timestamp, then a 60 fps 4K MP4. */
-async function scene(name, fn) {
+async function scene(name, fn, existing, keep = false) {
   if (only.length && !only.includes(name)) return;
   const dir = join(OUT, `${name}-frames`);
   rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });
-  const page = await context.newPage();
+  const page = existing ?? (await context.newPage());
   if (process.argv.includes('--debug')) {
     page.on('console', (m) => console.log('page>', m.type(), m.text().slice(0, 200)));
     page.on('pageerror', (e) => console.log('pageerror>', String(e.stack ?? e).slice(0, 600)));
@@ -107,7 +109,7 @@ async function scene(name, fn) {
     // Chrome sends a frame only when something changes, so the last one lasts until recording stops.
     var endT = Date.now() / 1000;
     await cdp.send('Page.stopScreencast').catch(() => undefined);
-    await page.close();
+    if (!existing && !keep) await page.close();
   }
   if (frames.length < 2) throw new Error(`${name}: no frames`);
   // Each frame lasts until the next one; the last holds for a second.
@@ -199,14 +201,6 @@ try {
   await setup.close();
   console.log('  ok    family paired');
 
-  // A stop on the fake bank page, so the family page has an alert to show. Not filmed.
-  const pre = await context.newPage();
-  await pre.goto('http://localhost:4174/bank.html');
-  await ui(pre).locator('.tw-banner, .tw-overlay').first().waitFor({ timeout: 60_000 });
-  if ((await ui(pre).locator('.tw-overlay').count()) === 0) await pre.locator('#cc').focus();
-  await ui(pre).getByRole('button', { name: 'Stop and stay safe' }).click();
-  await pre.waitForURL(/safe\.html/, { timeout: 15_000 });
-  await pre.close();
   }
   await card('00-hook', [[64, 'Your mom gets a call.'], [44, '“Your bank account has been hacked. Move your savings to a safe account. Don’t tell anyone.”', '#c9d6ee']], 7000);
   await card('01-problem', [[56, 'Scams like this cost older Americans billions every year.'], [40, 'Tripwire steps in at the moment the money would leave.', '#c9d6ee']], 5500);
@@ -266,26 +260,41 @@ try {
     await page.waitForTimeout(5500);
   });
 
+  let bank;
   if (FAMILY) await scene('08-bank-transfer', async (page) => {
+    bank = page;
     await page.goto('http://localhost:4174/transfer.html');
     await page.waitForTimeout(1500);
     await clickOn(page, page.locator('#amount'));
     await ui(page).getByText('Is someone on the phone telling you to move money?').waitFor({ timeout: 60_000 });
     await page.waitForTimeout(5000);
-    // Meanwhile, on the family page: "Keep it on hold for 30 minutes".
-    await family.getByRole('button', { name: 'Keep it on hold for 30 minutes' }).click({ timeout: 60_000 });
+  }, undefined, true);
+  if (FAMILY) {
+  // A stop on the fake bank page, so the family page has an alert to show. Not filmed.
+    const pre = await context.newPage();
+    await pre.goto('http://localhost:4174/bank.html');
+    await ui(pre).locator('.tw-banner, .tw-overlay').first().waitFor({ timeout: 60_000 });
+    if ((await ui(pre).locator('.tw-overlay').count()) === 0) await pre.locator('#cc').focus();
+    await ui(pre).getByRole('button', { name: 'Stop and stay safe' }).click();
+    await pre.waitForURL(/safe\.html/, { timeout: 15_000 });
+    await pre.close();
+  }
+  if (FAMILY) await scene('09-family-answers', async (page) => {
+    await page.bringToFront();
+    await page.reload();
+    await page.getByRole('heading', { name: 'Tripwire is holding something right now' }).waitFor({ timeout: 60_000 });
+    await page.waitForTimeout(3500);
+    await clickOn(page, page.getByRole('button', { name: 'Keep it on hold for 30 minutes' }));
+    await page.getByText('You asked them to wait 30 more minutes').waitFor({ timeout: 60_000 });
+    await page.waitForTimeout(3000);
+    await page.mouse.wheel(0, 450);
+    await page.waitForTimeout(3500);
+  }, family);
+  if (FAMILY) await scene('09b-pause-updates', async (page) => {
+    await page.bringToFront();
     await ui(page).getByText('Your family asked you to wait').waitFor({ timeout: 60_000 });
-    await page.waitForTimeout(5000);
-  });
-
-  if (FAMILY) await scene('09-family-page', async (page) => {
-    await page.addInitScript((t) => { if (location.protocol.startsWith('http')) self.FIREBASE_APPCHECK_DEBUG_TOKEN = t; }, TOKEN);
-    await page.goto(DASHBOARD);
-    await page.getByText('They stopped').first().waitFor({ timeout: 60_000 });
-    await page.waitForTimeout(4000);
-    await page.mouse.wheel(0, 500);
-    await page.waitForTimeout(5000);
-  });
+    await page.waitForTimeout(4500);
+  }, bank);
 
   if (!FAMILY) await scene('10-call-check', async (page) => {
     await page.goto(ext('call.html'));
@@ -296,11 +305,26 @@ try {
     }
     await clickOn(page, page.getByRole('button', { name: 'Check this call' }));
     await page.locator('section[aria-live] .tw-route, p[role=alert]').first().waitFor({ timeout: 90_000 });
-    await page.waitForTimeout(6000);
+    await page.waitForTimeout(4000);
+    const sent = page.getByRole('button', { name: 'See exactly what was sent' }).first();
+    if (await sent.count()) {
+      await clickOn(page, sent);
+      await page.waitForTimeout(1200);
+      await sent.scrollIntoViewIfNeeded();
+      await page.mouse.wheel(0, 300);
+      await page.waitForTimeout(6000);
+    }
   });
 
-  await card('11-hybrid', [[52, 'Gemini Nano decides on your computer.'], [40, 'Only when it is unsure does a redacted copy go to the cloud, and Tripwire shows exactly what was sent.', '#c9d6ee'], [32, 'Firebase AI Logic hybrid inference · App Check · Remote Config', '#9fb3d9']], 8000);
-  await card('12-close', [[72, 'Tripwire'], [40, 'Free and open source · English, Spanish, French · Chrome and Android', '#c9d6ee'], [32, 'github.com/cryptrix1598/tripwire', '#9fb3d9']], 6000);
+  if (OFFLINE) await scene('13-offline', async (page) => {
+    await page.goto('http://localhost:4174/refund.html');
+    await page.waitForTimeout(1500);
+    await ui(page).locator('.tw-banner, .tw-overlay').first().waitFor({ timeout: 90_000 });
+    await page.waitForTimeout(5500);
+  });
+
+  await card('11-hybrid', [[52, 'Gemini Nano decides on your computer.'], [40, 'Only when it is unsure does a redacted copy go to the cloud, and Tripwire shows exactly what was sent.', '#c9d6ee'], [34, 'Same 25 of 25 scams caught, with 3,664 bytes sent instead of 22,018: 83% less', '#f3f6fc'], [30, 'Firebase AI Logic hybrid inference · App Check · Remote Config', '#9fb3d9']], 8000);
+  await card('12-close', [[72, 'Tripwire'], [40, 'Free and open source · English, Spanish and French · for Chrome', '#c9d6ee'], [32, 'github.com/cryptrix1598/tripwire', '#9fb3d9']], 6000);
 } finally {
   await context.close();
   await server.close();
