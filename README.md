@@ -31,6 +31,7 @@ page, email or phone call
 | Held-out scams and 39 real pages, Gemini Nano first | 28 / 28 | 0 / 39 | |
 | The same held-out set, no Gemini Nano (cloud-only path) | 26 / 28 flagged (20 paused, 6 warned) | 0 / 39 | |
 | The same held-out set, built-in rules only (no AI) | 3 / 28 | 0 / 39 | 0 |
+| **Public data, not written by us:** 150 spam and 150 ordinary texts sampled from the UCI SMS Spam Collection, Gemini Nano first ([eval-results/holdout/external-2026-11-28T13-07-14-195Z.json](eval-results/holdout/external-2026-11-28T13-07-14-195Z.json)) | 37 / 150 spam flagged (34 paused). Most of the rest is marketing (ringtones, tickets, phone deals), which Tripwire is not meant to stop; 21 of the 113 missed are UK-style "you have won, call this number" texts, a real gap | 0 / 150 | 9,644 bytes |
 
 294 unit tests (plus 38 on Android), 42 security-rules tests, a 16-step end-to-end run with 0 accessibility problems, a live run against the real Firebase project. Details are in [Test results](#test-results).
 

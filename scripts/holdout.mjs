@@ -12,7 +12,10 @@ import { resolve } from 'node:path';
 import { chromium } from 'playwright';
 import { createServer } from 'vite';
 
-const set = JSON.parse(readFileSync('corpus/holdout.json', 'utf8'));
+// --set <file> runs another set in the same shape (scamsRound4 / benignMessagesRound4), e.g. a public dataset sample.
+const setAt = process.argv.indexOf('--set');
+const external = setAt > 0 ? process.argv[setAt + 1] : '';
+const set = JSON.parse(readFileSync(external || 'corpus/holdout.json', 'utf8'));
 const bundle = readFileSync('node_modules/playwright-core/lib/coreBundle.js', 'utf8');
 const disabled = (/disabledFeatures = \[([\s\S]*?)\];/.exec(bundle)?.[1] ?? '').split('\n').map((l) => /^\s*"([^"]+)"/.exec(l)?.[1]).filter(Boolean);
 
@@ -119,7 +122,7 @@ try {
     rows,
   };
   mkdirSync('eval-results/holdout', { recursive: true });
-  const out = `eval-results/holdout/${rulesOnly ? 'rules-only-' : cloudOnly ? 'cloud-only-' : ''}${onlyRound4 ? 'round4-' : ''}${summary.ranAt.replace(/[:.]/g, '-')}.json`;
+  const out = `eval-results/holdout/${rulesOnly ? 'rules-only-' : cloudOnly ? 'cloud-only-' : ''}${external ? 'external-' : onlyRound4 ? 'round4-' : ''}${summary.ranAt.replace(/[:.]/g, '-')}.json`;
   writeFileSync(out, JSON.stringify(summary, null, 2));
   console.log(`\nscams flagged ${summary.detected}/${summary.scams} (${summary.paused} paused) | false alarms on real pages ${summary.falseAlarms}/${summary.benignPages}`);
   console.log(`cloud failures ${JSON.stringify(summary.cloudFailures)}`);
