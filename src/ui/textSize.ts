@@ -24,5 +24,7 @@ export function followTextSize(el: HTMLElement): number {
   }
   const scale = Math.round(Math.min(2, Math.max(1, px / 16)) * 100) / 100;
   if (scale > 1) el.style.setProperty('zoom', String(scale), 'important');
+  // At 1.25x and above the two-column pause no longer fits a laptop screen: tripwire.css stacks it.
+  if (scale >= 1.25) el.classList.add('tw-large-text');
   return scale;
 }

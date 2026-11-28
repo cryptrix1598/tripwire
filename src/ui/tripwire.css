@@ -1071,3 +1071,31 @@
   .tw :focus-visible { outline: 3px solid Highlight; outline-offset: 3px; }
   .tw .tw-dot { forced-color-adjust: none; }
 }
+
+/* Bigger browser text (textSize.ts adds this class at 1.25x or more): the side panel becomes a short
+   strip on top, so the opening line, the first reason and the question stay on screen. */
+.tw-large-text .tw-split {
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+.tw-large-text .tw-split__side {
+  flex: 0 0 auto;
+  position: static;
+  height: auto;
+  align-self: stretch;
+  justify-content: flex-start;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 24px;
+  padding: 12px 24px;
+}
+.tw-large-text .tw-split__side .tw-h1--xl {
+  font-size: 22px;
+  line-height: 1.2;
+}
+.tw-large-text .tw-split__main {
+  flex: 1 1 auto;
+  justify-content: flex-start;
+  padding-top: 24px;
+}
