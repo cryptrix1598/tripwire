@@ -33,3 +33,4 @@ android/build/
 android/app/build/
 !.env.store
 *.pdf
+video/

@@ -5,6 +5,7 @@
  * offscreen document. The worker's jobs are to keep that document alive, relay
  * checks to it, remember each tab's verdict, and watch for risky downloads.
  */
+import { ROUTES } from '../inference/schemas';
 import { DEFAULT_CONFIG } from '../config/defaults';
 import { applySensitivity, isTrusted, loadSettings } from '../config/settings';
 import { loadConfig } from '../config/store';
@@ -244,10 +245,17 @@ async function handle(msg: ToBackground, sender: chrome.runtime.MessageSender): 
       // A warning or call check in this browser within the hour counts, whichever tab it was in.
       const at = (await chrome.storage.session.get(RISK_KEY))[RISK_KEY];
       const input = { ...msg.input, recentRisk: msg.input.recentRisk || riskIsRecent(typeof at === 'number' ? at : undefined, Date.now(), (await loadConfig()).thresholds.recentRiskMinutes * 60_000) };
-      const plain: TransferAssessment = { firmness: input.recentRisk || input.newPayee ? 'hold' : 'none', route: 'not_checked', redFlags: [], scamType: 'none', elapsedMs: 0 };
+      const plain: TransferAssessment = { firmness: input.recentRisk || input.newPayee ? 'hold' : 'none', route: 'not_checked', redFlags: [], scamType: 'none', elapsedMs: 0, recentRisk: input.recentRisk };
       if (input.recentRisk || !input.newPayee) return plain;
       // A new payee: Gemini Nano reads the form, on the device, for the most specific reason to show.
-      return (await toOffscreen<TransferAssessment>({ target: 'offscreen', type: 'assess-transfer', input })) ?? plain;
+      // The hold does not depend on its answer, so the person never waits on it: if Nano is busy (a page
+      // check ahead of it in the queue, a slow first call) the pause shows now with the plain reason.
+      const quick = new Promise<null>((done) => setTimeout(() => done(null), TRANSFER_WAIT_MS));
+      const fromDevice = await Promise.race([toOffscreen<TransferAssessment>({ target: 'offscreen', type: 'assess-transfer', input }).catch(() => null), quick]);
+      // Anything but a well-formed answer (an error from the model, a timeout) gets the plain hold.
+      const wellFormed = fromDevice && (fromDevice.firmness === 'hold' || fromDevice.firmness === 'none') && Array.isArray(fromDevice.redFlags) && (ROUTES as readonly string[]).includes(fromDevice.route);
+      if (fromDevice && !wellFormed) console.warn('tripwire: transfer answer not usable', JSON.stringify(fromDevice).slice(0, 300));
+      return wellFormed ? { ...fromDevice, firmness: plain.firmness === 'hold' ? 'hold' : fromDevice.firmness, recentRisk: input.recentRisk } : plain;
     }
     case 'hold': {
       // Kept per tab and page in session storage, so a reload neither restarts nor skips it.
@@ -397,6 +405,8 @@ async function forgetTab(tabId: number): Promise<void> {
 /* ---------- recent risk, protection changes, still here ---------- */
 
 const RISK_KEY = 'risk:lastAt';
+/** The longest a bank-transfer pause waits for Gemini Nano's reason before showing with the plain one. */
+const TRANSFER_WAIT_MS = 2500;
 const HEARTBEAT_KEY = 'heartbeat:at';
 const HEARTBEAT_EVERY_MS = 12 * 60 * 60_000;
 

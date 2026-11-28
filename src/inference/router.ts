@@ -702,6 +702,8 @@ export interface TransferAssessment {
   scamType: ScamType;
   wrongSide?: boolean;
   elapsedMs: number;
+  /** A warning or call check on this computer within the last hour (set by the background). */
+  recentRisk?: boolean;
 }
 
 /** What the on-device model is told about this moment, on top of the usual triage instructions. */

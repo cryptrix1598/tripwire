@@ -403,13 +403,17 @@ function startTopFrame(ctx: ContentScriptContext): void {
     // Even with nobody new and nothing risky on this page, a warning in another tab within the hour counts (the background knows).
     const input: TransferInput = { formText, hostname, newPayee, recentRisk: recentHere };
     const fallback: TransferAssessment = { firmness: recentHere || newPayee ? 'hold' : 'none', route: 'not_checked', redFlags: [], scamType: 'none', elapsedMs: 0 };
-    const result = (await send<TransferAssessment>({ target: 'background', type: 'assess-transfer', input }).catch(() => null)) ?? fallback;
+    const answer = await send<TransferAssessment>({ target: 'background', type: 'assess-transfer', input }).catch(() => null);
+    // Anything but a well-formed answer (an error reply, a dropped message) gets the decision made here.
+    const result = answer && (answer.firmness === 'hold' || answer.firmness === 'none') && typeof answer.route === 'string' ? answer : fallback;
     if (!ctx.isValid || (view as View).kind === 'pause' || result.firmness === 'none') return;
     const hold = result.firmness === 'hold';
-    const recent = recentHere || (hold && result.route === 'not_checked');
+    // Only a warning that really happened is named: the background says so explicitly.
+    const recent = recentHere || result.recentRisk === true;
     // The model writes its reasons in English; in Spanish or French a fixed, translated reason is shown instead.
     const english = !/^(?:es|fr)(?:-|$)/i.test(navigator.language);
-    const formFlags = result.redFlags.length === 0 ? [] : english ? result.redFlags : [TRANSFER.formSigns];
+    const modelFlags = Array.isArray(result.redFlags) ? result.redFlags : [];
+    const formFlags = modelFlags.length === 0 ? [] : english ? modelFlags : [TRANSFER.formSigns];
     // The strongest reason first: a warning this hour, then what the form itself says, then "someone new".
     const redFlags = [recent ? TRANSFER.recentWarning : '', ...formFlags, newPayee ? TRANSFER.newPayee : ''].filter(Boolean);
     show({

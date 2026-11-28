@@ -51,7 +51,8 @@ export function byPerson(handler: () => void) {
 
 /** What left this device, said the same way everywhere. */
 export function RouteLine({ route, sent = false, wrongSide = false, downloading = false }: { route: Route; sent?: boolean; wrongSide?: boolean; downloading?: boolean }) {
-  const badge = ROUTE_BADGE[route];
+  // An unknown route must never break a pause: say only what is certain.
+  const badge = ROUTE_BADGE[route] ?? ROUTE_BADGE.rules_only;
   const label = downloading && route === 'cloud_fallback' ? WHY.downloadingLabel : badge.label;
   // A deeper check was tried and got no usable answer: the redacted text did leave (or may have).
   const detail = wrongSide
