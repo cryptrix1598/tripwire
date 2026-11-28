@@ -117,20 +117,20 @@ Running the Android app on real phones (its "Is this a scam?" check for texts an
 
 The film is `video/tripwire-demo-4k60.mp4` (3840x2160, 60 fps), recorded by `scripts/demo-video.mjs` in Chrome with Gemini Nano (the two family scenes in Chromium against the live Firebase project) and cut by `scripts/demo-edit.py`. Every scene is captioned. Read the lines below at a calm pace; each fits its scene.
 
-| Time | On screen | Voice-over |
-| --- | --- | --- |
-| 0:00 | "Your mom gets a call…" | "Your mom gets a call. Her bank account has been hacked, the caller says. Move your savings to a safe account, and don't tell anyone." |
-| 0:07 | The problem | "Scams like this cost older Americans billions every year. Tripwire steps in at the moment the money would leave." |
-| 0:13 | A fake bank text, paused | "A fake bank text. Gemini Nano reads it on the computer and pauses the page with one question: did someone ask you to do this? The badge says it plainly: checked on your device, nothing left your computer. Why? shows the reasons, and the safe button ends it." |
-| 0:33 | Internet cut off | "Here the internet is cut off for the whole browser. The scam email is still paused, because the decision is made on the computer." |
-| 0:42 | An ordinary checkout | "An ordinary checkout. A quick check, then nothing, even while a card number is typed." |
-| 0:49 | Fake tech support | "Fake tech support. The phone link is paused before it dials." |
-| 0:59 | Gift-card code | "Pay us in gift cards: the code box is paused." |
-| 1:06 | Crypto | "An investment that cannot lose: the wallet box is paused." |
-| 1:13 | Gift cards at a store | "Gift cards at a real store. An eight-hundred-dollar cart gets the question, and continue waits five minutes." |
-| 1:21 | Their own bank | "Their own bank, a new payee. The page looks normal, because the story is told on the phone, so the moment decides: one question and a five-minute hold." |
-| 1:28 | The family page | "Their family sees the hold on their own page and keeps it on hold for thirty minutes." |
-| 1:41 | The pause updates | "Back on Mom's computer, the pause says her family asked her to wait." |
-| 1:45 | Is this call a scam? | "During a call, she taps what the caller is saying. No typing. Tripwire says hang up now. Here the cloud was asked for a second opinion, so she can see exactly what was sent: personal details already removed on the computer." |
-| 2:13 | How the hybrid works | "Gemini Nano decides on the computer. Only when it is unsure does a redacted copy go to the cloud. Same detection, eighty-three percent less data sent." |
-| 2:22 | Close | "Tripwire. Free and open source, in English, Spanish and French, for Chrome." |
+| Clip | Starts | Longest it can run | On screen | Voice-over |
+| --- | --- | --- | --- | --- |
+| 01.mp3 | 0:00 | 6.5 s | "Your mom gets a call…" | "Mom gets a call: her bank was hacked. Move your savings now, and tell no one." |
+| 02.mp3 | 0:07.5 | 4.5 s | The problem | "Scams like this cost older Americans billions every year." |
+| 03.mp3 | 0:13 | 19.5 s | A fake bank text, paused | "A fake bank text. Gemini Nano reads it right on the computer and pauses the page with one question. Checked on your device: nothing left the computer. "Why" shows the reasons, and one big button ends it." |
+| 04.mp3 | 0:33.5 | 7.5 s | Internet cut off | "Now the internet is cut off. The scam email is still paused, decided on the computer." |
+| 05.mp3 | 0:42 | 6 s | An ordinary checkout | "An ordinary checkout. A quick check, then nothing, even while typing a card." |
+| 06.mp3 | 0:49 | 9 s | Fake tech support | "Fake tech support. The phone number is paused before it can dial." |
+| 07.mp3 | 0:59 | 6.5 s | Gift-card code | "Pay us in gift cards? The code box is paused." |
+| 08.mp3 | 1:06.5 | 6 s | Crypto | "A crypto deal that can't lose? The wallet box is paused." |
+| 09.mp3 | 1:13.5 | 6.5 s | Gift cards at a store | "Eight hundred dollars in gift cards at a store: one question, five minutes to think." |
+| 10.mp3 | 1:21 | 6.5 s | Their own bank | "Her own bank, a new payee. One question, and a five-minute hold." |
+| 11.mp3 | 1:28.5 | 11.5 s | The family page | "Her family sees the hold on their own page, and keeps it on hold for thirty minutes." |
+| 12.mp3 | 1:41 | 3.5 s | The pause updates | "On Mom's screen, the pause updates." |
+| 13.mp3 | 1:45.5 | 26.5 s | Is this call a scam? | "During a call, she taps what the caller is saying. No typing. Tripwire says: hang up now. When it asks the cloud for a second opinion, she can see exactly what was sent, with her personal details already removed on the computer." |
+| 14.mp3 | 2:13 | 8 s | How the hybrid works | "Gemini Nano decides on the computer. The cloud only sees a redacted copy. Eighty-three percent less data." |
+| 15.mp3 | 2:22 | 7 s | Close | "Tripwire. Free and open source, in English, Spanish and French." |
