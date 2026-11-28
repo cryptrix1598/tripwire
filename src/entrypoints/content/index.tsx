@@ -13,7 +13,7 @@
  *  - Every handler is wrapped: a Tripwire error must never break the host page.
  */
 import '../../ui/tripwire.css';
-import { useSyncExternalStore } from 'react';
+import { useLayoutEffect, useRef, useSyncExternalStore, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { followTextSize } from '../../ui/textSize';
 import { createShadowRootUi, defineContentScript, type ContentScriptContext } from '#imports';
@@ -127,9 +127,34 @@ function startTopFrame(ctx: ContentScriptContext): void {
     return () => listeners.delete(l);
   };
 
+  /**
+   * The caution banner pushes the page down by its own height instead of covering the site's header
+   * (and follows it when "Why?" opens). The page's own top margin comes back when it closes.
+   */
+  function PushDown({ children }: { children: ReactNode }) {
+    const ref = useRef<HTMLDivElement>(null);
+    useLayoutEffect(() => {
+      const banner = ref.current?.querySelector<HTMLElement>('.tw-banner');
+      if (!banner) return;
+      const root = document.documentElement;
+      const before = root.style.getPropertyValue('margin-top');
+      const priority = root.style.getPropertyPriority('margin-top');
+      const apply = () => root.style.setProperty('margin-top', `${Math.ceil(banner.getBoundingClientRect().height) + 24}px`, 'important');
+      apply();
+      const watch = new ResizeObserver(apply);
+      watch.observe(banner);
+      return () => {
+        watch.disconnect();
+        if (before) root.style.setProperty('margin-top', before, priority);
+        else root.style.removeProperty('margin-top');
+      };
+    }, []);
+    return <div ref={ref}>{children}</div>;
+  }
+
   function App() {
     const v = useSyncExternalStore(subscribe, () => view);
-    if (v.kind === 'banner') return <Banner verdict={v.verdict} onDismiss={dismiss} />;
+    if (v.kind === 'banner') return <PushDown><Banner verdict={v.verdict} onDismiss={dismiss} /></PushDown>;
     if (v.kind === 'checking') {
       return (
         <div className="tw tw-checking" role="status">
