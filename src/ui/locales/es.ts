@@ -110,6 +110,7 @@ export const ES: LocaleBundle = {
     primary: 'Parar y estar a salvo',
     secondary: 'Estoy seguro, continuar',
     holdLead: 'Las emergencias de verdad pueden esperar 5 minutos. Las estafas no.',
+    holdLeadFamily: 'Las emergencias de verdad pueden esperar a que su familia hable con usted. Las estafas no.',
     holdHangUp: 'Si alguien está al teléfono con usted, cuelgue primero.',
     holdCall: 'Luego llame al número que está detrás de su tarjeta o en una factura que ya tenga. Nunca a un número que le dieron.',
     holdWait: (time: string) => `Podrá continuar en ${time}`,

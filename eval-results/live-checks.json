@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-11-28T02:11:32.912Z",
+  "ranAt": "2026-11-28T02:19:53.611Z",
   "where": "live Firebase project, Chromium with the extension loaded",
   "steps": [
     {
@@ -15,7 +15,7 @@
     {
       "state": "pass",
       "name": "explanations in the browser language (Spanish, cloud path)",
-      "note": "cloud_fallback: Crea una falsa urgencia diciendo que su cuenta está bloqueada."
+      "note": "cloud_fallback: Amenaza con cerrar su cuenta hoy mismo."
     },
     {
       "state": "pass",
@@ -35,7 +35,7 @@
     {
       "state": "pass",
       "name": "stopping a scam sends an alert that appears on the family page",
-      "note": "Today 9:11 PM Fake bank message A message posing as a bank asked for account or card details. Opened a suspicious page They stopped No action needed, though they may appreciate hearing from you."
+      "note": "Today 9:19 PM Fake bank message A message posing as a bank asked for account or card details. Opened a suspicious page They stopped No action needed, though they may appreciate hearing from you."
     },
     {
       "state": "pass",

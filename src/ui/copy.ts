@@ -149,6 +149,7 @@ export const INTERSTITIAL = {
   primary: 'Stop and stay safe',
   secondary: 'I’m sure, continue',
   holdLead: 'Real emergencies can wait 5 minutes. Scams can’t.',
+  holdLeadFamily: 'Real emergencies can wait until your family has talked to you. Scams can’t.',
   holdHangUp: 'If someone is on the phone with you, hang up first.',
   holdCall: 'Then call the number on the back of your card, or on a bill you already have. Never a number they gave you.',
   holdWait: (time: string) => `You can continue in ${time}`,

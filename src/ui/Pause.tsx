@@ -97,6 +97,7 @@ export function Pause({
   const Question = heading === 'h1' ? 'h2' : 'h3';
   const transfer = tripFor(verdict) === 'money_transfer';
   const giftBuy = verdict.moment === 'gift_purchase';
+  const reassurance = <p className="tw-body">{transfer ? TRANSFER.reassurance : giftBuy ? GIFT_BUY.reassurance : INTERSTITIAL.reassurance}</p>;
   // The one reason most likely to persuade, on the main screen; the rest stay behind "Why".
   const flags = verdict.redFlags.length > 0 ? flagsFor(verdict) : [];
   const [topFlag, ...moreFlags] = flags;
@@ -126,7 +127,7 @@ export function Pause({
             </p>
           )}
           <Question className="tw-h2">{transfer ? TRANSFER.question : giftBuy ? GIFT_BUY.question : INTERSTITIAL.question}</Question>
-          <p className="tw-body">{transfer ? TRANSFER.reassurance : giftBuy ? GIFT_BUY.reassurance : INTERSTITIAL.reassurance}</p>
+          {!held && reassurance}
           {note}
           <div className="tw-col-start">
             <button ref={stopRef} type="button" className="tw-btn tw-btn--xl" onClick={byPerson(onStop)}>
@@ -151,10 +152,12 @@ export function Pause({
               </button>
             )}
           </div>
+          {/* On a held pause the reason, the question, "Stop" and the timer come first; the rest follows. */}
+          {held && reassurance}
           {/* After the safe button, so "Stop" stays on screen on short laptops. */}
           {held && (
             <div className="tw-hold" role="note">
-              <p className="tw-hold__lead">{INTERSTITIAL.holdLead}</p>
+              <p className="tw-hold__lead">{hold.family.decision === 'extended' ? INTERSTITIAL.holdLeadFamily : INTERSTITIAL.holdLead}</p>
               <p>{INTERSTITIAL.holdHangUp}</p>
               <p>{INTERSTITIAL.holdCall}</p>
             </div>

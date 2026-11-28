@@ -110,6 +110,7 @@ export const FR: LocaleBundle = {
     primary: 'Arrêter et rester en sécurité',
     secondary: 'Je suis sûr, continuer',
     holdLead: 'Les vraies urgences peuvent attendre 5 minutes. Les arnaques, non.',
+    holdLeadFamily: 'Les vraies urgences peuvent attendre que votre famille vous ait parlé. Les arnaques, non.',
     holdHangUp: 'Si quelqu’un est au téléphone avec vous, raccrochez d’abord.',
     holdCall: 'Puis appelez le numéro au dos de votre carte, ou sur une facture que vous avez déjà. Jamais un numéro qu’on vous a donné.',
     holdWait: (time: string) => `Vous pourrez continuer dans ${time}`,
