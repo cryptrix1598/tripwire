@@ -93,6 +93,16 @@ try {
     if ((await page.locator('tripwire-ui').count()) !== 0) throw new Error('Tripwire UI appeared on a safe page');
   });
 
+  await step('a real store, a cart of gift cards: the phone question and the five-minute hold', async () => {
+    await page.goto(`${DEMO}/giftcards.html`);
+    await page.locator('#cc').click();
+    await expectVisible(ui(page).getByText('Is someone on the phone telling you to buy these gift cards?'));
+    await expectVisible(ui(page).getByText('You are about to pay for gift cards.'));
+    await expectVisible(ui(page).getByText(/You can continue in [0-4]:[0-9]{2}|You can continue in 5:00/));
+    await page.waitForTimeout(400);
+    await page.screenshot({ path: 'docs/screenshots/pause-gift-purchase.png' });
+  });
+
   let routeLine = '';
   await step('fake bank message: flagged on reading, with reasons and a route badge', async () => {
     await page.goto(`${DEMO}/bank.html`);

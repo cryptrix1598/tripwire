@@ -27,7 +27,8 @@ import { send, type AssessReply, type ToContent } from '../../messaging';
 import { describeField, isCardField, mayInspectValue, valueIsCardNumber } from '../../tripwires/cardField';
 import { addsNewPayee, isTransferField, transferContext } from '../../tripwires/transfer';
 import { Banner } from '../../ui/Banner';
-import { BANNER, TRANSFER } from '../../ui/copy';
+import { BANNER, GIFT_BUY, TRANSFER } from '../../ui/copy';
+import { buysGiftCards } from '../../tripwires/giftPurchase';
 import { applyLocale } from '../../ui/locale';
 import { Pause } from '../../ui/Pause';
 
@@ -397,6 +398,24 @@ function startTopFrame(ctx: ContentScriptContext): void {
     });
   }
 
+  /**
+   * Gift cards worth $200 or more in the cart, at the moment of paying. The store is real; the story
+   * ("buy the cards and read me the numbers") is told on the phone. Decided by the rules on this computer.
+   */
+  function onGiftPurchase(): boolean {
+    if (heldDone.has('gift_card') || view.kind === 'pause') return false;
+    if (!buysGiftCards((document.body?.innerText ?? '').slice(0, 20_000))) return false;
+    show({
+      kind: 'pause',
+      verdict: {
+        state: 'tripped', riskScore: 0, scamType: 'gift_card', redFlags: [GIFT_BUY.reason], explanation: GIFT_BUY.explanation,
+        confidence: 1, route: 'not_checked', trigger: 'gift_card', hold: true, moment: 'gift_purchase',
+        bytesSentToCloud: 0, redactionCount: 0, failSafe: false, cloudUnreachable: false, promptVersion: '', elapsedMs: 0,
+      },
+    });
+    return true;
+  }
+
   const scheduler = createScanScheduler(() => void onPageText().catch(() => undefined), { maxScans: isWebmail(hostname) ? 60 : 8 });
 
   ctx.addEventListener(
@@ -427,7 +446,7 @@ function startTopFrame(ctx: ContentScriptContext): void {
             release();
           });
         };
-        if (isCardField(info)) return held('card_entry', 'card');
+        if (isCardField(info)) return void (onGiftPurchase() || held('card_entry', 'card'));
         const hay = [info.name, info.id, info.placeholder, info.ariaLabel, info.labelText].join(' ');
         if (GIFT_FIELD.test(hay)) return held('gift_card', 'code');
         if (WALLET_FIELD.test(hay)) return held('crypto_wire', 'code');

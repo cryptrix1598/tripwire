@@ -8,7 +8,7 @@
  */
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Trigger, Verdict } from '../inference/schemas';
-import { INTERSTITIAL, POPUP, TRANSFER, TRIP_LEAD } from './copy';
+import { GIFT_BUY, INTERSTITIAL, POPUP, TRANSFER, TRIP_LEAD } from './copy';
 import { HOLD_MS, HOLD_TRIGGERS, clock, type FamilyDecision } from './hold';
 import { send, type HoldReply } from '../messaging';
 import { Brand, RouteLine, SentReceipt, byPerson, flagsFor, routeExplanation, DecidedBy } from './kit';
@@ -26,6 +26,7 @@ function tripFor(verdict: Verdict): Trigger {
 const PHONE_TRIGGERS = new Set<Trigger>(['phone_call', 'gift_card', 'crypto_wire', 'remote_download', 'money_transfer']);
 
 export function leadFor(verdict: Verdict): string {
+  if (verdict.moment === 'gift_purchase') return GIFT_BUY.lead;
   const trigger = tripFor(verdict);
   // A tech-support page read passively keeps the general opening line.
   return TRIP_LEAD[trigger === 'phone_call' && verdict.trigger === 'passive' ? 'passive' : trigger];
@@ -95,6 +96,7 @@ export function Pause({
   const Title = heading;
   const Question = heading === 'h1' ? 'h2' : 'h3';
   const transfer = tripFor(verdict) === 'money_transfer';
+  const giftBuy = verdict.moment === 'gift_purchase';
   // The one reason most likely to persuade, on the main screen; the rest stay behind "Why".
   const flags = verdict.redFlags.length > 0 ? flagsFor(verdict) : [];
   const [topFlag, ...moreFlags] = flags;
@@ -123,8 +125,8 @@ export function Pause({
               <span>{topFlag}</span>
             </p>
           )}
-          <Question className="tw-h2">{transfer ? TRANSFER.question : INTERSTITIAL.question}</Question>
-          <p className="tw-body">{transfer ? TRANSFER.reassurance : INTERSTITIAL.reassurance}</p>
+          <Question className="tw-h2">{transfer ? TRANSFER.question : giftBuy ? GIFT_BUY.question : INTERSTITIAL.question}</Question>
+          <p className="tw-body">{transfer ? TRANSFER.reassurance : giftBuy ? GIFT_BUY.reassurance : INTERSTITIAL.reassurance}</p>
           {note}
           <div className="tw-col-start">
             <button ref={stopRef} type="button" className="tw-btn tw-btn--xl" onClick={byPerson(onStop)}>

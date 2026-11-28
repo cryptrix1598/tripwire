@@ -84,6 +84,14 @@ export const ES: LocaleBundle = {
     rules_overruled: 'Gemini Nano dijo que parecía bien, pero las reglas integradas encontraron señales fuertes.',
     device_alone: 'Gemini Nano, sin una segunda opinión disponible.',
   },
+  GIFT_BUY: {
+    lead: 'Está a punto de pagar tarjetas de regalo.',
+    question: '¿Alguien al teléfono le está diciendo que compre estas tarjetas de regalo?',
+    reassurance:
+      'Ninguna empresa, banco u oficina del gobierno de verdad cobra con tarjetas de regalo. Si alguien al teléfono le pidió comprarlas y leerle los números, es una estafa: cuelgue.',
+    reason: 'Está comprando tarjetas de regalo por mucho dinero. Los estafadores las piden porque el dinero no se puede rastrear ni recuperar.',
+    explanation: 'Muchas estafas telefónicas se cobran con tarjetas de regalo. En cuanto se leen los números de atrás, el dinero se pierde.',
+  },
   TRANSFER: {
     question: '¿Alguien al teléfono le está diciendo que mueva dinero?',
     reassurance:

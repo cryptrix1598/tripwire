@@ -131,6 +131,15 @@ export const TRANSFER = {
   explanation: 'Moving money to a new account, especially soon after a frightening call or message, is how the costliest scams end. Money sent this way usually cannot be brought back.',
 };
 
+export const GIFT_BUY = {
+  lead: 'You are about to pay for gift cards.',
+  question: 'Is someone on the phone telling you to buy these gift cards?',
+  reassurance:
+    'No real company, bank or government office is ever paid in gift cards. If someone on the phone asked you to buy them and read out the numbers, it is a scam: hang up.',
+  reason: 'You are buying gift cards worth a lot of money. Scammers ask for them because the money cannot be traced or brought back.',
+  explanation: 'Gift cards are how many phone scams get paid. Once the numbers on the back are read out, the money is gone.',
+};
+
 export const INTERSTITIAL = {
   dialogLabel: 'Tripwire paused this page',
   title: 'Let’s pause for a moment',

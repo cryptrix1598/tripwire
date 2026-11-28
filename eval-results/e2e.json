@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-11-28T01:59:12.555Z",
+  "ranAt": "2026-11-28T02:04:19.127Z",
   "browser": "Chromium (Playwright), extension loaded",
   "steps": [
     {
@@ -9,6 +9,10 @@
     {
       "state": "pass",
       "name": "ordinary checkout: nothing is added to the page, even with a card number typed"
+    },
+    {
+      "state": "pass",
+      "name": "a real store, a cart of gift cards: the phone question and the five-minute hold"
     },
     {
       "state": "pass",

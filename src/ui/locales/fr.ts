@@ -84,6 +84,14 @@ export const FR: LocaleBundle = {
     rules_overruled: 'Gemini Nano a trouvé que tout allait bien, mais les règles intégrées ont trouvé des signes forts.',
     device_alone: 'Gemini Nano, sans deuxième avis disponible.',
   },
+  GIFT_BUY: {
+    lead: 'Vous êtes sur le point de payer des cartes cadeaux.',
+    question: 'Quelqu’un au téléphone vous dit-il d’acheter ces cartes cadeaux ?',
+    reassurance:
+      'Aucune vraie entreprise, banque ou administration ne se fait payer en cartes cadeaux. Si quelqu’un au téléphone vous a demandé de les acheter et de lui lire les numéros, c’est une arnaque : raccrochez.',
+    reason: 'Vous achetez des cartes cadeaux pour une grosse somme. Les escrocs les demandent parce que l’argent ne peut être ni suivi ni récupéré.',
+    explanation: 'Beaucoup d’arnaques par téléphone se font payer en cartes cadeaux. Une fois les numéros au dos lus, l’argent est perdu.',
+  },
   TRANSFER: {
     question: 'Quelqu’un au téléphone vous dit-il de déplacer de l’argent ?',
     reassurance:

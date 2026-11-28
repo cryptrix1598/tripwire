@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Checkout · Corner Market</title>
+    <link rel="stylesheet" href="./demo.css" />
+  </head>
+  <body>
+    <!-- The "practice page" notice is drawn by CSS (demo.css), so people see it but it is not part of the page text Tripwire reads: a real scam page carries no such disclaimer. -->
+    <p class="practice"><a href="./" aria-label="Practice page. Everything on it is invented. Back to the list">Back to the list</a></p>
+    <div class="site" style="background: #8a2b2b">Corner Market</div>
+    <main data-scenario="gift-purchase" data-trigger="card_entry">
+      <h1>Checkout</h1>
+      <p class="meta">Order summary</p>
+      <p>Your cart: 4 × Google Play gift card $100. 2 × Apple Gift Card $200. Subtotal $800.00, total $800.00.</p>
+      <p>Digital gift cards are sent by email within minutes of your order. Gift cards cannot be returned or refunded.</p>
+      <form onsubmit="return false">
+        <h2>Payment</h2>
+        <label for="name">Name on card</label>
+        <input id="name" name="ccname" autocomplete="cc-name" />
+        <label for="cc">Card number</label>
+        <input id="cc" name="cardnumber" autocomplete="cc-number" inputmode="numeric" />
+        <label for="exp">Expiry date</label>
+        <input id="exp" name="cc-exp" autocomplete="cc-exp" placeholder="MM / YY" />
+        <button class="cta calm" type="submit">Place order</button>
+      </form>
+    </main>
+    <!-- Lets this page be tried without the extension when it is served from the hosted demo. -->
+    <script type="module" src="/try.js"></script>
+  </body>
+</html>

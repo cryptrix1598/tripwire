@@ -195,6 +195,8 @@ export interface Verdict {
   decidedBy?: DecisionStep;
   /** Whether "continue" waits five minutes. Set only where the moment decides (a money transfer); otherwise the trigger does. */
   hold?: boolean;
+  /** A moment the rules decide on their own, which asks its own question (buying gift cards at a store). */
+  moment?: 'gift_purchase';
   /** The on-device model exists on this computer but is still downloading, so the cloud path was used. */
   modelDownloading?: boolean;
   promptVersion: string;
