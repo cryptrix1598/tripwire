@@ -71,7 +71,8 @@ class MessageWatchService : NotificationListenerService() {
         if (key in recent) return
         recent.addLast(key)
         while (recent.size > 50) recent.removeFirst()
-        if (!MessageWatch.hasASign(text)) return
+        // Every new message is read by Gemini Nano on the phone (when it is ready), not only those the
+        // keyword rules flag: quiet scams use none of the listed words. Nothing is sent to the cloud.
         scope.launch {
             val result = try {
                 checker.check(text.take(4000), allowCloud = false)
@@ -90,11 +91,13 @@ class MessageWatchService : NotificationListenerService() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
         val title = getString(if (result.verdict == Verdict.HANG_UP) R.string.watch_title_scam else R.string.watch_title_careful)
+        // The most specific reason first (written by the model on the phone), then the fixed advice.
+        val body = result.reasons.firstOrNull()?.let { it + "\n\n" + getString(R.string.watch_body) } ?: getString(R.string.watch_body)
         val notification = NotificationCompat.Builder(this, CHANNEL)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
-            .setContentText(getString(R.string.watch_body))
-            .setStyle(NotificationCompat.BigTextStyle().bigText(getString(R.string.watch_body)))
+            .setContentText(result.reasons.firstOrNull() ?: getString(R.string.watch_body))
+            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(open)

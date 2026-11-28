@@ -251,7 +251,7 @@ Gemini Nano needs Chrome 139+ on a desktop with about 22 GB of free disk and eit
 
 ## Android companion (preview)
 
-**New: it can check texts as they arrive.** With the person's permission (Android's notification access, turned on from the "Is this a scam?" screen), new text and chat notifications that show a warning sign are checked by Gemini Nano on the phone, and only on the phone: this automatic check never sends anything to the cloud, and the text is never stored. A scam gets its own notification: do not reply, do not call back, never read out a code ([MessageWatch.kt](android/app/src/main/java/app/tripwire/guardian/check/MessageWatch.kt)).
+**New: it can check texts as they arrive.** With the person's permission (Android's notification access, turned on from the "Is this a scam?" screen), every new text and chat message is read by Gemini Nano on the phone (not only those the keyword rules flag), and only on the phone: this automatic check never sends anything to the cloud, and the text is never stored. A scam gets its own notification, led by the most specific reason the model found: do not reply, do not call back, never read out a code ([MessageWatch.kt](android/app/src/main/java/app/tripwire/guardian/check/MessageWatch.kt)).
 
 > **A preview, not the product being judged.** The Android app builds and its 35 unit tests pass, but it has not been run on a phone or an emulator yet. The Chrome extension is the entry; the app shows where the same privacy gate goes next.
 
