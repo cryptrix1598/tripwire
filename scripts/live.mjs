@@ -191,6 +191,24 @@ try {
     await bank.close();
     return 'family connected minutes ago is offered only "keep it on hold" (the live rules refuse a release too, see tests/rules); the 30-minute extension went through and showed on the pause';
   });
+
+  // Disconnecting the family: refused within an hour of a warning (there were two above); allowed
+  // after that, and the family page then says it was disconnected instead of going quiet.
+  await step('disconnecting the family: refused right after a warning, and the family page notices', async () => {
+    const settings = await context.newPage();
+    await settings.goto(ext('settings.html'));
+    await settings.getByRole('button', { name: 'Disconnect everyone' }).click();
+    await settings.getByRole('button', { name: 'Yes, disconnect everyone' }).click();
+    await settings.getByText('Tripwire warned you less than an hour ago').waitFor({ timeout: 30_000 });
+    await worker.evaluate(() => chrome.storage.session.remove('risk:lastAt'));
+    await settings.getByRole('button', { name: 'Disconnect everyone' }).click();
+    await settings.getByRole('button', { name: 'Yes, disconnect everyone' }).click();
+    await settings.getByText('Disconnected. Nobody is being sent alerts now.').waitFor({ timeout: 30_000 });
+    await settings.close();
+    await family.bringToFront();
+    await family.getByText("Mom's computer has disconnected this page").waitFor({ timeout: 60_000 });
+    return 'refused within the hour; after it, disconnected, and the family page said so';
+  });
 } finally {
   await context.close();
   await server.close();

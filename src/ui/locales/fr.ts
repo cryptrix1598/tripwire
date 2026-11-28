@@ -404,6 +404,8 @@ export const FR: LocaleBundle = {
       holdExtend: 'Retenir encore 30 minutes',
       holdReleased: 'Vous avez laissé passer',
       holdExtended: 'Vous lui avez demandé d’attendre 30 minutes de plus',
+      disconnected: (name: string) =>
+        `L’ordinateur de ${name} a déconnecté cette page : vous ne recevrez plus ses alertes. Si vous ne vous y attendiez pas, appelez cette personne : les escrocs demandent parfois d’écarter la famille.`,
       holdNewFamily: 'Vous êtes connecté depuis moins d’un jour : vous pouvez garder cette attente, mais pas encore la laisser passer. Ainsi, un inconnu qui l’a convaincu de vous connecter ne peut pas la lever.',
       holdFailed: 'Cela n’a pas fonctionné. Un proche connecté depuis moins d’un jour peut prolonger l’attente mais pas laisser passer ; sinon, vérifiez votre connexion et réessayez.',
       quiet: (when: string) =>

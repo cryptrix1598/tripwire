@@ -404,6 +404,8 @@ export const ES: LocaleBundle = {
       holdExtend: 'Mantenerlo detenido 30 minutos',
       holdReleased: 'Usted lo dejó pasar',
       holdExtended: 'Usted le pidió que espere 30 minutos más',
+      disconnected: (name: string) =>
+        `La computadora de ${name} desconectó esta página, así que ya no recibirá avisos de él. Si no lo esperaba, llámele: a veces los estafadores piden a la gente que aparte a su familia.`,
       holdNewFamily: 'Se conectó hace menos de un día, así que puede mantenerlo en espera, pero todavía no dejarlo pasar. Así un desconocido que le convenció de conectarse no puede liberarlo.',
       holdFailed: 'No se pudo. Un familiar conectado en el último día puede mantener la espera, pero no dejarlo pasar; si no es eso, revise su conexión e inténtelo de nuevo.',
       quiet: (when: string) =>

@@ -583,6 +583,8 @@ export const DASHBOARD = {
     holdExtend: 'Keep it on hold for 30 minutes',
     holdReleased: 'You let it go through',
     holdExtended: 'You asked them to wait 30 more minutes',
+    disconnected: (name: string) =>
+      `${name}'s computer has disconnected this page, so you will not get alerts from it. If you did not expect that, call them: scammers sometimes tell people to cut their family off.`,
     holdNewFamily: 'You connected less than a day ago, so you can keep this on hold but not let it go through yet. That way a stranger who talked them into connecting cannot release it.',
     holdFailed: 'That did not go through. Family connected in the last day can keep a hold but not let it go through; otherwise check your internet and try again.',
     quiet: (when: string) =>

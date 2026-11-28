@@ -247,6 +247,9 @@ export function AlertRow({ alert }: { alert: Alert }) {
 const QUIET_AFTER_MS = 3 * 86_400_000;
 
 /** "Tripwire last checked in today", or, after a few silent days, a gentle nudge to call. */
+/** Computers whose alerts this page has read at least once, so a later refusal means "disconnected", not "not allowed yet". */
+const connectedOnce = new Set<string>();
+
 function LastSeen({ deviceId }: { deviceId: string }) {
   const [seen, setSeen] = useState<Timestamp | null>(null);
   useEffect(() => {
@@ -364,6 +367,7 @@ function Feed({ person }: { person: Person }) {
   const [alerts, setAlerts] = useState<Alert[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [waiting, setWaiting] = useState(false);
+  const [disconnected, setDisconnected] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const feed = DASHBOARD.feed;
 
@@ -375,12 +379,16 @@ function Feed({ person }: { person: Person }) {
       q,
       (snap) => {
         setWaiting(false);
+        setDisconnected(false);
+        connectedOnce.add(person.deviceId);
         setAlerts(snap.docs.map((d) => ({ id: d.id, ...(d.data({ serverTimestamps: 'estimate' }) as Omit<Alert, 'id'>) })));
       },
       (err) => {
         // Until they tap "Yes, allow", the rules refuse: wait and try again.
         if ((err as { code?: string }).code === 'permission-denied') {
-          setWaiting(true);
+          // Read before and refused now: they disconnected this page on their computer.
+          if (connectedOnce.has(person.deviceId)) setDisconnected(true);
+          else setWaiting(true);
           retry = setTimeout(() => setAttempt((n) => n + 1), 3000);
         } else setFailed(true);
       },
@@ -390,6 +398,20 @@ function Feed({ person }: { person: Person }) {
       stop();
     };
   }, [person.deviceId, attempt]);
+
+  // A listener is not always cut off when access goes, so also look for this page's own link now and then.
+  useEffect(() => {
+    const uid = auth?.currentUser?.uid;
+    if (!uid) return;
+    const look = () =>
+      void getDoc(doc(db!, 'devices', person.deviceId, 'guardians', uid))
+        .then((s) => {
+          if (!s.exists() && connectedOnce.has(person.deviceId)) setDisconnected(true);
+        })
+        .catch(() => undefined);
+    const t = setInterval(look, 30_000);
+    return () => clearInterval(t);
+  }, [person.deviceId]);
 
   return (
     <>
@@ -406,8 +428,13 @@ function Feed({ person }: { person: Person }) {
           </p>
         )}
       </div>
-      {!waiting && <HoldCard deviceId={person.deviceId} />}
-      {waiting ? (
+      {!waiting && !disconnected && <HoldCard deviceId={person.deviceId} />}
+      {disconnected ? (
+        <p className="tw-notice" role="alert">
+          <NoticeIcon />
+          <span>{feed.disconnected(person.nickname)}</span>
+        </p>
+      ) : waiting ? (
         <p className="tw-muted" role="status">{feed.waitingApproval}</p>
       ) : failed ? (
         <p className="tw-notice" role="alert">
