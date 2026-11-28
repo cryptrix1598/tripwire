@@ -28,6 +28,9 @@ export interface EvalRow {
   redactionCount: number;
   failSafe: boolean;
   elapsedMs: number;
+  /** Which router step decided (policy.ts), and why a cloud check failed, if one did. */
+  decidedBy?: string;
+  cloudFailure?: string;
   /** A scam that was flagged, or a benign page left alone. */
   correct: boolean;
 }
@@ -80,6 +83,8 @@ export async function runEval(
       redactionCount: verdict.redactionCount,
       failSafe: verdict.failSafe,
       elapsedMs: verdict.elapsedMs,
+      ...(verdict.decidedBy ? { decidedBy: verdict.decidedBy } : {}),
+      ...(verdict.cloudFailure ? { cloudFailure: verdict.cloudFailure } : {}),
       correct: s.label === 'scam' ? flagged : !flagged,
     };
     rows.push(row);
