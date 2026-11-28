@@ -2,7 +2,8 @@
 // as a constant 60 fps 4K MP4 with ffmpeg. Usage: npm run build && node scripts/demo-video.mjs
 // Output: video/raw/<scene>.mp4 (frames are kept only until each scene is encoded).
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { chromium } from 'playwright';
 import { createServer } from 'vite';
@@ -20,7 +21,13 @@ const playwrightDisabled = (/disabledFeatures = \[([\s\S]*?)\];/.exec(bundle)?.[
 
 const server = await createServer({ root: 'demo', configFile: false, logLevel: 'error', server: { port: 4174, strictPort: true, hmr: false, watch: null } });
 await server.listen();
-const context = await chromium.launchPersistentContext(resolve('.nano-profile'), {
+const FAMILY = process.argv.includes('--family');
+const context = FAMILY
+  ? await chromium.launchPersistentContext(mkdtempSync(join(tmpdir(), 'tripwire-film-')), {
+      channel: 'chromium', headless: true, viewport: { width: 1280, height: 720 }, deviceScaleFactor: 3,
+      args: [`--disable-extensions-except=${EXT}`, `--load-extension=${EXT}`],
+    })
+  : await chromium.launchPersistentContext(resolve('.nano-profile'), {
   channel: 'chrome',
   headless: true,
   viewport: { width: 1280, height: 720 },
@@ -115,13 +122,19 @@ async function scene(name, fn) {
 }
 
 try {
-  const browser = context.browser();
-  const cdp = await browser.newBrowserCDPSession();
-  const { id } = await cdp.send('Extensions.loadUnpacked', { path: EXT });
+  let id;
+  if (FAMILY) {
+    const worker = context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker', { timeout: 20_000 }));
+    id = new URL(worker.url()).host;
+  } else {
+    const cdp = await context.browser().newBrowserCDPSession();
+    ({ id } = await cdp.send('Extensions.loadUnpacked', { path: EXT }));
+  }
   const ext = (path) => `chrome-extension://${id}/${path}`;
   // Wait for Gemini Nano to be ready inside the extension before filming.
   const checks = await context.newPage();
   await checks.goto(ext('checks.html'));
+  if (!FAMILY) {
   const status = checks.locator('section.tw-card', { has: checks.getByRole('heading', { name: 'Status' }) });
   for (let i = 0; i < 20; i++) {
     await checks.getByRole('button', { name: 'Refresh status' }).click();
@@ -129,56 +142,165 @@ try {
     if (/"onDevice":\s*"available"/.test(await status.locator('pre').last().innerText())) break;
     await checks.waitForTimeout(3000);
   }
+  }
   await checks.close();
   const ui = (page) => page.locator('tripwire-ui');
+  const env = readFileSync('.env', 'utf8');
+  const DASHBOARD = (/^WXT_DASHBOARD_URL=(.+)$/m.exec(env)?.[1] ?? '').trim();
+  const TOKEN = (/^WXT_APPCHECK_DEBUG_TOKEN=(.+)$/m.exec(env)?.[1] ?? '').trim();
 
-  // 1. A fake bank message: Nano reads it on the computer and pauses the page.
-  await scene('1-scam-message', async (page) => {
+  /** A full-screen text card, recorded like any other scene. */
+  const card = (name, lines, ms) =>
+    FAMILY ? Promise.resolve() : scene(name, async (page) => {
+      const html = lines.map(([size, text, color]) => `<p style="font-size:${size}px;color:${color ?? '#f3f6fc'};margin:0 0 ${size * 0.6}px">${text}</p>`).join('');
+      await page.setContent(`<html><body style="margin:0;height:100vh;display:flex;align-items:center;background:#15315f;font-family:'Segoe UI',system-ui,sans-serif;font-weight:600"><div style="padding:0 120px;max-width:1000px;opacity:0;transition:opacity .6s" id="c">${html}</div></body></html>`);
+      await page.waitForTimeout(100);
+      await page.evaluate(() => { document.getElementById('c').style.opacity = '1'; });
+      await page.waitForTimeout(ms);
+    });
+
+  // Pair a family member first (no pairing code is shown within an hour of a warning). Not filmed.
+  let family;
+  if (FAMILY) {
+  const setup = await context.newPage();
+  await setup.goto(ext('onboarding.html'));
+  await setup.getByRole('button', { name: 'Continue' }).click();
+  await setup.getByRole('button', { name: 'Continue' }).click();
+  await setup.getByRole('button', { name: 'Show a pairing code' }).click();
+  await setup.locator('.tw-code').waitFor({ timeout: 30_000 });
+  const code = (await setup.locator('.tw-code').innerText()).replace(/\D/g, '');
+  family = await context.newPage();
+  await family.addInitScript((t) => { if (location.protocol.startsWith('http')) self.FIREBASE_APPCHECK_DEBUG_TOKEN = t; }, TOKEN);
+  await family.goto(DASHBOARD);
+  // This profile is kept between runs: start the family page signed out, as a new visitor.
+  await family.evaluate(async () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    for (const d of await indexedDB.databases()) if (d.name) indexedDB.deleteDatabase(d.name);
+  });
+  await family.reload();
+  await family.getByRole('button', { name: 'Continue without an account' }).click({ timeout: 60_000 });
+  await family.getByLabel('Eight-digit pairing code').fill(code);
+  await family.getByLabel('What should we call them?').fill('Mom');
+  await family.getByLabel('Your first name').fill('Sam');
+  await family.getByRole('button', { name: 'Connect' }).click();
+  await setup.getByRole('button', { name: 'Yes, allow' }).click({ timeout: 30_000 });
+  await setup.getByText('A family member is connected.').waitFor({ timeout: 30_000 });
+  // Real Chrome slows background tabs; bring the family page forward and load it fresh.
+  await family.bringToFront();
+  await family.reload();
+  try {
+    await family.getByRole('heading', { name: 'All quiet' }).waitFor({ timeout: 45_000 });
+  } catch (err) {
+    console.log('family page:', (await family.locator('body').innerText()).replace(/\s+/g, ' ').slice(0, 400));
+    console.log('setup page:', (await setup.locator('body').innerText().catch(() => '')).replace(/\s+/g, ' ').slice(0, 300));
+    throw err;
+  }
+  await setup.close();
+  console.log('  ok    family paired');
+
+  // A stop on the fake bank page, so the family page has an alert to show. Not filmed.
+  const pre = await context.newPage();
+  await pre.goto('http://localhost:4174/bank.html');
+  await ui(pre).locator('.tw-banner, .tw-overlay').first().waitFor({ timeout: 60_000 });
+  if ((await ui(pre).locator('.tw-overlay').count()) === 0) await pre.locator('#cc').focus();
+  await ui(pre).getByRole('button', { name: 'Stop and stay safe' }).click();
+  await pre.waitForURL(/safe\.html/, { timeout: 15_000 });
+  await pre.close();
+  }
+  await card('00-hook', [[64, 'Your mom gets a call.'], [44, '“Your bank account has been hacked. Move your savings to a safe account. Don’t tell anyone.”', '#c9d6ee']], 7000);
+  await card('01-problem', [[56, 'Scams like this cost older Americans billions every year.'], [40, 'Tripwire steps in at the moment the money would leave.', '#c9d6ee']], 5500);
+
+  if (!FAMILY) await scene('02-scam-message', async (page) => {
     await page.goto('http://localhost:4174/bank.html');
     await page.waitForTimeout(1200);
     await ui(page).locator('.tw-banner, .tw-overlay').first().waitFor({ timeout: 60_000 });
-    await page.waitForTimeout(3500);
+    await page.waitForTimeout(4000);
     const why = ui(page).getByRole('button', { name: /^Why/ }).first();
-    if (await why.count()) { await clickOn(page, why); await page.waitForTimeout(3500); }
+    if (await why.count()) { await clickOn(page, why); await page.waitForTimeout(4500); }
     await clickOn(page, ui(page).getByRole('button', { name: 'Stop and stay safe' }));
     await page.waitForURL(/safe\.html/, { timeout: 15_000 });
     await page.waitForTimeout(3500);
   });
 
-  // 2. An ordinary checkout: typing a card number, nothing appears.
-  await scene('2-ordinary-checkout', async (page) => {
+  if (!FAMILY) await scene('03-ordinary-checkout', async (page) => {
     await page.goto('http://localhost:4174/shop.html');
+    await page.waitForTimeout(1200);
+    await clickOn(page, page.locator('#cc'));
+    await page.keyboard.type('4111 1111 1111 1111', { delay: 70 });
+    await page.waitForTimeout(3000);
+  });
+
+  if (!FAMILY) await scene('04-tech-support-call', async (page) => {
+    await page.goto('http://localhost:4174/support.html');
+    await page.waitForTimeout(1500);
+    const pause = ui(page).locator('.tw-overlay');
+    if (!(await pause.count())) await clickOn(page, page.getByRole('link', { name: 'Call support now' }));
+    await pause.waitFor({ timeout: 60_000 });
+    await page.waitForTimeout(6000);
+  });
+
+  if (!FAMILY) await scene('05-gift-card-code', async (page) => {
+    await page.goto('http://localhost:4174/giftcard.html');
+    await page.waitForTimeout(1500);
+    const pause = ui(page).locator('.tw-overlay');
+    if (!(await pause.count())) await clickOn(page, page.locator('input').first());
+    await pause.waitFor({ timeout: 60_000 });
+    await page.waitForTimeout(5500);
+  });
+
+  if (!FAMILY) await scene('06-crypto-wallet', async (page) => {
+    await page.goto('http://localhost:4174/crypto.html');
+    await page.waitForTimeout(1500);
+    const pause = ui(page).locator('.tw-overlay');
+    if (!(await pause.count())) await clickOn(page, page.locator('input').first());
+    await pause.waitFor({ timeout: 60_000 });
+    await page.waitForTimeout(5000);
+  });
+
+  if (!FAMILY) await scene('07-gift-card-cart', async (page) => {
+    await page.goto('http://localhost:4174/giftcards.html');
     await page.waitForTimeout(1500);
     await clickOn(page, page.locator('#cc'));
-    await page.keyboard.type('4111 1111 1111 1111', { delay: 90 });
-    await page.waitForTimeout(4000);
-  });
-
-  // 3. Their own bank, a new payee: the money question and the five-minute hold.
-  await scene('3-bank-transfer', async (page) => {
-    await page.goto('http://localhost:4174/transfer.html');
-    await page.waitForTimeout(2000);
-    await clickOn(page, page.locator('#amount'));
-    if (!(await page.locator('#amount').evaluate((el) => el === document.activeElement))) await page.locator('#amount').focus();
-    if (process.argv.includes('--debug')) {
-      await page.waitForTimeout(8000);
-      const sw = context.serviceWorkers()[0];
-      console.log('ui nodes', await ui(page).evaluate((h) => (h.shadowRoot ? h.shadowRoot.innerHTML.length : -1)).catch((e) => String(e).slice(0, 80)));
-      console.log('local', JSON.stringify(await sw?.evaluate(async () => Object.keys(await chrome.storage.local.get(null)))));
-      console.log('session', JSON.stringify(await sw?.evaluate(async () => await chrome.storage.session.get(null))).slice(0, 600));
-    }
-    await ui(page).getByText('Is someone on the phone telling you to move money?').waitFor({ timeout: 60_000 });
-    await page.waitForTimeout(6000);
-  });
-
-  // 4. Gift cards at a real store: the gift-card question and the hold.
-  await scene('4-gift-cards', async (page) => {
-    await page.goto('http://localhost:4174/giftcards.html');
-    await page.waitForTimeout(2000);
-    await clickOn(page, page.locator('#cc'));
     await ui(page).getByText('Is someone on the phone telling you to buy these gift cards?').waitFor({ timeout: 60_000 });
+    await page.waitForTimeout(5500);
+  });
+
+  if (FAMILY) await scene('08-bank-transfer', async (page) => {
+    await page.goto('http://localhost:4174/transfer.html');
+    await page.waitForTimeout(1500);
+    await clickOn(page, page.locator('#amount'));
+    await ui(page).getByText('Is someone on the phone telling you to move money?').waitFor({ timeout: 60_000 });
+    await page.waitForTimeout(5000);
+    // Meanwhile, on the family page: "Keep it on hold for 30 minutes".
+    await family.getByRole('button', { name: 'Keep it on hold for 30 minutes' }).click({ timeout: 60_000 });
+    await ui(page).getByText('Your family asked you to wait').waitFor({ timeout: 60_000 });
+    await page.waitForTimeout(5000);
+  });
+
+  if (FAMILY) await scene('09-family-page', async (page) => {
+    await page.addInitScript((t) => { if (location.protocol.startsWith('http')) self.FIREBASE_APPCHECK_DEBUG_TOKEN = t; }, TOKEN);
+    await page.goto(DASHBOARD);
+    await page.getByText('They stopped').first().waitFor({ timeout: 60_000 });
+    await page.waitForTimeout(4000);
+    await page.mouse.wheel(0, 500);
+    await page.waitForTimeout(5000);
+  });
+
+  if (!FAMILY) await scene('10-call-check', async (page) => {
+    await page.goto(ext('call.html'));
+    await page.waitForTimeout(1500);
+    for (const choice of ['My bank', 'Read them a code from my phone', 'Telling me to keep it secret', 'Rushing me or threatening']) {
+      await clickOn(page, page.getByRole('button', { name: choice }));
+      await page.waitForTimeout(500);
+    }
+    await clickOn(page, page.getByRole('button', { name: 'Check this call' }));
+    await page.locator('section[aria-live] .tw-route, p[role=alert]').first().waitFor({ timeout: 90_000 });
     await page.waitForTimeout(6000);
   });
+
+  await card('11-hybrid', [[52, 'Gemini Nano decides on your computer.'], [40, 'Only when it is unsure does a redacted copy go to the cloud, and Tripwire shows exactly what was sent.', '#c9d6ee'], [32, 'Firebase AI Logic hybrid inference · App Check · Remote Config', '#9fb3d9']], 8000);
+  await card('12-close', [[72, 'Tripwire'], [40, 'Free and open source · English, Spanish, French · Chrome and Android', '#c9d6ee'], [32, 'github.com/cryptrix1598/tripwire', '#9fb3d9']], 6000);
 } finally {
   await context.close();
   await server.close();
