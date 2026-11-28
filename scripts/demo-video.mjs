@@ -306,11 +306,13 @@ try {
     await clickOn(page, page.getByRole('button', { name: 'Check this call' }));
     await page.locator('section[aria-live] .tw-route, p[role=alert]').first().waitFor({ timeout: 90_000 });
     await page.waitForTimeout(4000);
-    const sent = page.getByRole('button', { name: 'See exactly what was sent' }).first();
+    const sent = page.getByRole('button', { name: 'See exactly what was sent' }).filter({ visible: true }).first();
     if (await sent.count()) {
-      await clickOn(page, sent);
+      // The receipt is a bonus shot: never let it stop the film.
+      const box = await sent.boundingBox().catch(() => null);
+      if (box) await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 30 });
+      await sent.click({ timeout: 5000 }).catch(() => undefined);
       await page.waitForTimeout(1200);
-      await sent.scrollIntoViewIfNeeded();
       await page.mouse.wheel(0, 300);
       await page.waitForTimeout(6000);
     }
