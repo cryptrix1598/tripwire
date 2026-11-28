@@ -284,7 +284,19 @@ function HoldCard({ deviceId }: { deviceId: string }) {
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
   const [, setTick] = useState(0);
+  // "Let it go through" is offered only to family connected over a day ago (the security rules say the same).
+  const [canRelease, setCanRelease] = useState(false);
   const feed = DASHBOARD.feed;
+  useEffect(() => {
+    const uid = auth?.currentUser?.uid;
+    if (!uid) return;
+    getDoc(doc(db!, 'devices', deviceId, 'guardians', uid))
+      .then((s) => {
+        const at = s.data()?.approvedAt as Timestamp | undefined;
+        setCanRelease(at !== undefined && typeof at.toMillis === 'function' && Date.now() - at.toMillis() > 24 * 3_600_000);
+      })
+      .catch(() => setCanRelease(false));
+  }, [deviceId]);
   useEffect(
     () =>
       onSnapshot(
@@ -331,10 +343,13 @@ function HoldCard({ deviceId }: { deviceId: string }) {
         <button type="button" className="tw-btn" disabled={busy} onClick={() => void answer('extended')}>
           {feed.holdExtend}
         </button>
-        <button type="button" className="tw-btn tw-btn--outline" disabled={busy} onClick={() => void answer('released')}>
-          {feed.holdRelease}
-        </button>
+        {canRelease && (
+          <button type="button" className="tw-btn tw-btn--outline" disabled={busy} onClick={() => void answer('released')}>
+            {feed.holdRelease}
+          </button>
+        )}
       </div>
+      {!canRelease && <p className="tw-muted">{feed.holdNewFamily}</p>}
       {failed && (
         <p className="tw-notice" role="alert">
           <NoticeIcon />

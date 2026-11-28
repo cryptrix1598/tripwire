@@ -320,8 +320,12 @@ async function handle(msg: ToBackground, sender: chrome.runtime.MessageSender): 
     case 'pairing-finish':
       await toOffscreen({ target: 'offscreen', type: 'pairing-finish' });
       return { ok: true };
-    case 'family-disconnect':
+    case 'family-disconnect': {
+      // "Cut your family off" is a scammer's line too: not within an hour of a warning.
+      const at = (await chrome.storage.session.get(RISK_KEY))[RISK_KEY];
+      if (riskIsRecent(typeof at === 'number' ? at : undefined, Date.now(), (await loadConfig()).thresholds.recentRiskMinutes * 60_000)) return { ok: false, reason: 'recent_risk' };
       return (await toOffscreen<{ ok: boolean }>({ target: 'offscreen', type: 'family-disconnect' })) ?? { ok: false };
+    }
     case 'get-pending-download': {
       const key = DOWNLOAD_KEY(msg.downloadId);
       const stored = (await chrome.storage.session.get(key))[key] as PendingDownloadReply | undefined;

@@ -305,6 +305,7 @@ export const ES: LocaleBundle = {
       cancel: 'Mantenerlos conectados',
       done: 'Desconectados. Ya no se envían avisos a nadie.',
       failed: 'No funcionó. Revise su conexión a internet e inténtelo de nuevo.',
+      recentRisk: 'Tripwire le avisó hace menos de una hora, así que su familia sigue conectada por ahora. Si alguien al teléfono le dijo que hiciera esto, cuelgue y llame a su familia.',
       add: 'Conectar a un familiar',
     },
     back: 'Cerrar esta pestaña',
@@ -395,6 +396,7 @@ export const ES: LocaleBundle = {
       holdExtend: 'Mantenerlo detenido 30 minutos',
       holdReleased: 'Usted lo dejó pasar',
       holdExtended: 'Usted le pidió que espere 30 minutos más',
+      holdNewFamily: 'Se conectó hace menos de un día, así que puede mantenerlo en espera, pero todavía no dejarlo pasar. Así un desconocido que le convenció de conectarse no puede liberarlo.',
       holdFailed: 'No se pudo. Un familiar conectado en el último día puede mantener la espera, pero no dejarlo pasar; si no es eso, revise su conexión e inténtelo de nuevo.',
       quiet: (when: string) =>
         `Tripwire no se ha comunicado desde su computadora desde ${when}. Puede que la computadora esté apagada o que hayan quitado Tripwire. Una llamada rápida lo aclara.`,

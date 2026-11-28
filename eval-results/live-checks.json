@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-11-28T01:26:21.306Z",
+  "ranAt": "2026-11-28T01:59:46.396Z",
   "where": "live Firebase project, Chromium with the extension loaded",
   "steps": [
     {
@@ -15,7 +15,7 @@
     {
       "state": "pass",
       "name": "explanations in the browser language (Spanish, cloud path)",
-      "note": "cloud_fallback: Amenaza con cerrar su cuenta hoy mismo."
+      "note": "cloud_fallback: Exige que llame de inmediato por un bloqueo falso."
     },
     {
       "state": "pass",
@@ -35,12 +35,12 @@
     {
       "state": "pass",
       "name": "stopping a scam sends an alert that appears on the family page",
-      "note": "Today 8:26 PM Fake bank message A message posing as a bank asked for account or card details. Opened a suspicious page They stopped No action needed, though they may appreciate hearing from you."
+      "note": "Today 8:59 PM Fake bank message A message posing as a bank asked for account or card details. Opened a suspicious page They stopped No action needed, though they may appreciate hearing from you."
     },
     {
       "state": "pass",
       "name": "bank transfer hold: new family can keep it on hold but not let it go through",
-      "note": "release refused by the live rules (link approved minutes ago); 30-minute extension accepted and shown on the pause"
+      "note": "family connected minutes ago is offered only \"keep it on hold\" (the live rules refuse a release too, see tests/rules); the 30-minute extension went through and showed on the pause"
     }
   ]
 }

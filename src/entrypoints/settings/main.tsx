@@ -30,8 +30,8 @@ function SettingsPage() {
   const familyCount = family?.guardianCount ?? 0;
   const disconnect = () => {
     setConfirming(false);
-    void send<{ ok: boolean }>({ target: 'background', type: 'family-disconnect' }).then((r) => {
-      setStatus(r?.ok ? SETTINGS.family.done : SETTINGS.family.failed);
+    void send<{ ok: boolean; reason?: string }>({ target: 'background', type: 'family-disconnect' }).then((r) => {
+      setStatus(r?.ok ? SETTINGS.family.done : r?.reason === 'recent_risk' ? SETTINGS.family.recentRisk : SETTINGS.family.failed);
       refreshFamily();
     });
   };

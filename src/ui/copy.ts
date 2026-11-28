@@ -438,6 +438,7 @@ export const SETTINGS = {
     cancel: 'Keep them connected',
     done: 'Disconnected. Nobody is being sent alerts now.',
     failed: 'That did not work. Check your internet connection and try again.',
+    recentRisk: 'Tripwire warned you less than an hour ago, so your family stays connected for now. If someone on the phone told you to do this, hang up and call your family.',
     add: 'Connect a family member',
   },
   back: 'Close this tab',
@@ -573,6 +574,7 @@ export const DASHBOARD = {
     holdExtend: 'Keep it on hold for 30 minutes',
     holdReleased: 'You let it go through',
     holdExtended: 'You asked them to wait 30 more minutes',
+    holdNewFamily: 'You connected less than a day ago, so you can keep this on hold but not let it go through yet. That way a stranger who talked them into connecting cannot release it.',
     holdFailed: 'That did not go through. Family connected in the last day can keep a hold but not let it go through; otherwise check your internet and try again.',
     quiet: (when: string) =>
       `Tripwire has not checked in from their computer since ${when}. The computer may just be off, or Tripwire may have been removed. A quick call can tell.`,
